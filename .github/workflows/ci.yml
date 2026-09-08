@@ -1,0 +1,91 @@
+name: CI
+
+on: [push, pull_request]
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: Test (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    env:
+      GOFLAGS: -count=1
+    steps:
+      - name: Check out the code
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+          cache: true
+
+      # The X11 backend's tests need a real X server to be worth anything, so
+      # the Linux leg runs the whole suite under Xvfb, with xrdb available for
+      # the display-scale check.
+      - name: Install the X11 test bits
+        if: runner.os == 'Linux'
+        run: sudo apt-get update && sudo apt-get install -y --no-install-recommends xvfb x11-xserver-utils
+
+      - name: Test
+        shell: bash
+        run: |
+          if [ "$RUNNER_OS" = "Linux" ]; then
+            xvfb-run -a -s "-screen 0 1280x1024x24" go test ./...
+          else
+            go test ./...
+          fi
+
+      # `go vet` under windows fails on the unsafe.Pointer reads the Win32
+      # backend is written around (it flags every cast the original carries,
+      # ported with the same lint:ignore comments) and macOS vet needs the
+      # Apple toolchain's own deployment step; Linux is the port that is
+      # asked to be clean, and is.
+      - name: Vet
+        if: runner.os == 'Linux'
+        run: go vet ./...
+
+  build:
+    name: Cross-build GOOS=${{ matrix.os }} GOARCH=${{ matrix.arch }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - {os: linux,     arch: amd64}
+          - {os: linux,     arch: arm64}
+          - {os: windows,   arch: amd64}
+          - {os: windows,   arch: arm64}
+          - {os: darwin,    arch: amd64}
+          - {os: darwin,    arch: arm64}
+          - {os: freebsd,   arch: amd64}
+          - {os: openbsd,   arch: amd64}
+          - {os: netbsd,    arch: amd64}
+          - {os: dragonfly, arch: amd64}
+          - {os: js,        arch: wasm}
+    steps:
+      - name: Check out the code
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+          cache: true
+
+      # Every target is wired to the no-cgo half of its backend, so the whole
+      # matrix is checkable from one machine — including the Window Server
+      # (darwin) and WASAPI/Cocoa (windows/darwin) ports that need their own
+      # OS to run for real. Building them here is the earliest check they can
+      # get without one.
+      - name: Build
+        env:
+          GOOS: ${{ matrix.os }}
+          GOARCH: ${{ matrix.arch }}
+          CGO_ENABLED: "0"
+        run: go build ./...
