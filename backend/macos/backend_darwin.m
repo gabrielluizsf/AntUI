@@ -14,7 +14,12 @@ static void antui_d_on_main(void (^block)(void)) {
     if ([NSThread isMainThread]) {
         block();
     } else {
-        dispatch_sync(dispatch_get_main_queue(), block);
+        dispatch_semaphore_t sem = dispatch_semaphore_create(0);
+        dispatch_async(dispatch_get_main_queue(), ^{
+            block();
+            dispatch_semaphore_signal(sem);
+        });
+        dispatch_semaphore_wait(sem, DISPATCH_TIME_FOREVER);
     }
 }
 
