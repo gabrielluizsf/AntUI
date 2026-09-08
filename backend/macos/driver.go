@@ -40,10 +40,9 @@ type Driver struct {
 
 // Open creates the window that Options describes.
 //
-// AppKit insists on the main thread. Locking pins this goroutine to the
-// thread it is already on, so a program that opens its window from main gets
-// the main thread and everything works; one that opens it from another
-// goroutine at least keeps every AppKit call on one thread.
+// AppKit insists on the main OS thread. Locking pins this goroutine to the
+// thread it is already on, and the CGO layer uses Grand Central Dispatch
+// to safely route the NSWindow instantiation to the Apple main thread.
 func Open(win backend.Face, opts backend.Options) (*Driver, error) {
 	if win == nil {
 		return nil, errors.New("antui: macos backend with no window to drive")

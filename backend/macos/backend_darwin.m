@@ -9,6 +9,15 @@
 
 #define ANTUI_D_MAX_QUEUE 512
 
+// Helper function to safely execute UI code on the Apple main thread.
+static void antui_d_on_main(void (^block)(void)) {
+    if ([NSThread isMainThread]) {
+        block();
+    } else {
+        dispatch_sync(dispatch_get_main_queue(), block);
+    }
+}
+
 // Key codes are hardware positions on macOS, not characters, so this table is
 // the layout-independent map from where a key is to which key it is.
 static int antui_d_key(unsigned short code)
@@ -155,15 +164,10 @@ static void antui_d_push(antui_d_window *w, antui_d_event ev)
     }
     if (paths.count == 0) return NO;
 
-    // Kept on the window rather than sent: Go reads them out by index once
-    // it has the event. The last drop's list goes when this one takes its
-    // place — there is no ARC here, so it is let go of by hand.
     NSArray<NSString *> *previous = w->dropped;
     w->dropped = [paths copy];
     [previous release];
 
-    // Where it was dropped, in the same coordinates every other event uses:
-    // from the top left, in pixels.
     NSPoint at = [self convertPoint:[sender draggingLocation] fromView:nil];
     NSRect bounds = [self bounds];
 
@@ -197,7 +201,6 @@ static void antui_d_push(antui_d_window *w, antui_d_event ev)
         NSRect bounds = [self bounds];
         CGContextSaveGState(ctx);
         CGContextSetInterpolationQuality(ctx, kCGInterpolationNone);
-        // Cocoa's origin is at the bottom left; the canvas starts at the top.
         CGContextTranslateCTM(ctx, 0, bounds.size.height);
         CGContextScaleCTM(ctx, 1.0, -1.0);
         CGContextDrawImage(ctx, CGRectMake(0, 0, bounds.size.width, bounds.size.height),
@@ -230,8 +233,6 @@ static void antui_d_push(antui_d_window *w, antui_d_event ev)
     memset(&ev, 0, sizeof ev);
     ev.type = ANTUI_D_CLOSE;
     antui_d_push(self.owner, ev);
-    // The window is not torn down here: the program's own loop decides when
-    // to stop, and antui_d_close is what actually closes it.
     return NO;
 }
 
@@ -286,65 +287,67 @@ static void antui_d_push(antui_d_window *w, antui_d_event ev)
 
 antui_d_window *antui_d_open(const char *title, int width, int height)
 {
-    @autoreleasepool {
-        antui_d_window *w = (antui_d_window *)calloc(1, sizeof *w);
-        if (!w) return NULL;
+    __block antui_d_window *w = NULL;
+    
+    antui_d_on_main(^{
+        @autoreleasepool {
+            w = (antui_d_window *)calloc(1, sizeof *w);
+            if (!w) return;
 
-        w->width  = width;
-        w->height = height;
-        w->pixels = (uint32_t *)calloc((size_t)width * (size_t)height, 4);
-        if (!w->pixels) { free(w); return NULL; }
+            w->width  = width;
+            w->height = height;
+            w->pixels = (uint32_t *)calloc((size_t)width * (size_t)height, 4);
+            if (!w->pixels) { free(w); w = NULL; return; }
 
-        [NSApplication sharedApplication];
-        // Regular, so the window takes focus and appears in the Dock rather
-        // than opening behind whatever is in front.
-        [NSApp setActivationPolicy:NSApplicationActivationPolicyRegular];
+            [NSApplication sharedApplication];
+            [NSApp setActivationPolicy:NSApplicationActivationPolicyRegular];
 
-        NSRect frame = NSMakeRect(0, 0, width, height);
-        NSWindowStyleMask style = NSWindowStyleMaskTitled |
-                                  NSWindowStyleMaskClosable |
-                                  NSWindowStyleMaskMiniaturizable |
-                                  NSWindowStyleMaskResizable;
+            NSRect frame = NSMakeRect(0, 0, width, height);
+            NSWindowStyleMask style = NSWindowStyleMaskTitled |
+                                      NSWindowStyleMaskClosable |
+                                      NSWindowStyleMaskMiniaturizable |
+                                      NSWindowStyleMaskResizable;
 
-        w->window = [[NSWindow alloc] initWithContentRect:frame
-                                               styleMask:style
-                                                 backing:NSBackingStoreBuffered
-                                                   defer:NO];
-        if (!w->window) { free(w->pixels); free(w); return NULL; }
+            w->window = [[NSWindow alloc] initWithContentRect:frame
+                                                   styleMask:style
+                                                     backing:NSBackingStoreBuffered
+                                                       defer:NO];
+            if (!w->window) { free(w->pixels); free(w); w = NULL; return; }
 
-        w->view = [[AntuiView alloc] initWithFrame:frame];
-        w->view.owner = w;
+            w->view = [[AntuiView alloc] initWithFrame:frame];
+            w->view.owner = w;
 
-        AntuiDelegate *delegate = [[AntuiDelegate alloc] init];
-        delegate.owner = w;
-        w->delegate = delegate;
+            AntuiDelegate *delegate = [[AntuiDelegate alloc] init];
+            delegate.owner = w;
+            w->delegate = delegate;
 
-        [w->window setContentView:w->view];
-        [w->window setDelegate:delegate];
-        [w->window setTitle:[NSString stringWithUTF8String:title ? title : ""]];
-        [w->window setAcceptsMouseMovedEvents:YES];
-        // Say the window takes a drag; without this the pointer shows the
-        // no-entry sign and nothing is ever offered to it.
-        [w->view registerForDraggedTypes:@[NSPasteboardTypeFileURL]];
-        [w->window makeFirstResponder:w->view];
-        [w->window center];
-        [w->window makeKeyAndOrderFront:nil];
+            [w->window setContentView:w->view];
+            [w->window setDelegate:delegate];
+            [w->window setTitle:[NSString stringWithUTF8String:title ? title : ""]];
+            [w->window setAcceptsMouseMovedEvents:YES];
+            [w->view registerForDraggedTypes:@[NSPasteboardTypeFileURL]];
+            [w->window makeFirstResponder:w->view];
+            [w->window center];
+            [w->window makeKeyAndOrderFront:nil];
 
-        [NSApp activateIgnoringOtherApps:YES];
-        [NSApp finishLaunching];
-        return w;
-    }
+            [NSApp activateIgnoringOtherApps:YES];
+            [NSApp finishLaunching];
+        }
+    });
+    return w;
 }
 
 void antui_d_close(antui_d_window *w)
 {
     if (!w) return;
-    @autoreleasepool {
-        [w->window setDelegate:nil];
-        [w->window close];
-        [w->dropped release];
-        w->dropped = nil;
-    }
+    antui_d_on_main(^{
+        @autoreleasepool {
+            [w->window setDelegate:nil];
+            [w->window close];
+            [w->dropped release];
+            w->dropped = nil;
+        }
+    });
     free(w->pixels);
     free(w);
 }
@@ -352,122 +355,119 @@ void antui_d_close(antui_d_window *w)
 int antui_d_pump(antui_d_window *w, antui_d_event *out, int max_events)
 {
     if (!w || !out || max_events <= 0) return 0;
+    __block int count = 0;
 
-    @autoreleasepool {
-        for (;;) {
-            NSEvent *event = [NSApp nextEventMatchingMask:NSEventMaskAny
-                                                untilDate:[NSDate distantPast]
-                                                   inMode:NSDefaultRunLoopMode
-                                                  dequeue:YES];
-            if (!event) break;
+    antui_d_on_main(^{
+        @autoreleasepool {
+            for (;;) {
+                NSEvent *event = [NSApp nextEventMatchingMask:NSEventMaskAny
+                                                    untilDate:[NSDate distantPast]
+                                                       inMode:NSDefaultRunLoopMode
+                                                      dequeue:YES];
+                if (!event) break;
 
-            antui_d_event ev;
-            memset(&ev, 0, sizeof ev);
-            ev.mods = antui_d_mods([event modifierFlags]);
+                antui_d_event ev;
+                memset(&ev, 0, sizeof ev);
+                ev.mods = antui_d_mods([event modifierFlags]);
 
-            NSEventType type = [event type];
-            switch (type) {
-            case NSEventTypeMouseMoved:
-            case NSEventTypeLeftMouseDragged:
-            case NSEventTypeRightMouseDragged:
-            case NSEventTypeOtherMouseDragged:
-            case NSEventTypeLeftMouseDown:
-            case NSEventTypeLeftMouseUp:
-            case NSEventTypeRightMouseDown:
-            case NSEventTypeRightMouseUp:
-            case NSEventTypeOtherMouseDown:
-            case NSEventTypeOtherMouseUp:
-            case NSEventTypeScrollWheel: {
-                NSPoint point = [event locationInWindow];
-                ev.x = (int)point.x;
-                // Cocoa measures from the bottom; every other platform, and
-                // the canvas, measure from the top.
-                ev.y = w->height - (int)point.y;
-                break;
-            }
-            default:
-                break;
-            }
-
-            switch (type) {
-            case NSEventTypeMouseMoved:
-            case NSEventTypeLeftMouseDragged:
-            case NSEventTypeRightMouseDragged:
-            case NSEventTypeOtherMouseDragged:
-                ev.type = ANTUI_D_MOUSE_MOVE;
-                antui_d_push(w, ev);
-                break;
-
-            case NSEventTypeLeftMouseDown:
-            case NSEventTypeRightMouseDown:
-            case NSEventTypeOtherMouseDown:
-                ev.type = ANTUI_D_MOUSE_DOWN;
-                ev.button = (type == NSEventTypeLeftMouseDown)  ? 0 :
-                            (type == NSEventTypeRightMouseDown) ? 1 : 2;
-                antui_d_push(w, ev);
-                break;
-
-            case NSEventTypeLeftMouseUp:
-            case NSEventTypeRightMouseUp:
-            case NSEventTypeOtherMouseUp:
-                ev.type = ANTUI_D_MOUSE_UP;
-                ev.button = (type == NSEventTypeLeftMouseUp)  ? 0 :
-                            (type == NSEventTypeRightMouseUp) ? 1 : 2;
-                antui_d_push(w, ev);
-                break;
-
-            case NSEventTypeScrollWheel: {
-                double delta = [event deltaY];
-                ev.type = ANTUI_D_MOUSE_WHEEL;
-                ev.wheel = delta > 0 ? 1 : (delta < 0 ? -1 : 0);
-                if (ev.wheel) antui_d_push(w, ev);
-                break;
-            }
-
-            case NSEventTypeKeyDown:
-            case NSEventTypeKeyUp: {
-                ev.type = (type == NSEventTypeKeyDown) ? ANTUI_D_KEY_DOWN : ANTUI_D_KEY_UP;
-                ev.key = antui_d_key([event keyCode]);
-                ev.repeat = (type == NSEventTypeKeyDown && [event isARepeat]) ? 1 : 0;
-                antui_d_push(w, ev);
-
-                // Command and control turn a key into a command rather than
-                // a character, so nothing is typed under them.
-                if (type == NSEventTypeKeyDown && !(ev.mods & 8) && !(ev.mods & 2)) {
-                    NSString *characters = [event characters];
-                    NSUInteger count = [characters length];
-                    for (NSUInteger i = 0; i < count; ++i) {
-                        unichar unit = [characters characterAtIndex:i];
-                        // 0xF700 and up is AppKit's private block for the
-                        // arrow and function keys, which are not text.
-                        if (unit < 32 || unit == 127 || unit >= 0xF700) continue;
-                        antui_d_event text;
-                        memset(&text, 0, sizeof text);
-                        text.type = ANTUI_D_TEXT;
-                        text.codepoint = unit;
-                        text.mods = ev.mods;
-                        antui_d_push(w, text);
-                    }
+                NSEventType type = [event type];
+                switch (type) {
+                case NSEventTypeMouseMoved:
+                case NSEventTypeLeftMouseDragged:
+                case NSEventTypeRightMouseDragged:
+                case NSEventTypeOtherMouseDragged:
+                case NSEventTypeLeftMouseDown:
+                case NSEventTypeLeftMouseUp:
+                case NSEventTypeRightMouseDown:
+                case NSEventTypeRightMouseUp:
+                case NSEventTypeOtherMouseDown:
+                case NSEventTypeOtherMouseUp:
+                case NSEventTypeScrollWheel: {
+                    NSPoint point = [event locationInWindow];
+                    ev.x = (int)point.x;
+                    ev.y = w->height - (int)point.y;
+                    break;
                 }
-                break;
+                default:
+                    break;
+                }
+
+                switch (type) {
+                case NSEventTypeMouseMoved:
+                case NSEventTypeLeftMouseDragged:
+                case NSEventTypeRightMouseDragged:
+                case NSEventTypeOtherMouseDragged:
+                    ev.type = ANTUI_D_MOUSE_MOVE;
+                    antui_d_push(w, ev);
+                    break;
+
+                case NSEventTypeLeftMouseDown:
+                case NSEventTypeRightMouseDown:
+                case NSEventTypeOtherMouseDown:
+                    ev.type = ANTUI_D_MOUSE_DOWN;
+                    ev.button = (type == NSEventTypeLeftMouseDown)  ? 0 :
+                                (type == NSEventTypeRightMouseDown) ? 1 : 2;
+                    antui_d_push(w, ev);
+                    break;
+
+                case NSEventTypeLeftMouseUp:
+                case NSEventTypeRightMouseUp:
+                case NSEventTypeOtherMouseUp:
+                    ev.type = ANTUI_D_MOUSE_UP;
+                    ev.button = (type == NSEventTypeLeftMouseUp)  ? 0 :
+                                (type == NSEventTypeRightMouseUp) ? 1 : 2;
+                    antui_d_push(w, ev);
+                    break;
+
+                case NSEventTypeScrollWheel: {
+                    double delta = [event deltaY];
+                    ev.type = ANTUI_D_MOUSE_WHEEL;
+                    ev.wheel = delta > 0 ? 1 : (delta < 0 ? -1 : 0);
+                    if (ev.wheel) antui_d_push(w, ev);
+                    break;
+                }
+
+                case NSEventTypeKeyDown:
+                case NSEventTypeKeyUp: {
+                    ev.type = (type == NSEventTypeKeyDown) ? ANTUI_D_KEY_DOWN : ANTUI_D_KEY_UP;
+                    ev.key = antui_d_key([event keyCode]);
+                    ev.repeat = (type == NSEventTypeKeyDown && [event isARepeat]) ? 1 : 0;
+                    antui_d_push(w, ev);
+
+                    if (type == NSEventTypeKeyDown && !(ev.mods & 8) && !(ev.mods & 2)) {
+                        NSString *characters = [event characters];
+                        NSUInteger charCount = [characters length];
+                        for (NSUInteger i = 0; i < charCount; ++i) {
+                            unichar unit = [characters characterAtIndex:i];
+                            if (unit < 32 || unit == 127 || unit >= 0xF700) continue;
+                            antui_d_event text;
+                            memset(&text, 0, sizeof text);
+                            text.type = ANTUI_D_TEXT;
+                            text.codepoint = unit;
+                            text.mods = ev.mods;
+                            antui_d_push(w, text);
+                        }
+                    }
+                    break;
+                }
+                default:
+                    break;
+                }
+
+                [NSApp sendEvent:event];
             }
 
-            default:
-                break;
+            count = w->queued < max_events ? w->queued : max_events;
+            memcpy(out, w->queue, (size_t)count * sizeof(antui_d_event));
+            
+            if (count < w->queued) {
+                memmove(w->queue, w->queue + count,
+                        (size_t)(w->queued - count) * sizeof(antui_d_event));
             }
-
-            [NSApp sendEvent:event];
+            w->queued -= count;
         }
-    }
+    });
 
-    int count = w->queued < max_events ? w->queued : max_events;
-    memcpy(out, w->queue, (size_t)count * sizeof(antui_d_event));
-    // Anything past the cap stays queued for the next pass rather than being
-    // thrown away.
-    if (count < w->queued)
-        memmove(w->queue, w->queue + count,
-                (size_t)(w->queued - count) * sizeof(antui_d_event));
-    w->queued -= count;
     return count;
 }
 
@@ -476,12 +476,9 @@ void antui_d_present(antui_d_window *w, const uint32_t *pixels,
                      int dirty_x, int dirty_y, int dirty_w, int dirty_h)
 {
     if (!w || !pixels || dirty_w <= 0 || dirty_h <= 0) return;
-    if (width != w->width || height != w->height) {
-        // The window resized since this frame was drawn; the next one will
-        // be the right size, and drawing this one would run off the buffer.
-        return;
-    }
+    if (width != w->width || height != w->height) return;
 
+    // Memory copy operations are completely safe off the main thread.
     for (int row = 0; row < dirty_h; ++row) {
         int y = dirty_y + row;
         if (y < 0 || y >= w->height) continue;
@@ -490,29 +487,37 @@ void antui_d_present(antui_d_window *w, const uint32_t *pixels,
                (size_t)dirty_w * 4);
     }
 
-    @autoreleasepool {
-        [w->view setNeedsDisplay:YES];
-        [w->view displayIfNeeded];
-    }
+    // Drawing operations must be synchronized.
+    antui_d_on_main(^{
+        @autoreleasepool {
+            [w->view setNeedsDisplay:YES];
+            [w->view displayIfNeeded];
+        }
+    });
 }
 
 void antui_d_set_title(antui_d_window *w, const char *title)
 {
     if (!w) return;
-    @autoreleasepool {
-        [w->window setTitle:[NSString stringWithUTF8String:title ? title : ""]];
-    }
+    antui_d_on_main(^{
+        @autoreleasepool {
+            [w->window setTitle:[NSString stringWithUTF8String:title ? title : ""]];
+        }
+    });
 }
 
 int antui_d_set_fullscreen(antui_d_window *w, int on)
 {
     if (!w) return 0;
-    @autoreleasepool {
-        int already = ([w->window styleMask] & NSWindowStyleMaskFullScreen) != 0;
-        if (already != (on != 0)) [w->window toggleFullScreen:nil];
-        w->fullscreen = on ? 1 : 0;
-    }
-    return 1;
+    __block int result = 1;
+    antui_d_on_main(^{
+        @autoreleasepool {
+            int already = ([w->window styleMask] & NSWindowStyleMaskFullScreen) != 0;
+            if (already != (on != 0)) [w->window toggleFullScreen:nil];
+            w->fullscreen = on ? 1 : 0;
+        }
+    });
+    return result;
 }
 
 void antui_d_set_limits(antui_d_window *w,
@@ -521,189 +526,200 @@ void antui_d_set_limits(antui_d_window *w,
                         double aspect, int fixed, int no_maximize)
 {
     if (!w || !w->window) return;
-    @autoreleasepool {
-        // Cocoa is the platform that enforces this most completely: the
-        // minimum and maximum are obeyed by the drag, by the zoom button and
-        // by the window being restored from a saved frame.
-        NSSize small = NSMakeSize(min_width > 0 ? min_width : 1,
-                                  min_height > 0 ? min_height : 1);
-        NSSize large = NSMakeSize(max_width > 0 ? max_width : CGFLOAT_MAX,
-                                  max_height > 0 ? max_height : CGFLOAT_MAX);
-        [w->window setContentMinSize:small];
-        [w->window setContentMaxSize:large];
+    antui_d_on_main(^{
+        @autoreleasepool {
+            NSSize small = NSMakeSize(min_width > 0 ? min_width : 1,
+                                      min_height > 0 ? min_height : 1);
+            NSSize large = NSMakeSize(max_width > 0 ? max_width : CGFLOAT_MAX,
+                                      max_height > 0 ? max_height : CGFLOAT_MAX);
+            [w->window setContentMinSize:small];
+            [w->window setContentMaxSize:large];
 
-        // An aspect ratio of zero means none, and AppKit says that with a
-        // resize increment of one rather than a ratio of nothing.
-        if (aspect > 0.0) {
-            [w->window setContentAspectRatio:NSMakeSize(aspect, 1.0)];
-        } else {
-            [w->window setContentResizeIncrements:NSMakeSize(1.0, 1.0)];
+            if (aspect > 0.0) {
+                [w->window setContentAspectRatio:NSMakeSize(aspect, 1.0)];
+            } else {
+                [w->window setContentResizeIncrements:NSMakeSize(1.0, 1.0)];
+            }
+
+            NSWindowStyleMask mask = [w->window styleMask];
+            if (!(mask & NSWindowStyleMaskFullScreen)) {
+                if (fixed) {
+                    mask &= ~NSWindowStyleMaskResizable;
+                } else {
+                    mask |= NSWindowStyleMaskResizable;
+                }
+                [w->window setStyleMask:mask];
+
+                NSButton *zoom = [w->window standardWindowButton:NSWindowZoomButton];
+                [zoom setEnabled:(fixed || no_maximize) ? NO : YES];
+            }
         }
-
-        // The style mask decides whether the frame can be dragged at all.
-        // Full screen is left alone: its mask is not ours to rewrite, and
-        // putting the resizable bit back while the window is full screen is
-        // how a window comes out of it the wrong size.
-        NSWindowStyleMask mask = [w->window styleMask];
-        if (mask & NSWindowStyleMaskFullScreen) return;
-        if (fixed) {
-            mask &= ~NSWindowStyleMaskResizable;
-        } else {
-            mask |= NSWindowStyleMaskResizable;
-        }
-        [w->window setStyleMask:mask];
-
-        // The green button zooms rather than maximises on this system, and
-        // disabling it is how a window says no to that.
-        NSButton *zoom = [w->window standardWindowButton:NSWindowZoomButton];
-        [zoom setEnabled:(fixed || no_maximize) ? NO : YES];
-    }
+    });
 }
 
 int antui_d_set_size(antui_d_window *w, int width, int height)
 {
     if (!w || !w->window || width < 1 || height < 1) return 0;
-    @autoreleasepool {
-        // The content size, not the frame: the title bar is not the game's
-        // to draw into and must not come out of what it asked for.
-        [w->window setContentSize:NSMakeSize(width, height)];
-    }
+    antui_d_on_main(^{
+        @autoreleasepool {
+            [w->window setContentSize:NSMakeSize(width, height)];
+        }
+    });
     return 1;
 }
 
 int antui_d_display_size(antui_d_window *w, int *width, int *height)
 {
-    @autoreleasepool {
-        NSScreen *screen = w && w->window ? [w->window screen] : [NSScreen mainScreen];
-        if (!screen) screen = [NSScreen mainScreen];
-        if (!screen) return 0;
-        NSRect frame = [screen frame];
-        if (width)  *width  = (int)frame.size.width;
-        if (height) *height = (int)frame.size.height;
-        return 1;
-    }
+    __block int success = 0;
+    antui_d_on_main(^{
+        @autoreleasepool {
+            NSScreen *screen = w && w->window ? [w->window screen] : [NSScreen mainScreen];
+            if (!screen) screen = [NSScreen mainScreen];
+            if (screen) {
+                NSRect frame = [screen frame];
+                if (width)  *width  = (int)frame.size.width;
+                if (height) *height = (int)frame.size.height;
+                success = 1;
+            }
+        }
+    });
+    return success;
 }
 
-// --- the icon --------------------------------------------------------------
-
-// macOS has no per-window icon: the icon is the application's, and it is what
-// the Dock shows. A program run from a terminal has no bundle to read one
-// from, so setting it here is the only way it gets one at all.
 void antui_d_set_icon(antui_d_window *w, const uint32_t *pixels,
                       int width, int height)
 {
     (void)w;
     if (!pixels || width <= 0 || height <= 0) return;
 
-    @autoreleasepool {
-        NSBitmapImageRep *rep = [[NSBitmapImageRep alloc]
-            initWithBitmapDataPlanes:NULL
-                          pixelsWide:width
-                          pixelsHigh:height
-                       bitsPerSample:8
-                     samplesPerPixel:4
-                            hasAlpha:YES
-                            isPlanar:NO
-                      colorSpaceName:NSDeviceRGBColorSpace
-                        bitmapFormat:NSBitmapFormatAlphaFirst
-                         bytesPerRow:width * 4
-                        bitsPerPixel:32];
-        if (!rep) return;
+    antui_d_on_main(^{
+        @autoreleasepool {
+            NSBitmapImageRep *rep = [[NSBitmapImageRep alloc]
+                initWithBitmapDataPlanes:NULL
+                              pixelsWide:width
+                              pixelsHigh:height
+                           bitsPerSample:8
+                         samplesPerPixel:4
+                                hasAlpha:YES
+                                isPlanar:NO
+                          colorSpaceName:NSDeviceRGBColorSpace
+                            bitmapFormat:NSBitmapFormatAlphaFirst
+                             bytesPerRow:width * 4
+                            bitsPerPixel:32];
+            if (!rep) return;
 
-        // The pixels arrive as 0xAARRGGBB in memory the caller owns, which is
-        // the order this representation was asked for; they are copied
-        // because the image outlives the call.
-        memcpy([rep bitmapData], pixels, (size_t)width * (size_t)height * 4);
+            memcpy([rep bitmapData], pixels, (size_t)width * (size_t)height * 4);
 
-        NSImage *icon = [[NSImage alloc] initWithSize:NSMakeSize(width, height)];
-        [icon addRepresentation:rep];
-        [NSApp setApplicationIconImage:icon];
-    }
+            NSImage *icon = [[NSImage alloc] initWithSize:NSMakeSize(width, height)];
+            [icon addRepresentation:rep];
+            [NSApp setApplicationIconImage:icon];
+        }
+    });
 }
-
-// --- drops and the clipboard ----------------------------------------------
 
 int antui_d_drop_count(antui_d_window *w)
 {
-    if (!w || !w->dropped) return 0;
-    return (int)w->dropped.count;
+    __block int count = 0;
+    antui_d_on_main(^{
+        if (w && w->dropped) {
+            count = (int)w->dropped.count;
+        }
+    });
+    return count;
 }
 
 const char *antui_d_drop_path(antui_d_window *w, int index)
 {
-    if (!w || !w->dropped || index < 0 || index >= (int)w->dropped.count) {
-        return NULL;
-    }
-    return [w->dropped[index] UTF8String];
+    __block const char *path = NULL;
+    antui_d_on_main(^{
+        if (w && w->dropped && index >= 0 && index < (int)w->dropped.count) {
+            path = [w->dropped[index] UTF8String];
+        }
+    });
+    return path;
 }
 
-// The clipboard's file list, kept here so that the strings handed to Go live
-// past the autorelease pool the call is made in.
 static NSArray<NSString *> *antui_d_clip_files = nil;
 
 char *antui_d_clipboard_text(void)
 {
-    @autoreleasepool {
-        NSString *text = [[NSPasteboard generalPasteboard]
-            stringForType:NSPasteboardTypeString];
-        if (!text) return NULL;
-        const char *utf8 = [text UTF8String];
-        if (!utf8) return NULL;
-        return strdup(utf8);
-    }
+    __block char *result = NULL;
+    antui_d_on_main(^{
+        @autoreleasepool {
+            NSString *text = [[NSPasteboard generalPasteboard]
+                stringForType:NSPasteboardTypeString];
+            if (text) {
+                const char *utf8 = [text UTF8String];
+                if (utf8) {
+                    result = strdup(utf8);
+                }
+            }
+        }
+    });
+    return result;
 }
 
 void antui_d_set_clipboard(const char *text)
 {
     if (!text) return;
-    @autoreleasepool {
-        NSPasteboard *board = [NSPasteboard generalPasteboard];
-        // Clearing first is not optional: the pasteboard keeps what was there
-        // under its other types otherwise, and a paste can come back as
-        // whatever was copied before.
-        [board clearContents];
-        [board setString:[NSString stringWithUTF8String:text]
-                 forType:NSPasteboardTypeString];
-    }
+    antui_d_on_main(^{
+        @autoreleasepool {
+            NSPasteboard *board = [NSPasteboard generalPasteboard];
+            [board clearContents];
+            [board setString:[NSString stringWithUTF8String:text]
+                     forType:NSPasteboardTypeString];
+        }
+    });
 }
 
 int antui_d_clipboard_count(void)
 {
-    @autoreleasepool {
-        NSArray<NSURL *> *urls = [[NSPasteboard generalPasteboard]
-            readObjectsForClasses:@[[NSURL class]]
-                          options:@{NSPasteboardURLReadingFileURLsOnlyKey: @YES}];
-        NSMutableArray<NSString *> *paths = [NSMutableArray array];
-        for (NSURL *url in urls) {
-            if (url.path) [paths addObject:url.path];
+    __block int count = 0;
+    antui_d_on_main(^{
+        @autoreleasepool {
+            NSArray<NSURL *> *urls = [[NSPasteboard generalPasteboard]
+                readObjectsForClasses:@[[NSURL class]]
+                              options:@{NSPasteboardURLReadingFileURLsOnlyKey: @YES}];
+            NSMutableArray<NSString *> *paths = [NSMutableArray array];
+            for (NSURL *url in urls) {
+                if (url.path) [paths addObject:url.path];
+            }
+            NSArray<NSString *> *previous = antui_d_clip_files;
+            antui_d_clip_files = [paths copy];
+            [previous release];
+            
+            count = (int)antui_d_clip_files.count;
         }
-        NSArray<NSString *> *previous = antui_d_clip_files;
-        antui_d_clip_files = [paths copy];
-        [previous release];
-        return (int)antui_d_clip_files.count;
-    }
+    });
+    return count;
 }
 
 const char *antui_d_clipboard_path(int index)
 {
-    if (!antui_d_clip_files || index < 0 ||
-        index >= (int)antui_d_clip_files.count) {
-        return NULL;
-    }
-    return [antui_d_clip_files[index] UTF8String];
+    __block const char *path = NULL;
+    antui_d_on_main(^{
+        if (antui_d_clip_files && index >= 0 && index < (int)antui_d_clip_files.count) {
+            path = [antui_d_clip_files[index] UTF8String];
+        }
+    });
+    return path;
 }
 
 int antui_d_display_refresh(antui_d_window *w)
 {
-    @autoreleasepool {
-        NSScreen *screen = w && w->window ? [w->window screen] : [NSScreen mainScreen];
-        if (!screen) return 0;
-        // maximumFramesPerSecond arrived in 12.0; older systems get nothing
-        // rather than a guess.
-        if (@available(macOS 12.0, *)) {
-            NSInteger hz = [screen maximumFramesPerSecond];
-            if (hz > 0 && hz < 1000) return (int)hz;
+    __block int refresh = 0;
+    antui_d_on_main(^{
+        @autoreleasepool {
+            NSScreen *screen = w && w->window ? [w->window screen] : [NSScreen mainScreen];
+            if (screen) {
+                if (@available(macOS 12.0, *)) {
+                    NSInteger hz = [screen maximumFramesPerSecond];
+                    if (hz > 0 && hz < 1000) {
+                        refresh = (int)hz;
+                    }
+                }
+            }
         }
-        return 0;
-    }
+    });
+    return refresh;
 }
