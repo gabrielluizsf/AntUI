@@ -83,7 +83,7 @@ func SystemFont() (path string, data []byte, err error) {
 //
 //	face, err := antui.SystemFace(15)
 //	if err == nil {
-//	    antui.SetDefaultFace(face)
+//	    canvas.SetDefaultFace(face)
 //	}
 //
 // A program that wants to look like the machine it is on asks for this and

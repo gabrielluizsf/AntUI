@@ -12,7 +12,7 @@ import (
 // Face is a font at a size, ready to draw. Two kinds exist:
 //
 //	canvas.BuiltinFace()          the 8x16 bitmap, exactly as before
-//	canvas.SystemFace(15)         whatever this platform writes its own
+//	antui.SystemFace(15)          whatever this platform writes its own
 //	                               interface in, at 15 pixels
 //	canvas.LoadFace(path, 15)     a TrueType file of your own
 //
