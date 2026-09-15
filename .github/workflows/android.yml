@@ -1,0 +1,153 @@
+# The Android half, which the ordinary build never looks at.
+#
+# Every file under backend/android except the builder is behind a build tag
+# and compiles only for GOOS=android — so `go build ./...`, `go vet ./...`
+# and every test on an ordinary machine skip all of it. That is what keeps
+# the desktop build honest, and it means a mistake in the Android code can
+# sit there through a hundred green runs. This workflow is the one that
+# looks. It is the port of the one multiw runs, which is the same codebase
+# with a different name.
+
+name: android
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "backend/android/**"
+      - "backend_android.go"
+      - "backend_android_blit.go"
+      - "backend_android_input.go"
+      - "audio_android.go"
+      - "sysfont_android.go"
+      - "go.mod"
+      - ".github/workflows/android.yml"
+  pull_request:
+  workflow_dispatch:
+
+env:
+  # The versions this is built against, written down rather than left to
+  # "latest" so that a green run today means the same thing next month — and
+  # so that a failure after a bump is a change somebody made rather than a
+  # change that happened. They are the versions's sdk package looks for.
+  API: "37.2"
+  BUILD_TOOLS: "37.0.0"
+  NDK: "30.0.16138531"
+
+jobs:
+  # What can be checked with no SDK at all: the builder, the signature
+  # checker, the icon writer, the golden manifest. About forty tests.
+  #
+  # ANDROID_HOME is emptied so the SDK is genuinely absent: other packages in
+  # this tree skip loudly when they cannot find one, and this job is the one
+  # that proves the ones counting on that actually do.
+  host:
+    runs-on: ubuntu-latest
+    env:
+      ANDROID_HOME: ""
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+          cache: true
+
+      - name: gofmt
+        run: |
+          set -eu
+          unformatted=$(gofmt -l backend/android/ backend_android.go backend_android_blit.go backend_android_input.go audio_android.go sysfont_android.go)
+          if [ -n "$unformatted" ]; then
+            echo "these are not gofmt'd:"
+            echo "$unformatted"
+            exit 1
+          fi
+
+      - name: the tests that need nothing
+        run: go test ./backend/android/...
+
+  # The android-tagged files: built for every ABI a store takes, and vetted,
+  # which nothing else in this repository does.
+  android:
+    runs-on: ubuntu-latest
+    env:
+      # GitHub's runners keep a preinstalled SDK here; the pinned pieces are
+      # installed on top of it (see below). ANDROID_HOME is named so the
+      # sdk package, which reads it, finds exactly that tree.
+      ANDROID_HOME: /usr/local/lib/android/sdk
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+          cache: true
+
+      # The dex check and the signing tests are Java programs, and the dex
+      # check (the committed classes.dex against what its own source
+      # compiles to) is only meaningful if the same javac family made the
+      # committed file. The tree was built with JDK 17; so is this.
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      # The NDK is about two gigabytes and the platform another few hundred
+      # megabytes, and downloading them is most of this job. The key is the
+      # versions above, so a bump is a fresh download and nothing else is.
+      - name: cache the SDK and the NDK
+        id: sdk
+        uses: actions/cache@v4
+        with:
+          path: |
+            ${{ env.ANDROID_HOME }}/ndk/${{ env.NDK }}
+            ${{ env.ANDROID_HOME }}/platforms/android-${{ env.API }}
+            ${{ env.ANDROID_HOME }}/build-tools/${{ env.BUILD_TOOLS }}
+          key: android-${{ env.API }}-${{ env.BUILD_TOOLS }}-${{ env.NDK }}
+
+      - name: install what the cache did not have
+        if: steps.sdk.outputs.cache-hit != 'true'
+        run: |
+          set -eu
+          SDKMANAGER="${ANDROID_HOME}/cmdline-tools/latest/bin/sdkmanager"
+          yes | $SDKMANAGER --licenses > /dev/null || true
+          $SDKMANAGER "platforms;android-${API}" \
+                      "build-tools;${BUILD_TOOLS}" \
+                      "ndk;${NDK}"
+
+      - name: what is installed
+        run: go test ./backend/android/sdk -run TestDoctor -v
+
+      # Every ABI, so that a mistake in the 32-bit paths — a size, an
+      # alignment, a pointer squeezed into an int — is found here and not by
+      # somebody with an older phone. AntUI has no example app to link as a
+      # shared library, so the whole tree is the build target: everything
+      # Android can compile, for every ABI Android is sold on.
+      - name: build for every ABI
+        run: |
+          set -eu
+          bin="${ANDROID_HOME}/ndk/${NDK}/toolchains/llvm/prebuilt/linux-x86_64/bin"
+          build() {
+            echo "--- $1 ---"
+            CGO_ENABLED=1 GOOS=android GOARCH="$2" CC="${bin}/$3" \
+              go build ./...
+          }
+          build arm64-v8a   arm64 aarch64-linux-android21-clang
+          build armeabi-v7a arm   armv7a-linux-androideabi21-clang
+          build x86_64      amd64 x86_64-linux-android21-clang
+          build x86         386   i686-linux-android21-clang
+
+      # go vet has never seen these files: it runs for the host platform, and
+      # for the host platform they do not exist.
+      - name: vet the android-tagged files
+        run: |
+          set -eu
+          bin="${ANDROID_HOME}/ndk/${NDK}/toolchains/llvm/prebuilt/linux-x86_64/bin"
+          CGO_ENABLED=1 GOOS=android GOARCH=arm64 \
+            CC="${bin}/aarch64-linux-android21-clang" \
+            go vet ./backend/android/... .
+
+      # The tests that need the SDK. On this job ANDROID_HOME points at a
+      # real install, so the ones that skip elsewhere actually run: the
+      # signed and verified package, the linked resource table, and the dex
+      # checked against its own source.
+      - name: the tests that need the SDK
+        run: go test ./backend/android/...
