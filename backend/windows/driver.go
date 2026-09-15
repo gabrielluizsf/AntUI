@@ -48,6 +48,7 @@ var (
 	procSetWindowPos         = user32.NewProc("SetWindowPos")
 	procGetWindowLongW       = user32.NewProc("GetWindowLongW")
 	procSetWindowLongW       = user32.NewProc("SetWindowLongW")
+	procSetLayeredWindowAttr = user32.NewProc("SetLayeredWindowAttributes")
 	procMonitorFromWindow    = user32.NewProc("MonitorFromWindow")
 	procGetMonitorInfoW      = user32.NewProc("GetMonitorInfoW")
 	procGetSystemMetrics     = user32.NewProc("GetSystemMetrics")
@@ -122,7 +123,11 @@ const (
 
 	cwUseDefault = ^uintptr(0) - 0x7FFFFFFF // 0x80000000 as a signed int
 
-	gwlStyle = ^uintptr(15) // GWL_STYLE, which is -16
+	gwlStyle   = ^uintptr(15) // GWL_STYLE, which is -16
+	gwlExStyle = ^uintptr(19) // GWL_EXSTYLE, which is -20
+
+	wsExLayered = 0x00080000
+	lwaAlpha    = 0x00000002
 
 	swpNoOwnerZOrder = 0x0200
 	swpFrameChanged  = 0x0020
@@ -455,6 +460,23 @@ func (d *Driver) blit(hdc uintptr) {
 		uintptr(unsafe.Pointer(&d.info)),
 		dibRGBColor, srcCopy,
 	)
+}
+
+// SetOpacity fades the whole window so what sits behind it shows through;
+// 255 is fully opaque. The window is kept opaque to GDI and made layered
+// instead: the compositor paints it at a uniform alpha, so the frame itself
+// never loses a bit, only its overall brightness changes.
+func (d *Driver) SetOpacity(alpha uint8) bool {
+	if d.hwnd == 0 {
+		return false
+	}
+	style, _, _ := procGetWindowLongPtr.Call(d.hwnd, gwlExStyle)
+	procSetWindowLongPtr.Call(d.hwnd, gwlExStyle, style|wsExLayered)
+	// The bAlpha of SetLayeredWindowAttributes is a byte already, so the
+	// value travels as-is. A full fade is asked for by putting opacity back
+	// at 255 the same way it was lowered.
+	procSetLayeredWindowAttr.Call(d.hwnd, 0, uintptr(alpha), lwaAlpha)
+	return true
 }
 
 // Present copies the window's dirty rectangle to the platform surface.
