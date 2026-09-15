@@ -30,6 +30,11 @@ type platform interface {
 	// setFullscreen reports whether the request could be made at all, not
 	// whether the window manager honoured it.
 	setFullscreen(on bool) bool
+	// setOpacity fades the whole window — decorations and all — toward
+	// transparent, so what sits behind the program shows through. 255 is
+	// fully opaque. It reports whether the request could be made, not whether
+	// a compositor honoured it.
+	setOpacity(alpha uint8) bool
 	displaySize() (w, h int, ok bool)
 	displayRefresh() int
 	// setLimits passes the size constraints on to the window manager. They
@@ -70,8 +75,9 @@ type Window struct {
 	fullRedraw    bool // forces sending the whole frame
 	visible       bool
 
-	fullscreen                    bool // what was last asked for
-	windowedWidth, windowedHeight int  // the size to come back out to
+	fullscreen                    bool  // what was last asked for
+	windowedWidth, windowedHeight int   // the size to come back out to
+	opacity                       uint8 // what was last asked for; 255 = opaque
 
 	limits Limits  // what the window may be resized to; see window_size.go
 	scale  float64 // pixels per point, 0 until the backend says
@@ -117,6 +123,10 @@ type Window struct {
 	uiFocus  uint32 // the widget receiving the keyboard
 	uiCursor int    // cursor position in the focused text field
 	uiBlink  float64
+
+	// uiTab is the widgets that take the keyboard, in the order they drew
+	// this frame; Tab walks it. Its slice is reused from frame to frame.
+	uiTab []uint32
 }
 
 var (
@@ -157,6 +167,7 @@ func OpenWith(opt Options) (*Window, error) {
 		limits:         opt.Limits,
 		fullRedraw:     true,
 		visible:        true,
+		opacity:        255,
 		queue:          make([]Event, 0, 32),
 		theme:          LightTheme(),
 	}
@@ -227,6 +238,7 @@ func (win *Window) Begin() bool {
 	win.queue = win.queue[:0]
 	win.droppedEvents = 0
 	win.uiHot = 0
+	win.uiTab = win.uiTab[:0]
 	win.uiBlink += win.delta
 
 	if win.native != nil {
@@ -241,6 +253,7 @@ func (win *Window) Begin() bool {
 // End finishes the frame: it sends the pixels to the screen and applies the
 // frame-rate cap.
 func (win *Window) End() {
+	win.moveFocus()
 	if win.native == nil {
 		return
 	}
@@ -298,6 +311,24 @@ func (win *Window) SetFullscreen(on bool) bool {
 // Fullscreen reports what was last asked for, not what a window manager did
 // about it.
 func (win *Window) Fullscreen() bool { return win.fullscreen }
+
+// SetOpacity fades the whole window — decorations and all — so that what sits
+// behind the program shows through; 255 is fully opaque and 0 is invisible.
+// It reports whether the request could be made: there is no window to fade on
+// an offscreen canvas, so that reports false while still remembering the
+// value. The window itself is never returned to — this is a whole-window
+// opacity, not a fade of the pixels drawn into it, so what is drawn keeps its
+// contrast and only its overall brightness changes.
+func (win *Window) SetOpacity(alpha uint8) bool {
+	win.opacity = alpha
+	if win.native == nil {
+		return false
+	}
+	return win.native.setOpacity(alpha)
+}
+
+// Opacity is what was last asked for with SetOpacity, 255 by default.
+func (win *Window) Opacity() uint8 { return win.opacity }
 
 // DisplaySize is the display's size in pixels, and whether it could be told.
 func (win *Window) DisplaySize() (width, height int, ok bool) {

@@ -294,6 +294,10 @@ func (b *androidWindow) setTitle(string) {}
 func (b *androidWindow) setLimits(*Window, Limits)      {}
 func (b *androidWindow) setSize(*Window, int, int) bool { return false }
 
+// setOpacity: a phone has no window manager to ask for a fade, and the
+// window covers the screen anyway — there is nothing to see behind it.
+func (b *androidWindow) setOpacity(uint8) bool { return false }
+
 // setIcon: the icon is a resource in the package, chosen when the APK is
 // built and not at runtime.
 func (b *androidWindow) setIcon([]*canvas.Canvas) bool { return false }

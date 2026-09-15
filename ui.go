@@ -93,7 +93,13 @@ func (win *Window) Button(x, y, w, h int, label string) bool {
 	id := widgetID("button", x, y, w, h, label)
 	hovered := win.Hovered(x, y, w, h)
 	clicked := win.widgetClick(id, hovered)
-	pressed := win.uiActive == id && hovered
+	focused := win.uiFocus == id
+	win.uiTab = append(win.uiTab, id)
+	keyed := win.WidgetKeyActivate(id)
+	if keyed {
+		clicked = true
+	}
+	pressed := (win.uiActive == id && hovered) || keyed
 
 	fill := win.theme.Accent
 	switch {
@@ -104,7 +110,11 @@ func (win *Window) Button(x, y, w, h int, label string) bool {
 	}
 	win.cv.FillRoundRect(x, y, w, h, win.theme.Radius, fill)
 
-	textY := y + (h-canvas.FontHeight)/2
+	if focused && !pressed {
+		win.cv.RoundRect(x-2, y-2, w+4, h+4, win.theme.Radius+2, win.theme.Accent)
+	}
+
+	textY := y + (h-canvas.TextHeight())/2
 	if pressed {
 		textY++
 	}
@@ -123,6 +133,11 @@ func (win *Window) Checkbox(x, y int, label string, value *bool) bool {
 	id := widgetID("checkbox", x, y, box, box, label)
 	hovered := win.Hovered(x, y, w, box)
 	clicked := win.widgetClick(id, hovered)
+	focused := win.uiFocus == id
+	win.uiTab = append(win.uiTab, id)
+	if win.WidgetKeyActivate(id) {
+		clicked = true
+	}
 	if clicked {
 		*value = !*value
 	}
@@ -141,6 +156,10 @@ func (win *Window) Checkbox(x, y int, label string, value *bool) bool {
 	win.cv.FillRoundRect(x, y, box, box, 4, fill)
 	win.cv.RoundRect(x, y, box, box, 4, border)
 
+	if focused {
+		win.cv.RoundRect(x-2, y-2, box+4, box+4, 6, win.theme.Accent)
+	}
+
 	if *value {
 		mark := win.theme.TextOnAccent
 		win.cv.Line(x+4, y+9, x+7, y+13, mark)
@@ -149,7 +168,7 @@ func (win *Window) Checkbox(x, y int, label string, value *bool) bool {
 		win.cv.Line(x+8, y+13, x+15, y+5, mark)
 	}
 
-	win.cv.Text(x+box+8, y+(box-canvas.FontHeight)/2, label, win.theme.Text)
+	win.cv.Text(x+box+8, y+(box-canvas.TextHeight())/2, label, win.theme.Text)
 	return clicked
 }
 
@@ -164,6 +183,11 @@ func (win *Window) Radio(x, y int, label string, value *int, option int) bool {
 	id := widgetID("radio", x, y, size, option, label)
 	hovered := win.Hovered(x, y, w, size)
 	clicked := win.widgetClick(id, hovered)
+	focused := win.uiFocus == id
+	win.uiTab = append(win.uiTab, id)
+	if win.WidgetKeyActivate(id) {
+		clicked = true
+	}
 	selected := *value == option
 
 	if clicked && !selected {
@@ -183,11 +207,14 @@ func (win *Window) Radio(x, y int, label string, value *int, option int) bool {
 	}
 	win.cv.FillCircle(x+size/2, y+size/2, size/2, surface)
 	win.cv.Circle(x+size/2, y+size/2, size/2, border)
+	if focused {
+		win.cv.Circle(x+size/2, y+size/2, size/2+3, win.theme.Accent)
+	}
 	if selected {
 		win.cv.FillCircle(x+size/2, y+size/2, size/2-4, win.theme.Accent)
 	}
 
-	win.cv.Text(x+size+8, y+(size-canvas.FontHeight)/2, label, win.theme.Text)
+	win.cv.Text(x+size+8, y+(size-canvas.TextHeight())/2, label, win.theme.Text)
 	return clicked
 }
 
@@ -199,6 +226,8 @@ func (win *Window) Slider(x, y, w, h int, value *float32, minValue, maxValue flo
 	}
 	id := widgetID("slider", x, y, w, h, "")
 	hovered := win.Hovered(x, y, w, h)
+	focused := win.uiFocus == id
+	win.uiTab = append(win.uiTab, id)
 
 	if hovered {
 		win.uiHot = id
@@ -216,6 +245,25 @@ func (win *Window) Slider(x, y, w, h int, value *float32, minValue, maxValue flo
 	span := maxValue - minValue
 
 	changed := false
+	if focused {
+		step := span / 10
+		if win.KeyPressed(KeyLeft) {
+			wanted := *value - step
+			if wanted != *value {
+				*value = min(max(wanted, minValue), maxValue)
+				changed = true
+				win.uiBlink = 0
+			}
+		}
+		if win.KeyPressed(KeyRight) {
+			wanted := *value + step
+			if wanted != *value {
+				*value = min(max(wanted, minValue), maxValue)
+				changed = true
+				win.uiBlink = 0
+			}
+		}
+	}
 	if win.uiActive == id {
 		position := float32(win.mouseX-(x+knobRadius)) / float32(usable)
 		position = min(max(position, 0), 1)
@@ -240,6 +288,9 @@ func (win *Window) Slider(x, y, w, h int, value *float32, minValue, maxValue flo
 	}
 	win.cv.FillCircle(knobX, y+h/2, knobRadius, knob)
 	win.cv.FillCircle(knobX, y+h/2, knobRadius-4, win.theme.Surface)
+	if focused {
+		win.cv.Circle(knobX, y+h/2, knobRadius+3, win.theme.Accent)
+	}
 	return changed
 }
 
@@ -310,6 +361,7 @@ func (win *Window) Input(x, y, w, h int, text *string) bool {
 		}
 	}
 	focused := win.uiFocus == id
+	win.uiTab = append(win.uiTab, id)
 
 	changed := false
 	if focused {
@@ -333,11 +385,11 @@ func (win *Window) Input(x, y, w, h int, text *string) bool {
 	savedClip := win.cv.Clip
 	win.cv.SetClip(x+padding, y+1, w-2*padding, h-2)
 
-	textY := y + (h-canvas.FontHeight)/2
+	textY := y + (h-canvas.TextHeight())/2
 	win.cv.Text(x+padding-scroll, textY, *text, win.theme.Text)
 
 	if focused && int64(win.uiBlink*2)%2 == 0 {
-		win.cv.FillRect(x+padding-scroll+cursorPx, textY-1, 1, canvas.FontHeight+2, win.theme.Text)
+		win.cv.FillRect(x+padding-scroll+cursorPx, textY-1, 1, canvas.TextHeight()+2, win.theme.Text)
 	}
 
 	win.cv.Clip = savedClip

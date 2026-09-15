@@ -238,6 +238,67 @@ func TestCanvasFaceOverridesTheDefault(t *testing.T) {
 	}
 }
 
+// A widget centres its label in the face it actually draws in. This is the
+// regression behind "the system font is a weird size": the built-in widgets
+// used to centre text against the 8x16 font's height no matter what the
+// default face was, so with a system font set the label sat off-centre inside
+// the control, which reads as blurry and wrong-sized.
+func TestButtonCentresLabelInTheDefaultFace(t *testing.T) {
+	f := systemFace(t, 20)
+	canvas.SetDefaultFace(f)
+	defer canvas.SetDefaultFace(nil)
+
+	win, _ := newTestWindow(t, 220, 120)
+	win.Begin()
+	win.Button(30, 30, 120, 40, "C")
+	win.End()
+
+	// Let c is single, fully inked, so the rows that match the text colour
+	// exactly are roughly where the glyph's core sits.
+	want := 30 + 40/2
+	y0, y1 := 1 << 20, -1
+	for y := 30; y < 70; y++ {
+		for x := 30; x < 150; x++ {
+			if win.cv.At(x, y) == win.theme.TextOnAccent {
+				y0, y1 = min(y0, y), max(y1, y)
+			}
+		}
+	}
+	if y1 < 0 {
+		t.Fatal("the label drew nothing in the text colour")
+	}
+	mid := (y0 + y1) / 2
+	if mid < want-3 || mid > want+3 {
+		t.Errorf("label centre is row %d, the button centre is %d", mid, want)
+	}
+}
+
+// And when the built-in face is the default — which it always is until
+// somebody says otherwise — the same widget sits at the 8x16 line height the
+// whole library has always assumed.
+func TestButtonCentresLabelInTheBuiltin(t *testing.T) {
+	win, _ := newTestWindow(t, 220, 120)
+	win.Begin()
+	win.Button(30, 30, 120, 40, "C")
+	win.End()
+
+	want := 30 + 40/2
+	y0, y1 := 1<<20, -1
+	for y := 30; y < 70; y++ {
+		for x := 30; x < 150; x++ {
+			if win.cv.At(x, y) == win.theme.TextOnAccent {
+				y0, y1 = min(y0, y), max(y1, y)
+			}
+		}
+	}
+	if y1 < 0 {
+		t.Fatal("the label drew nothing in the text colour")
+	}
+	if mid := (y0 + y1) / 2; mid < want-3 || mid > want+3 {
+		t.Errorf("label centre is row %d, the button centre is %d", mid, want)
+	}
+}
+
 // Bytes that are not a font are an error and never a crash: a font file is
 // something a program may be handed.
 func TestParseFaceRefusesRubbish(t *testing.T) {

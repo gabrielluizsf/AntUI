@@ -4,7 +4,7 @@ package antui
 
 // defaultUIPoints is a guess, on a platform this library has not been taught
 // about.
-const defaultUIPoints = 11
+const defaultUIPoints = 13
 
 // systemFontAsked has nothing to ask on a platform this library has not
 // been taught about.

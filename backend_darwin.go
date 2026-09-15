@@ -39,8 +39,9 @@ func (n *darwinNative) setTitle(title string) { n.d.SetTitle(title) }
 func (n *darwinNative) setFullscreen(on bool) bool {
 	return n.d.SetFullscreen(on)
 }
-func (n *darwinNative) displaySize() (w, h int, ok bool) { return n.d.DisplaySize() }
-func (n *darwinNative) displayRefresh() int              { return n.d.DisplayRefresh() }
+func (n *darwinNative) setOpacity(alpha uint8) bool          { return n.d.SetOpacity(alpha) }
+func (n *darwinNative) displaySize() (w, h int, ok bool)     { return n.d.DisplaySize() }
+func (n *darwinNative) displayRefresh() int                  { return n.d.DisplayRefresh() }
 func (n *darwinNative) setLimits(win *Window, limits Limits) { n.d.SetLimits(limits) }
 func (n *darwinNative) setSize(win *Window, width, height int) bool {
 	return n.d.SetSize(win, width, height)

@@ -3,8 +3,10 @@
 package antui
 
 // defaultUIPoints is what a desktop toolkit draws its interface at when
-// nobody has said otherwise. GNOME and KDE both start at 10 or 11.
-const defaultUIPoints = 11
+// nobody has said otherwise. GNOME and KDE both start at 10 or 11 pt, which
+// is 13 to 15 pixels on a normal-density screen; 13 px per em is the size at
+// which a contemporary sans stays legible without hinting.
+const defaultUIPoints = 13
 
 // systemFontPaths is where to look when fontconfig cannot be asked — a
 // container with no fc-match in it, a machine with fontconfig stripped, an

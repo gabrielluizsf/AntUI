@@ -16,6 +16,7 @@ type stubBackend struct {
 	presented []canvas.Area
 	title     string
 	full      bool
+	opacity   uint8
 
 	// What the stub was asked for, and what it answers with. A zero display
 	// size stands for the 1920 by 1080 the older tests were written against.
@@ -33,6 +34,7 @@ func (s *stubBackend) pump(*Window)                         {}
 func (s *stubBackend) present(_ *Window, dirty canvas.Area) { s.presented = append(s.presented, dirty) }
 func (s *stubBackend) setTitle(title string)                { s.title = title }
 func (s *stubBackend) setFullscreen(on bool) bool           { s.full = on; return true }
+func (s *stubBackend) setOpacity(alpha uint8) bool          { s.opacity = alpha; return true }
 func (s *stubBackend) displayRefresh() int                  { return 60 }
 
 func (s *stubBackend) clipboard() (string, []string) { return s.clip, s.clipFiles }
@@ -82,6 +84,7 @@ func newTestWindow(t *testing.T, w, h int) (*Window, *stubBackend) {
 		windowedWidth:  w,
 		windowedHeight: h,
 		fullRedraw:     true,
+		opacity:        255,
 		queue:          make([]Event, 0, 8),
 		theme:          LightTheme(),
 	}
@@ -275,5 +278,24 @@ func TestSetFPSNeverGoesNegative(t *testing.T) {
 	win.SetFPS(-30)
 	if win.targetFPS != 0 {
 		t.Errorf("targetFPS = %d, want a negative cap to mean no cap", win.targetFPS)
+	}
+}
+
+// TestSetOpacityForwardsToThePlatform is the one contract every window system
+// keeps the same: asking the window to fade runs the platform's own setOpacity
+// and remembers the value, and asking for full opacity puts it back.
+func TestSetOpacityForwardsToThePlatform(t *testing.T) {
+	win, stub := newTestWindow(t, 320, 200)
+	if got := win.SetOpacity(128); !got {
+		t.Fatal("the backend accepted the fade; SetOpacity should report it")
+	}
+	if stub.opacity != 128 || win.Opacity() != 128 {
+		t.Fatalf("opacity = stub %d, window %d, want 128", stub.opacity, win.Opacity())
+	}
+	if got := win.SetOpacity(255); !got {
+		t.Fatal("asking for full opacity should still be accepted")
+	}
+	if stub.opacity != 255 || win.Opacity() != 255 {
+		t.Fatalf("restoring opacity lost it: stub %d, window %d", stub.opacity, win.Opacity())
 	}
 }

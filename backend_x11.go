@@ -39,8 +39,9 @@ func (n *x11Native) setTitle(title string) { n.d.SetTitle(title) }
 func (n *x11Native) setFullscreen(on bool) bool {
 	return n.d.SetFullscreen(on)
 }
-func (n *x11Native) displaySize() (w, h int, ok bool) { return n.d.DisplaySize() }
-func (n *x11Native) displayRefresh() int              { return n.d.DisplayRefresh() }
+func (n *x11Native) setOpacity(alpha uint8) bool          { return n.d.SetOpacity(alpha) }
+func (n *x11Native) displaySize() (w, h int, ok bool)     { return n.d.DisplaySize() }
+func (n *x11Native) displayRefresh() int                  { return n.d.DisplayRefresh() }
 func (n *x11Native) setLimits(win *Window, limits Limits) { n.d.SetLimits(limits) }
 func (n *x11Native) setSize(win *Window, width, height int) bool {
 	return n.d.SetSize(win, width, height)

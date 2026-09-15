@@ -30,6 +30,7 @@ func (noWindows) pump(*Window)                         {}
 func (noWindows) present(*Window, canvas.Area)         {}
 func (noWindows) setTitle(string)                      {}
 func (noWindows) setFullscreen(bool) bool              { return false }
+func (noWindows) setOpacity(uint8) bool                { return false }
 func (noWindows) displaySize() (int, int, bool)        { return 0, 0, false }
 func (noWindows) displayRefresh() int                  { return 0 }
 
