@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="com.example.golden">
+  <uses-permission android:name="android.permission.INTERNET" />
+  <uses-permission android:name="android.permission.CAMERA" />
+  <uses-feature android:name="android.hardware.camera" android:required="false" />
+  <queries>
+    <intent>
+      <action android:name="android.intent.action.TTS_SERVICE" />
+    </intent>
+  </queries>
+  <application android:label="Golden"
+               android:icon="@mipmap/ic_launcher"
+               android:roundIcon="@mipmap/ic_launcher_round"
+               android:hasCode="true"
+               android:extractNativeLibs="false"
+               android:allowBackup="false">
+    <activity android:name="dev.antui.AntuiActivity"
+              android:label="Golden"
+              android:exported="true"
+              android:theme="@android:style/Theme.NoTitleBar.Fullscreen"
+              android:screenOrientation="portrait"
+              android:configChanges="orientation|screenSize|smallestScreenSize|screenLayout|keyboard|keyboardHidden|navigation|uiMode|density|fontScale|locale|layoutDirection">
+      <meta-data android:name="android.app.lib_name" android:value="antui" />
+      <intent-filter>
+        <action android:name="android.intent.action.MAIN" />
+        <category android:name="android.intent.category.LAUNCHER" />
+      </intent-filter>
+      <intent-filter>
+        <action android:name="android.intent.action.VIEW" />
+        <category android:name="android.intent.category.DEFAULT" />
+        <category android:name="android.intent.category.BROWSABLE" />
+        <data android:scheme="golden" />
+      </intent-filter>
+      <intent-filter android:autoVerify="true">
+        <action android:name="android.intent.action.VIEW" />
+        <category android:name="android.intent.category.DEFAULT" />
+        <category android:name="android.intent.category.BROWSABLE" />
+        <data android:scheme="https" android:host="example.com" android:pathPrefix="/open" />
+      </intent-filter>
+    </activity>
+    <receiver android:name="dev.antui.AntuiReceiver" android:exported="false" />
+    <provider android:name="dev.antui.AntuiFileProvider"
+              android:authorities="com.example.golden.antuifiles"
+              android:exported="false"
+              android:grantUriPermissions="true" />
+  </application>
+</manifest>
