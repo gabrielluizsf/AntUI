@@ -176,6 +176,43 @@ func TestSizeHintsReachTheServer(t *testing.T) {
 	}
 }
 
+// TestWindowOpacityReachesTheServer is the integration check for the window
+// fade: the opacity is written as the _NET_WM_WINDOW_OPACITY property, so the
+// way to know it really happened is to read the property back off the server,
+// which is what `xprop -name <title> _NET_WM_WINDOW_OPACITY` prints. The
+// value is a 32-bit mask: 0xffffffff is fully opaque and each step of the
+// byte's alpha is one of its bytes, so opacity 96 writes 0x60606060.
+func TestWindowOpacityReachesTheServer(t *testing.T) {
+	d, face := openTestWindow(t, "antui opacity")
+
+	if !d.SetOpacity(96) {
+		t.Fatal("SetOpacity refused the request")
+	}
+	drain(t, d, face, 3)
+
+	value, got := d.property(d.window, d.atomNetWMOpacity, atomCardinal, 32)
+	if !got || len(value) < 4 {
+		t.Fatalf("_NET_WM_WINDOW_OPACITY was not written to the server")
+	}
+	if v := binary.LittleEndian.Uint32(value); v != 0x60606060 {
+		t.Errorf("opacity 96 reached the server as %#08x, want 0x60606060", v)
+	}
+
+	// An explicit push back to opaque must land as well — a window that fades
+	// has to be able to come back.
+	if !d.SetOpacity(255) {
+		t.Fatal("SetOpacity(255) refused the request")
+	}
+	drain(t, d, face, 3)
+	value, got = d.property(d.window, d.atomNetWMOpacity, atomCardinal, 32)
+	if !got || len(value) < 4 {
+		t.Fatalf("_NET_WM_WINDOW_OPACITY vanished after restoring it")
+	}
+	if v := binary.LittleEndian.Uint32(value); v != 0xFFFFFFFF {
+		t.Errorf("opacity 255 reached the server as %#08x, want 0xffffffff", v)
+	}
+}
+
 // Xft.dpi is where a desktop's display-scaling setting ends up, and reading
 // it is the only answer X11 has to how much the display is scaled by. This
 // checks the reader against what xrdb reports, when there is one to ask.

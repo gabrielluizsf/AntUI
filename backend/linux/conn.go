@@ -40,23 +40,23 @@ const (
 
 // Event and reply codes.
 const (
-	xError           = 0
-	xReply           = 1
-	xKeyPress        = 2
-	xKeyRelease      = 3
-	xButtonPress     = 4
-	xButtonRelease   = 5
-	xMotionNotify    = 6
-	xFocusIn         = 9
-	xFocusOut        = 10
-	xExpose          = 12
-	xMapNotify       = 19
-	xConfigureNotify = 22
-	xSelectionClear  = 29
+	xError            = 0
+	xReply            = 1
+	xKeyPress         = 2
+	xKeyRelease       = 3
+	xButtonPress      = 4
+	xButtonRelease    = 5
+	xMotionNotify     = 6
+	xFocusIn          = 9
+	xFocusOut         = 10
+	xExpose           = 12
+	xMapNotify        = 19
+	xConfigureNotify  = 22
+	xSelectionClear   = 29
 	xSelectionRequest = 30
-	xSelectionNotify = 31
-	xClientMessage   = 33
-	xMappingNotify   = 34
+	xSelectionNotify  = 31
+	xClientMessage    = 33
+	xMappingNotify    = 34
 )
 
 // The events the window asks the server for: key press/release, button
@@ -96,6 +96,7 @@ type Driver struct {
 	atomWMProtocols, atomWMDeleteWindow      uint32
 	atomNetWMName, atomUTF8String            uint32
 	atomNetWMState, atomNetWMStateFullscreen uint32
+	atomNetWMOpacity                         uint32
 
 	// The atoms a drag and a paste need, looked up the first time one
 	// happens, and the window that is dragging something over us.
