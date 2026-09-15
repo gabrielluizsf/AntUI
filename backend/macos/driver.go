@@ -163,6 +163,18 @@ func (d *Driver) SetFullscreen(on bool) bool {
 	return C.antui_d_set_fullscreen(d.handle, flag) != 0
 }
 
+// SetOpacity fades the whole window so what sits behind it shows through;
+// 255 is fully opaque. AppKit applies the fade to the window as a whole, so
+// the frame that was already drawn stays exactly as it was, only the window's
+// overall brightness changes.
+func (d *Driver) SetOpacity(alpha uint8) bool {
+	if d.handle == nil {
+		return false
+	}
+	C.antui_d_set_opacity(d.handle, C.int(alpha))
+	return true
+}
+
 // DisplaySize is the size of the display the window is on.
 func (d *Driver) DisplaySize() (w, h int, ok bool) {
 	var width, height C.int

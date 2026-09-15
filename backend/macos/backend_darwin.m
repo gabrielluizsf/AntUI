@@ -525,6 +525,20 @@ int antui_d_set_fullscreen(antui_d_window *w, int on)
     return result;
 }
 
+void antui_d_set_opacity(antui_d_window *w, int alpha)
+{
+    if (!w || !w->window) return;
+    antui_d_on_main(^{
+        @autoreleasepool {
+            // setOpaque only tells the compositor the window has no
+            // transparency; the fade itself is the window's alphaValue, which
+            // AppKit applies to the whole window, drawing intact.
+            if (alpha >= 255) [w->window setOpaque:YES];
+            [w->window setAlphaValue: alpha / 255.0];
+        }
+    });
+}
+
 void antui_d_set_limits(antui_d_window *w,
                         int min_width, int min_height,
                         int max_width, int max_height,

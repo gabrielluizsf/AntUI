@@ -62,6 +62,9 @@ void antui_d_present(antui_d_window *w, const uint32_t *pixels,
 
 void antui_d_set_title(antui_d_window *w, const char *title);
 int  antui_d_set_fullscreen(antui_d_window *w, int on);
+// Fades the whole window — decorations and all — toward transparent, so what
+// sits behind the program shows through. 255 is fully opaque.
+void antui_d_set_opacity(antui_d_window *w, int alpha);
 int  antui_d_display_size(antui_d_window *w, int *width, int *height);
 int  antui_d_display_refresh(antui_d_window *w);
 

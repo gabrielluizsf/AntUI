@@ -44,6 +44,10 @@ func (d *Driver) SetTitle(title string) {}
 // the request could be made at all.
 func (d *Driver) SetFullscreen(on bool) bool { return false }
 
+// SetOpacity fades the whole window so what sits behind it shows through.
+// There is no window to fade here.
+func (d *Driver) SetOpacity(alpha uint8) bool { return false }
+
 // DisplaySize is the size of the display the window is on.
 func (d *Driver) DisplaySize() (w, h int, ok bool) { return 0, 0, false }
 
