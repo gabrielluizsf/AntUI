@@ -1,3 +1,10 @@
+// The builder is host-side tooling. Its tests are platform-independent on
+// Linux and macOS, but on Windows a git checkout turns the golden files
+// under testdata into CRLF, so byte comparisons against them fail. These
+// are Android tests; let the Android workflow run them.
+//
+//go:build !windows
+
 package apk
 
 import (
