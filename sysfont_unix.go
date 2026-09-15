@@ -1,4 +1,4 @@
-//go:build linux || freebsd || netbsd || openbsd || dragonfly || darwin
+//go:build (linux && !android) || freebsd || netbsd || openbsd || dragonfly || darwin
 
 package antui
 
