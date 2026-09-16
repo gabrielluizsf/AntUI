@@ -134,12 +134,12 @@ func TestOffscreenCanvasIsDrawable(t *testing.T) {
 // busyboxStyle satisfies Style for testing New() without any drawing.
 type busyboxStyle struct{}
 
-func (busyboxStyle) Background(*antui.Window) canvas.Color { return 0 }
-func (busyboxStyle) Label(*antui.Window, int, int, string) {}
-func (busyboxStyle) Button(*antui.Window, State, int, int, int, int, string) {}
-func (busyboxStyle) Checkbox(*antui.Window, State, int, int, string, bool)   {}
-func (busyboxStyle) Radio(*antui.Window, State, int, int, string, bool)     {}
-func (busyboxStyle) Slider(*antui.Window, State, int, int, int, int, float32) {}
+func (busyboxStyle) Background(*antui.Window) canvas.Color                             { return 0 }
+func (busyboxStyle) Label(*antui.Window, int, int, string)                             {}
+func (busyboxStyle) Button(*antui.Window, State, int, int, int, int, string)           {}
+func (busyboxStyle) Checkbox(*antui.Window, State, int, int, string, bool)             {}
+func (busyboxStyle) Radio(*antui.Window, State, int, int, string, bool)                {}
+func (busyboxStyle) Slider(*antui.Window, State, int, int, int, int, float32)          {}
 func (busyboxStyle) Input(*antui.Window, State, int, int, int, int, string, int, bool) {}
 
 func TestNewCreatesATemplate(t *testing.T) {

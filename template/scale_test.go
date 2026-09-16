@@ -56,8 +56,8 @@ func TestScaledScreensStillPaint(t *testing.T) {
 		}
 		return n
 	}
-	one := count(360, 360)  // scale 1
-	two := count(720, 720)  // scale 2
+	one := count(360, 360) // scale 1
+	two := count(720, 720) // scale 2
 	if one == 0 || two == 0 {
 		t.Fatal("a scaled screen painted nothing")
 	}

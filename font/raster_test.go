@@ -38,9 +38,9 @@ func TestRaster_LineAndMask(t *testing.T) {
 
 	// Draw a 2x2 square in the middle of the 4x4 grid.
 	// We draw the left edge going down, and the right edge going up.
-	// Horizontal lines are ignored by the rasterizer (y0 == y1), 
+	// Horizontal lines are ignored by the rasterizer (y0 == y1),
 	// so the vertical edges define the fill via winding.
-	
+
 	// Left edge (x=1), going down from y=1 to y=3
 	r.line(1, 1, 1, 3)
 	// Right edge (x=3), going up from y=3 to y=1
@@ -80,7 +80,7 @@ func TestRaster_Quad(t *testing.T) {
 
 	// Draw a curve from (1,1) to (9,1) with a control point at (5,9)
 	r.quad(1, 1, 5, 9, 9, 1)
-	
+
 	// Close the shape with a straight line back to the start to form a solid
 	r.line(9, 1, 1, 1)
 
@@ -95,24 +95,24 @@ func TestRaster_Quad(t *testing.T) {
 			break
 		}
 	}
-	
+
 	assert.True(t, hasFill)
 }
 
 func TestRaster_Span(t *testing.T) {
 	r := newRaster(5, 5)
-	
+
 	// y=2, xa=1.5, xb=3.5, height=1.0
 	// It should cover part of pixel 1, all of pixel 2, and part of pixel 3.
 	r.span(2, 1.5, 3.5, 1.0)
-	
+
 	mask := r.mask()
 	assert.Len(t, 25, mask)
-	
+
 	// Pixel x=0 at y=2
 	assert.Equal(t, uint8(0), mask[2*5+0])
-	
-	// Due to accumulated coverage spanning, there should be positive values 
+
+	// Due to accumulated coverage spanning, there should be positive values
 	// from x=1 to x=3 on y=2.
 	assert.True(t, mask[2*5+1] > 0)
 	assert.True(t, mask[2*5+2] > 0)

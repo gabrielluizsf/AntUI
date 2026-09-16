@@ -32,7 +32,7 @@ func TestEmit_TooFewPoints(t *testing.T) {
 
 func TestEmit_AllOnCurve(t *testing.T) {
 	r := newRaster(10, 10)
-	
+
 	// A simple square shape using only on-curve points.
 	c := Contour{
 		X:  []float64{2, 8, 8, 2},
@@ -44,7 +44,7 @@ func TestEmit_AllOnCurve(t *testing.T) {
 	// to 8, 8, 2, 2 (oy - y), which fits inside our 10x10 raster.
 	Emit(r, c, 1.0, 0, 10.0)
 	mask := r.mask()
-	
+
 	hasFill := false
 	for _, pixel := range mask {
 		if pixel > 0 {
@@ -57,7 +57,7 @@ func TestEmit_AllOnCurve(t *testing.T) {
 
 func TestEmit_WithOffCurve(t *testing.T) {
 	r := newRaster(10, 10)
-	
+
 	c := Contour{
 		X:  []float64{2, 5, 8},
 		Y:  []float64{2, 8, 2},
@@ -67,7 +67,7 @@ func TestEmit_WithOffCurve(t *testing.T) {
 	// Passing oy=10.0 to ensure coordinates fall inside the raster bounds.
 	Emit(r, c, 1.0, 0, 10.0)
 	mask := r.mask()
-	
+
 	hasFill := false
 	for _, pixel := range mask {
 		if pixel > 0 {
@@ -80,7 +80,7 @@ func TestEmit_WithOffCurve(t *testing.T) {
 
 func TestEmit_AllOffCurve(t *testing.T) {
 	r := newRaster(20, 20)
-	
+
 	c := Contour{
 		X:  []float64{5, 15, 15, 5},
 		Y:  []float64{5, 5, 15, 15},
@@ -90,7 +90,7 @@ func TestEmit_AllOffCurve(t *testing.T) {
 	// Passing oy=20.0 to match the raster height.
 	Emit(r, c, 1.0, 0, 20.0)
 	mask := r.mask()
-	
+
 	hasFill := false
 	for _, pixel := range mask {
 		if pixel > 0 {

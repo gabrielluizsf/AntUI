@@ -256,7 +256,7 @@ func TestButtonCentresLabelInTheDefaultFace(t *testing.T) {
 	// Let c is single, fully inked, so the rows that match the text colour
 	// exactly are roughly where the glyph's core sits.
 	want := 30 + 40/2
-	y0, y1 := 1 << 20, -1
+	y0, y1 := 1<<20, -1
 	for y := 30; y < 70; y++ {
 		for x := 30; x < 150; x++ {
 			if win.cv.At(x, y) == win.theme.TextOnAccent {

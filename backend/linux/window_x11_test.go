@@ -32,13 +32,13 @@ func (f *testFace) Push(ev backend.Event) { f.events = append(f.events, ev) }
 func (f *testFace) PushSimple(t backend.EventType) {
 	f.Push(backend.Event{Type: t})
 }
-func (f *testFace) SetMouse(x, y int)                  {}
+func (f *testFace) SetMouse(x, y int)                   {}
 func (f *testFace) ResizeCanvas(width, height int) bool { return true }
-func (f *testFace) SetTouchFirst()                     {}
+func (f *testFace) SetTouchFirst()                      {}
 func (f *testFace) SetSafeArea(canvas.Area)             {}
 func (f *testFace) Canvas() *canvas.Canvas              { return f.canvas }
-func (f *testFace) SetShouldClose()                    { f.shouldClose = true }
-func (f *testFace) Bounds() backend.Limits             { return backend.Limits{} }
+func (f *testFace) SetShouldClose()                     { f.shouldClose = true }
+func (f *testFace) Bounds() backend.Limits              { return backend.Limits{} }
 
 func openTestWindow(t *testing.T, title string) (*Driver, *testFace) {
 	t.Helper()

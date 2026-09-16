@@ -30,13 +30,13 @@ type Kind int
 
 // The things a component can report.
 const (
-	None Kind = iota
-	Click    // a button was pressed all the way down and released on it
-	Toggle   // a checkbox flipped
-	Select   // a radio was picked
-	Change   // a slider moved
-	Type     // text was typed into or deleted from a field
-	Focus    // a text field got the keyboard
+	None   Kind = iota
+	Click       // a button was pressed all the way down and released on it
+	Toggle      // a checkbox flipped
+	Select      // a radio was picked
+	Change      // a slider moved
+	Type        // text was typed into or deleted from a field
+	Focus       // a text field got the keyboard
 )
 
 // An Event is one thing a visual component did this frame.

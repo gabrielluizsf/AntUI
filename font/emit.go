@@ -45,12 +45,12 @@ func Emit(r *raster, c Contour, scale, ox, oy float64) {
 
 		nx, ny, nOn := at(start + k + 1)
 		if nOn {
-			k++ 
+			k++
 		} else {
 			nx, ny = (cx+nx)/2, (cy+ny)/2
 		}
 		r.quad(x, y, cx, cy, nx, ny)
 		x, y = nx, ny
 	}
-	r.line(x, y, sx, sy) 
+	r.line(x, y, sx, sy)
 }

@@ -8,4 +8,4 @@ package blendasm
 const Have = false
 
 func Rows(dst, src *uint32, count int)        { panic("unreachable") }
-func Solid(dst *uint32, colour uint32, n int)  { panic("unreachable") }
+func Solid(dst *uint32, colour uint32, n int) { panic("unreachable") }

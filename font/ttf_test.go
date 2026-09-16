@@ -85,7 +85,7 @@ func TestTTF_GlyphContours(t *testing.T) {
 
 func TestTTF_Scaled(t *testing.T) {
 	f := &TTF{UnitsPerEm: 1000}
-	
+
 	// 16.0 pixels / 1000 UnitsPerEm = 0.016
 	assert.Equal(t, 0.016, f.Scaled(16.0))
 }
