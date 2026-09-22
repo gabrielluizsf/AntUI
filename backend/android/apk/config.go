@@ -130,8 +130,7 @@ type Config struct {
 	// nil leaves the platform's own default, which is on. Turning it off is
 	// for an app holding something that must not travel — a key, a session,
 	// anything the user would not expect to appear on a phone they have just
-	// bought. Opting out one *file* rather than all of them needs an XML
-	// resource, which is Phase 11's work.
+	// bought.
 	Backup *bool `json:"backup,omitempty"`
 
 	// Debuggable lets a debugger attach and makes the app installable over

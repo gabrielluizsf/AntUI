@@ -70,7 +70,7 @@ type Player struct {
 //
 // The path is a file on this device. An address from
 // [antui/backend/android/picker] is not one, and opening it needs the content
-// resolver — which is Phase 10's work.
+// resolver
 func Open(path string) (*Player, error) {
 	m, err := ndk.OpenMedia(path)
 	if err != nil {
