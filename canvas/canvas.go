@@ -64,6 +64,7 @@ type Canvas struct {
 	Height int
 	Stride int  // pixels per row (>= Width)
 	Clip   Area // the active clip region
+	Dirty  Area // the bbox of every write since the last ResetDirty
 
 	format  Format
 	narrow  []byte  // the 16- or 8-bit pixels
@@ -217,6 +218,44 @@ func (cv *Canvas) ResetClip() {
 func (cv *Canvas) insideClip(x, y int) bool {
 	return x >= cv.Clip.X && y >= cv.Clip.Y &&
 		x < cv.Clip.X+cv.Clip.Width && y < cv.Clip.Y+cv.Clip.Height
+}
+
+// ResetDirty clears the dirty bounds, marking the canvas as drawn on nowhere.
+// The transformed painting path calls it after wiping its layer, so the
+// composite can walk exactly what the widget drew rather than the padded box.
+func (cv *Canvas) ResetDirty() { cv.Dirty = Area{} }
+
+// markDirty widens the dirty bounds to take the point in.
+func (cv *Canvas) markDirty(x, y int) {
+	if cv.Dirty.Width <= 0 {
+		cv.Dirty = Area{X: x, Y: y, Width: 1, Height: 1}
+		return
+	}
+	x1, y1 := cv.Dirty.X+cv.Dirty.Width, cv.Dirty.Y+cv.Dirty.Height
+	if x < cv.Dirty.X {
+		cv.Dirty.X = x
+	}
+	if x1 <= x {
+		x1 = x + 1
+	}
+	if y < cv.Dirty.Y {
+		cv.Dirty.Y = y
+	}
+	if y1 <= y {
+		y1 = y + 1
+	}
+	cv.Dirty.Width, cv.Dirty.Height = x1-cv.Dirty.X, y1-cv.Dirty.Y
+}
+
+// markDirtyRect widens the dirty bounds to cover a whole rectangle. The two
+// opposite corners span it: the bounds math of markDirty makes any interior
+// point redundant.
+func (cv *Canvas) markDirtyRect(r Area) {
+	if r.Width <= 0 || r.Height <= 0 {
+		return
+	}
+	cv.markDirty(r.X, r.Y)
+	cv.markDirty(r.X+r.Width-1, r.Y+r.Height-1)
 }
 
 // ---------------------------------------------------------------------------
