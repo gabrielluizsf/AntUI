@@ -46,4 +46,39 @@ type Style interface {
 	// where the caret sits within it, and caret whether the caret should be
 	// visible this frame. Scrolling and clipping are the style's to do.
 	Input(win *antui.Window, state State, x, y, w, h int, text string, cursor int, caret bool)
+	// InputTextPos maps a click at (mx,my), in window coordinates, inside a
+	// single-line input onto the byte index of the character it lands on,
+	// honouring the same inside padding and scroll the box draws with. cursor
+	// is the caret's current position, used to compute that scroll.
+	InputTextPos(win *antui.Window, state State, x, y, w, h int, text string, cursor, mx, my int) int
+	// TextAreaTextPos is the wrapped, multi-line cousin of InputTextPos: it
+	// picks the line under my and then the character under mx, with the same
+	// wrap, viewport and row heights the box paints.
+	TextAreaTextPos(win *antui.Window, state State, x, y, w, h int, text string, cursor, mx, my int) int
+	// Select paints a dropdown picker. value is the option currently shown
+	// in the box. The open list is painted by SelectOption, one call per
+	// entry.
+	Select(win *antui.Window, state State, x, y, w, h int, value string, open bool)
+	// SelectOption paints one entry of an open dropdown menu. selected says
+	// whether it is the currently-chosen option.
+	SelectOption(win *antui.Window, state State, x, y, w, h int, label string, selected bool)
+	// TextArea paints a multi-line text field, drawing all of text wrapped
+	// at w. cursor and caret behave exactly as for Input.
+	TextArea(win *antui.Window, state State, x, y, w, h int, text string, cursor int, caret bool)
+	// Switch paints a flip toggle. on is the value it shows.
+	Switch(win *antui.Window, state State, x, y int, label string, on bool)
+	// Progress paints a read-only progress bar, value 0..1.
+	Progress(win *antui.Window, x, y, w, h int, value float32)
+	// DatePicker paints the calendar popup of an open date picker, below the
+	// box. year and month name the month on show, firstWD is the weekday of
+	// its first day, days its day count, and selected/today/hover are day
+	// numbers in that month (0 when not applicable). The style places the day
+	// cells with this package's shared calendar geometry, so the painting and
+	// the hit-testing agree.
+	DatePicker(win *antui.Window, state State, x, y, w, h int, year, month, firstWD, days, selected, today, hover int)
+	// DatePickerBox paints the closed date picker: a box showing the chosen
+	// date, with the open flag drawing the caret flipped the way a dropdown's
+	// is. It looks like Select by design, since the picker is a select that
+	// opens a calendar.
+	DatePickerBox(win *antui.Window, state State, x, y, w, h int, value string, open bool)
 }

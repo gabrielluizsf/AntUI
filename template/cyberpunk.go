@@ -451,3 +451,292 @@ func (cyberStyle) Input(win *antui.Window, s State, x, y, w, h int, text string,
 	}
 	cv.Clip = savedClip
 }
+
+func (cyberStyle) Select(win *antui.Window, s State, x, y, w, h int, value string, open bool) {
+	cv := win.Canvas()
+	u := Scale(win)
+	v := vividFor(win)
+	radius := buttonRadius(h, u)
+
+	body, border := cyberPalette.panel, v.edge
+	halo := 0
+	if s.Focused || open {
+		body, border, halo = cyberPalette.panel, v.neon, 18
+	}
+	if s.Hovered {
+		body = cyberPalette.panelHov
+	}
+	if halo > 0 {
+		glow(cv, x, y, w, h, radius, v.neon, int(float64(halo)*v.glow), u)
+	}
+	neonFill(cv, x, y, w, h, radius, body, border)
+
+	padding := 8 * u
+	textY := y + (h-textHeight(u))/2
+	colour := v.text
+	if value == "" {
+		colour = v.dim
+	}
+	cv.TextScaled(x+padding, textY, value, colour, u)
+
+	// The caret arrow.
+	aw, ah := 6*u, 4*u
+	ax := x + w - padding - aw
+	ay := y + (h-ah)/2
+	if open {
+		cv.Line(ax, ay+ah, ax+aw/2, ay, v.neon)
+		cv.Line(ax+aw/2, ay, ax+aw, ay+ah, v.neon)
+	} else {
+		cv.Line(ax, ay, ax+aw/2, ay+ah, v.dim)
+		cv.Line(ax+aw/2, ay+ah, ax+aw, ay, v.dim)
+	}
+}
+
+func (cyberStyle) SelectOption(win *antui.Window, s State, x, y, w, h int, label string, selected bool) {
+	cv := win.Canvas()
+	u := Scale(win)
+	v := vividFor(win)
+
+	body := cyberPalette.panel
+	if selected || s.Hovered {
+		body = cyberPalette.panelHov
+	}
+	cv.FillRect(x, y, w, h, body)
+	edge := v.edge
+	if selected {
+		edge = v.neon
+	}
+	cv.Line(x, y, x+w, y, edge)
+	if selected || s.Hovered {
+		cv.FillRect(x, y, 3*u, h, v.neon)
+	}
+	colour := v.text
+	if selected {
+		colour = v.neon
+	}
+	cv.TextScaled(x+10*u, y+(h-textHeight(u))/2, label, colour, u)
+}
+
+func (cyberStyle) TextArea(win *antui.Window, s State, x, y, w, h int, text string, cursor int, caret bool) {
+	cv := win.Canvas()
+	u := Scale(win)
+	v := vividFor(win)
+	radius := buttonRadius(h, u)
+
+	body, border := cyberPalette.panel, v.edge
+	if s.Focused {
+		border = v.neon
+		glow(cv, x, y, w, h, radius, v.neon, int(float64(20)*v.glow), u)
+	} else if s.Hovered {
+		body, border = cyberPalette.panelHov, v.neon
+	}
+	neonFill(cv, x, y, w, h, radius, body, border)
+
+	padding := 8 * u
+	innerW := w - 2*padding
+	textW := max(innerW/u, 12)
+	cursor = min(max(cursor, 0), len(text))
+	lines := textLines(text, textW)
+
+	lineH := textHeight(u)
+	visible := max((h-2*padding)/lineH, 1)
+	viewTop := 0
+	for li, l := range lines {
+		if cursor >= l[0] && cursor < l[1] || (li == len(lines)-1 && cursor == l[1]) {
+			viewTop = max(li-visible+1, 0)
+			break
+		}
+	}
+	viewTop = max(min(viewTop, len(lines)-visible), 0)
+
+	savedClip := cv.Clip
+	cv.SetClip(x+padding, y+padding, innerW, h-2*padding)
+
+	for lif, l := range lines {
+		if lif < viewTop || lif >= viewTop+visible {
+			continue
+		}
+		cy := y + padding + (lif-viewTop)*lineH
+		line := text[l[0]:l[1]]
+		colour := v.text
+		if line == "" {
+			colour = v.dim
+		}
+		cv.TextScaled(x+padding, cy, line, colour, u)
+		if s.Focused && caret && cursor >= l[0] && cursor <= l[1] {
+			off := cursor - l[0]
+			cx := x + padding + textWidth(u, line[:off])
+			cv.FillRect(cx, cy, 2*u, lineH, v.neon)
+			cv.FillRect(cx, cy+lineH, 2*u, 2*u, canvas.Fade(v.neon, 150))
+		}
+	}
+	cv.Clip = savedClip
+}
+
+func (cyberStyle) InputTextPos(win *antui.Window, s State, x, y, w, h int, text string, cursor, mx, my int) int {
+	u := Scale(win)
+	padding := 8 * u
+	cursor = min(max(cursor, 0), len(text))
+	cursorPx := textWidth(u, text[:cursor])
+	scroll := max(cursorPx-(w-2*padding), 0)
+	return caretAt(func(prefix string) int { return textWidth(u, prefix) }, text, x+padding-scroll, mx)
+}
+
+func (cyberStyle) TextAreaTextPos(win *antui.Window, s State, x, y, w, h int, text string, cursor, mx, my int) int {
+	u := Scale(win)
+	padding := 8 * u
+	cursor = min(max(cursor, 0), len(text))
+	lines := textLines(text, max((w-2*padding)/u, 12))
+	return textAreaTextPos(text, lines, padding, x, y, h, cursor, textHeight(u),
+		func(prefix string) int { return textWidth(u, prefix) }, mx, my)
+}
+
+func (cyberStyle) Switch(win *antui.Window, s State, x, y int, label string, on bool) {
+	cv := win.Canvas()
+	u := Scale(win)
+	v := vividFor(win)
+	trackW, trackH := 36*u, 20*u
+
+	if s.Focused || s.Hovered {
+		glow(cv, x, y, trackW, trackH, trackH, v.neon, int(float64(30)*v.glow), u)
+	}
+	body := cyberPalette.panel
+	if s.Hovered {
+		body = cyberPalette.panelHov
+	}
+	border := v.edge
+	if on || s.Focused {
+		border = v.neon
+	}
+	cv.FillRoundRect(x, y, trackW, trackH, trackH/2, body)
+	cv.RoundRect(x, y, trackW, trackH, trackH/2, border)
+
+	if on {
+		cv.FillRoundRect(x, y, trackH, trackH, trackH/2, canvas.Fade(v.neon, 120))
+	}
+	colour := v.edge
+	if on {
+		colour = v.neon
+	}
+	cx := x + trackH/2
+	if on {
+		cx = x + trackW - trackH/2
+	}
+	cv.FillCircle(cx, y+trackH/2, trackH/2-3*u, colour)
+	cv.Circle(cx, y+trackH/2, trackH/2-4*u, cyberPalette.panelAct)
+	cv.TextScaled(x+trackW+8*u, y+(trackH-textHeight(u))/2, label, v.text, u)
+}
+
+func (cyberStyle) Progress(win *antui.Window, x, y, w, h int, value float32) {
+	cv := win.Canvas()
+	u := Scale(win)
+	v := vividFor(win)
+
+	value = min(max(value, 0), 1)
+	filled := int(float32(w)*value + 0.5)
+
+	cv.FillRoundRect(x, y, w, h, h/2, cyberPalette.panelAct)
+	cv.RoundRect(x, y, w, h, h/2, v.edge)
+	if filled > 0 {
+		glow(cv, x, y, filled, h, h/2, v.neon, 5, u)
+		cv.FillRoundRect(x, y, filled, h, h/2, v.neon)
+	}
+}
+
+func (cyberStyle) DatePicker(win *antui.Window, s State, x, y, w, h int, year, month, firstWD, days, selected, today, hover int) {
+	cv := win.Canvas()
+	u := Scale(win)
+	v := vividFor(win)
+
+	glow(cv, x, y, w, h, 4*u, v.neon, 12, u)
+	body := cyberPalette.panel
+	if s.Hovered {
+		body = cyberPalette.panelHov
+	}
+	neonFill(cv, x, y, w, h, 4*u, body, v.edge)
+
+	// Header: month and year, flanked by the arrows.
+	header := dateHeaderHeight(u)
+	mname := monthName(month)
+	labelW := textWidth(u, mname) + 3*u + textWidth(u, itoa(year))
+	lx := x + (w-labelW)/2
+	cv.TextScaled(lx, y+(header-textHeight(u))/2, mname, v.text, u)
+	cv.TextScaled(lx+textWidth(u, mname)+3*u, y+(header-textHeight(u))/2, itoa(year), v.dim, u)
+	cv.Line(x+3*u, y+header/2, x+6*u, y+header/2, v.neon)
+	cv.Line(x+2*u, y+header/2, x+5*u, y+header/2, v.neon)
+	cv.Line(x+w-3*u, y+header/2, x+w-6*u, y+header/2, v.neon)
+	cv.Line(x+w-2*u, y+header/2, x+w-5*u, y+header/2, v.neon)
+
+	// Column heads.
+	c := dateCellSize(u)
+	gx, _, _, _ := dateGridRect(x, y, u)
+	hy := weekdayHeadY(x, y, u)
+	for d := 0; d < 7; d++ {
+		cx := gx + d*c
+		cv.TextScaled(cx+(c-textWidth(u, "S"))/2, hy, dayHeadName((firstWD+d)%7), v.dim, u)
+	}
+
+	// Day cells.
+	for day := 1; day <= days; day++ {
+		pos := firstWD + day - 1
+		col, row := pos%7, pos/7
+		cx, cy, cc, _ := dayCellRect(x, y, u, col, row)
+		switch day {
+		case selected:
+			glow(cv, cx, cy, cc, cc, 2*u, v.neon, int(float64(20)*v.glow), u)
+			cv.FillRoundRect(cx, cy, cc, cc, 2*u, v.neon)
+			cv.TextScaled(cx+(cc-textWidth(u, itoa(day)))/2, cy+(cc-textHeight(u))/2, itoa(day), cyberPalette.bg, u)
+		case hover:
+			cv.FillRoundRect(cx, cy, cc, cc, 2*u, cyberPalette.panelHov)
+			cv.TextScaled(cx+(cc-textWidth(u, itoa(day)))/2, cy+(cc-textHeight(u))/2, itoa(day), v.text, u)
+		default:
+			colour := v.text
+			if day == today {
+				colour = v.neon
+			}
+			cv.TextScaled(cx+(cc-textWidth(u, itoa(day)))/2, cy+(cc-textHeight(u))/2, itoa(day), colour, u)
+		}
+		if day == today && day != selected {
+			cv.Circle(cx+cc/2, cy+cc/2, cc/2-2*u, v.neon)
+		}
+	}
+}
+
+func (cyberStyle) DatePickerBox(win *antui.Window, s State, x, y, w, h int, value string, open bool) {
+	cv := win.Canvas()
+	u := Scale(win)
+	v := vividFor(win)
+	radius := buttonRadius(h, u)
+
+	body, border := cyberPalette.panel, v.edge
+	halo := 0
+	if s.Focused || open {
+		body, border, halo = cyberPalette.panel, v.neon, 18
+	}
+	if s.Hovered {
+		body = cyberPalette.panelHov
+	}
+	if halo > 0 {
+		glow(cv, x, y, w, h, radius, v.neon, int(float64(halo)*v.glow), u)
+	}
+	neonFill(cv, x, y, w, h, radius, body, border)
+
+	padding := 8 * u
+	colour := v.text
+	if value == "" {
+		colour = v.dim
+	}
+	cv.TextScaled(x+padding, y+(h-textHeight(u))/2, value, colour, u)
+
+	// The caret arrow.
+	aw, ah := 6*u, 4*u
+	ax := x + w - padding - aw
+	ay := y + (h-ah)/2
+	if open {
+		cv.Line(ax, ay+ah, ax+aw/2, ay, v.neon)
+		cv.Line(ax+aw/2, ay, ax+aw, ay+ah, v.neon)
+	} else {
+		cv.Line(ax, ay, ax+aw/2, ay+ah, v.dim)
+		cv.Line(ax+aw/2, ay+ah, ax+aw, ay, v.dim)
+	}
+}

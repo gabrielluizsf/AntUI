@@ -37,12 +37,24 @@ func (t *Template) On(e event.Event) {
 		t.Button.Play()
 	case e.Is(event.Checkbox, event.Toggle):
 		t.Checkbox.Play()
-	case e.Is(event.Radio, event.Select):
+	case e.Is(event.Switch, event.Toggle):
+		t.Checkbox.Play()
+	case e.Is(event.Radio, event.Pick):
 		t.Radio.Play()
+	case e.Is(event.Select, event.Pick):
+		t.Radio.Play()
+	case e.Is(event.DatePicker, event.Change):
+		t.Radio.Play()
+	case e.Is(event.DatePicker, event.Open):
+		t.Button.Play()
 	case e.Is(event.TextInput, event.Focus):
 		t.TextInput.Play()
 	case e.Is(event.TextInput, event.Type):
 		t.TextInput.PlayStep(e.Step)
+	case e.Is(event.TextArea, event.Type):
+		t.TextInput.PlayStep(e.Step)
+	case e.Is(event.Select, event.Open):
+		t.Button.Play()
 	}
 }
 

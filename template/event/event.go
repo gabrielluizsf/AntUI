@@ -23,6 +23,11 @@ const (
 	Radio
 	Slider
 	TextInput
+	Select     // a dropdown picker
+	Switch     // a flip toggle, like a checkbox but a thumb
+	TextArea   // a multi-line text field
+	Progress   // a read-only progress bar
+	DatePicker // a calendar the user picks a date on
 )
 
 // Kind is what happened to a component this frame.
@@ -33,10 +38,12 @@ const (
 	None   Kind = iota
 	Click       // a button was pressed all the way down and released on it
 	Toggle      // a checkbox flipped
-	Select      // a radio was picked
+	Pick        // a radio was picked, or a dropdown option was chosen
 	Change      // a slider moved
 	Type        // text was typed into or deleted from a field
 	Focus       // a text field got the keyboard
+	Open        // a dropdown opened
+	Close       // a dropdown closed
 )
 
 // An Event is one thing a visual component did this frame.

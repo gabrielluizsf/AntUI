@@ -153,6 +153,21 @@ func (c *Context) Slider(x, y, w, h int, value *float32, minValue, maxValue floa
 func (c *Context) Input(x, y, w, h int, text *string) event.Event {
 	return c.tpl.Input(c.win, x, y, w, h, text)
 }
+func (c *Context) Select(x, y, w, h int, index *int, options []string) event.Event {
+	return c.tpl.Select(c.win, x, y, w, h, index, options)
+}
+func (c *Context) TextArea(x, y, w, h int, text *string) event.Event {
+	return c.tpl.TextArea(c.win, x, y, w, h, text)
+}
+func (c *Context) Switch(x, y int, label string, value *bool) event.Event {
+	return c.tpl.Switch(c.win, x, y, label, value)
+}
+func (c *Context) Progress(x, y, w, h int, progress float32) {
+	c.tpl.Progress(c.win, x, y, w, h, progress)
+}
+func (c *Context) DatePicker(x, y, w, h int, value *Date) event.Event {
+	return c.tpl.DatePicker(c.win, x, y, w, h, value)
+}
 
 // BackButton draws a small "Back" button in the top-left corner that pops the
 // screen when clicked, and reports whether it was clicked. It is the usual

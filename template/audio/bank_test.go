@@ -50,7 +50,7 @@ func TestOnPlaysWithoutADevice(t *testing.T) {
 	events := []event.Event{
 		{Component: event.Button, Kind: event.Click},
 		{Component: event.Checkbox, Kind: event.Toggle},
-		{Component: event.Radio, Kind: event.Select},
+		{Component: event.Radio, Kind: event.Pick},
 		{Component: event.Slider, Kind: event.Change},
 		{Component: event.TextInput, Kind: event.Focus},
 		{Component: event.TextInput, Kind: event.Type, Step: 5},
