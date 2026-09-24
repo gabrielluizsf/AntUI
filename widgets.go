@@ -15,6 +15,14 @@ func (win *Window) WidgetID(kind string, x, y, w, h int, label string) uint32 {
 	return widgetID(kind, x, y, w, h, label)
 }
 
+// WidgetFrontmost defers draw until the very end of the frame, after every
+// widget painted in flow order, so an open dropdown or calendar paints above
+// whatever sits under it. The window runs the draws just before presenting,
+// and forgets them at the next Begin, so a caller registers one every frame.
+func (win *Window) WidgetFrontmost(draw func()) {
+	win.frontmost = append(win.frontmost, draw)
+}
+
 // WidgetClick drives the press-and-release logic every clickable widget
 // shares and reports whether it was clicked this frame. See [Window.Clicked].
 func (win *Window) WidgetClick(id uint32, hovered bool) bool {

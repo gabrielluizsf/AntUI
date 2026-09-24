@@ -85,6 +85,11 @@ type Window struct {
 	queue         []Event
 	droppedEvents int
 
+	// frontmost are draws that run at the very end of the frame, after every
+	// widget painted in flow order, so an open dropdown or calendar stays on
+	// top of whatever the layout drew under it.
+	frontmost []func()
+
 	mouseX, mouseY   int
 	mouseDX, mouseDY int
 	mouseState       [mouseCount]bool
@@ -240,6 +245,7 @@ func (win *Window) Begin() bool {
 	win.uiHot = 0
 	win.uiTab = win.uiTab[:0]
 	win.uiBlink += win.delta
+	win.frontmost = win.frontmost[:0]
 
 	if win.native != nil {
 		win.native.pump(win)
@@ -254,6 +260,11 @@ func (win *Window) Begin() bool {
 // frame-rate cap.
 func (win *Window) End() {
 	win.moveFocus()
+	// Drawings registered while the frame was being painted land here, above
+	// everything, before the pixels are presented.
+	for i := len(win.frontmost) - 1; i >= 0; i-- {
+		win.frontmost[i]()
+	}
 	if win.native == nil {
 		return
 	}
@@ -349,6 +360,21 @@ func (win *Window) DisplayRefresh() int {
 
 // Canvas is the window's pixel surface: direct access, if you need it.
 func (win *Window) Canvas() *canvas.Canvas { return win.cv }
+
+// SetCanvas swaps the window's pixel surface for cv and returns the previous
+// one, so a caller can paint into a scratch canvas and hand it back. The
+// canvas must have the same size as the window — the width and height the
+// window reports and the pixels it redraws stay pinned to that size — while
+// the surface in between may hold a partially composed scene, like a layer
+// waiting to be blitted over.
+func (win *Window) SetCanvas(cv *canvas.Canvas) *canvas.Canvas {
+	if cv == nil {
+		return win.cv
+	}
+	prev := win.cv
+	win.cv = cv
+	return prev
+}
 
 // Theme returns the live theme. Change its fields to restyle the widgets.
 func (win *Window) Theme() *Theme { return &win.theme }
@@ -476,6 +502,12 @@ func (win *Window) MouseX() int { return win.mouseX }
 
 // MouseY is the pointer's vertical position, in window pixels.
 func (win *Window) MouseY() int { return win.mouseY }
+
+// MouseMoved reports whether the pointer actually moved during this frame, as
+// opposed to sitting still. A widget that lets the mouse move its selection
+// (like a calendar's highlighted day) should only claim the selection on
+// frames the pointer moved, so the keyboard keeps control otherwise.
+func (win *Window) MouseMoved() bool { return win.mouseDX != 0 || win.mouseDY != 0 }
 
 // MouseDown reports whether a button is held.
 func (win *Window) MouseDown(b MouseButton) bool {
