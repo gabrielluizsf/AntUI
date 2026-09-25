@@ -16,6 +16,7 @@ import (
 // kind so nothing in a stylesheet goes unheard.
 const (
 	RoleBody       = "body"
+	RoleFlex       = "flex"
 	RoleLabel      = "label"
 	RoleButton     = "button"
 	RoleCheckbox   = "checkbox"
@@ -31,7 +32,7 @@ const (
 
 // AllRoles is the full set of widget tags, in a stable order.
 var AllRoles = []string{
-	RoleBody, RoleLabel, RoleButton, RoleCheckbox, RoleRadio,
+	RoleBody, RoleFlex, RoleLabel, RoleButton, RoleCheckbox, RoleRadio,
 	RoleSlider, RoleInput, RoleSelect, RoleTextArea, RoleSwitch,
 	RoleProgress, RoleDatePicker,
 }
@@ -52,7 +53,7 @@ var AllRoles = []string{
 type CSSClasses struct {
 	// One class list per widget kind. Empty strings mean the widget carries
 	// no classes, only its tag.
-	Body, Label, Button, Checkbox, Radio, Slider, Input,
+	Body, Flex, Label, Button, Checkbox, Radio, Slider, Input,
 	Select, TextArea, Switch, Progress, DatePicker string
 
 	sheet *Sheet
@@ -191,6 +192,8 @@ func (c *CSSClasses) classesOf(tag string) []string {
 	switch tag {
 	case RoleBody:
 		s = c.Body
+	case RoleFlex:
+		s = c.Flex
 	case RoleLabel:
 		s = c.Label
 	case RoleButton:

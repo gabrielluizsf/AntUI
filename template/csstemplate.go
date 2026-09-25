@@ -41,6 +41,14 @@ type CSS struct {
 	lineX   int // where the next inline box lands in the line
 	lineH   int // how tall the line has grown
 	lastMB  int // the previous box's margin-bottom, banked for collapsing
+
+	// The flex block currently drawing its children. flexing is true while a
+	// [CSS.Flex] callback runs; measure marks the silent first pass, which
+	// collects the children's boxes so the draw pass can place them. A
+	// [CSS.Flex] inside one flattens into the same batch.
+	flex    *flexBatch
+	flexing bool
+	measure bool
 }
 
 // TemplateWithCSS makes the coord-free template: the developer passes no
@@ -108,6 +116,9 @@ func (c *CSS) Reset() {
 	c.lineX = 0
 	c.lineH = 0
 	c.lastMB = 0
+	c.flex = nil
+	c.flexing = false
+	c.measure = false
 }
 
 // layout measures and places one widget in the flow, opening the widget's
@@ -115,8 +126,14 @@ func (c *CSS) Reset() {
 // stylesheet hides (display:none), which draws nothing and hears nothing.
 // An absolutely- or fixed-positioned widget is placed by its inset edges and
 // does not advance the flow; a relative or sticky one keeps its slot and only
-// shifts; every other widget flows down, or along a line when inline.
+// shifts; every other widget flows down, or along a line when inline. Inside
+// a [CSS.Flex] block a widget is a flex item instead: the silent pass
+// records it and reports ok=false, and the draw pass hands back the box the
+// solver placed it in.
 func (c *CSS) layout(role, label string) (x, y, w, h int, st css.Style, ok bool) {
+	if c.flexing {
+		return c.layoutFlex(role, label)
+	}
 	e := c.style.beginWidget(role, label)
 	return c.layoutBox(e, role, label, e.state)
 }
