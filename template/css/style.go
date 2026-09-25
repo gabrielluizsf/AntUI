@@ -141,6 +141,27 @@ type Style struct {
 	PointerEvents uint8    // one of the PointerEvents* constants
 	Cursor        uint8    // one of the Cursor* constants
 
+	// Flexbox container geometry: how a DisplayFlex box lays its children
+	// out along the main axis and across it. RowGap and ColumnGap space the
+	// items and the wrapped lines.
+	FlexDirection  uint8 // one of the FlexDirection* constants
+	FlexWrap       uint8 // one of the FlexWrap* constants
+	JustifyContent uint8 // one of the Justify* constants
+	AlignItems     uint8 // one of the Align* constants
+	AlignContent   uint8 // one of the Content* constants
+	RowGap         Length
+	ColumnGap      Length
+
+	// Flex item geometry: how this box answers its flex container. Order
+	// reorders items; grow and shrink share the free space; basis is the
+	// item's main size before distribution; align-self overrides the
+	// container's align-items.
+	Order      int
+	FlexGrow   float64
+	FlexShrink float64
+	FlexBasis  Length
+	AlignSelf  uint8 // AlignAuto or one of the Align* constants
+
 	// Visual effects. OutlineStyle shares the Border* constants.
 	BoxShadow       []Shadow
 	TextShadow      []Shadow
@@ -528,6 +549,103 @@ func applyDecl(st *Style, set map[string]bool, customs, cascaded map[string]stri
 	case "z-index":
 		if v, ok := parseZIndex(raw); ok {
 			st.ZIndex = v
+			note()
+		}
+	case "flex-direction":
+		if v, ok := parseFlexDirection(raw); ok {
+			st.FlexDirection = v
+			note()
+		}
+	case "flex-wrap":
+		if v, ok := parseFlexWrap(raw); ok {
+			st.FlexWrap = v
+			note()
+		}
+	case "flex-flow":
+		words := splitWords(raw)
+		if len(words) == 0 || len(words) > 2 {
+			break
+		}
+		ok := true
+		for _, w := range words {
+			if v, good := parseFlexDirection(w); good {
+				st.FlexDirection = v
+				continue
+			}
+			if v, good := parseFlexWrap(w); good {
+				st.FlexWrap = v
+				continue
+			}
+			ok = false
+		}
+		if ok {
+			note()
+		}
+	case "justify-content":
+		if v, ok := parseJustifyContent(raw); ok {
+			st.JustifyContent = v
+			note()
+		}
+	case "align-items":
+		if v, ok := parseAlignItems(raw); ok {
+			st.AlignItems = v
+			note()
+		}
+	case "align-self":
+		if v, ok := parseAlignSelf(raw); ok {
+			st.AlignSelf = v
+			note()
+		}
+	case "align-content":
+		if v, ok := parseAlignContent(raw); ok {
+			st.AlignContent = v
+			note()
+		}
+	case "gap":
+		if r, c, ok := parseGap(raw, *ctx); ok {
+			st.RowGap, st.ColumnGap = r, c
+			note()
+			set["row-gap"] = true
+			set["column-gap"] = true
+		}
+	case "row-gap":
+		if r, _, ok := parseGap(raw, *ctx); ok {
+			st.RowGap = r
+			note()
+			set["gap"] = true
+		}
+	case "column-gap":
+		if _, c, ok := parseGap(raw, *ctx); ok {
+			st.ColumnGap = c
+			note()
+			set["gap"] = true
+		}
+	case "order":
+		if v, ok := parseOrder(raw); ok {
+			st.Order = v
+			note()
+		}
+	case "flex":
+		if g, s, b, ok := parseFlex(raw, *ctx); ok {
+			st.FlexGrow, st.FlexShrink, st.FlexBasis = g, s, b
+			note()
+			set["flex-grow"] = true
+			set["flex-shrink"] = true
+			set["flex-basis"] = true
+		}
+	case "flex-grow":
+		if v, ok := parseFlexNumber(raw); ok {
+			st.FlexGrow = v
+			note()
+		}
+	case "flex-shrink":
+		if v, ok := parseFlexNumber(raw); ok {
+			st.FlexShrink = v
+			note()
+		}
+	case "flex-basis":
+		if v, ok := parseFlexBasis(raw, *ctx); ok {
+			st.FlexBasis = v
 			note()
 		}
 	case "overflow":
@@ -1373,6 +1491,40 @@ func applyInitial(st *Style, prop string) {
 		st.PointerEvents = PointerEventsAuto
 	case "cursor":
 		st.Cursor = CursorDefault
+	case "flex-direction":
+		st.FlexDirection = FlexDirectionRow
+	case "flex-wrap":
+		st.FlexWrap = FlexWrapNowrap
+	case "flex-flow":
+		st.FlexDirection = FlexDirectionRow
+		st.FlexWrap = FlexWrapNowrap
+	case "justify-content":
+		st.JustifyContent = JustifyFlexStart
+	case "align-items":
+		st.AlignItems = AlignStretch
+	case "align-self":
+		st.AlignSelf = AlignAuto
+	case "align-content":
+		st.AlignContent = ContentStretch
+	case "gap":
+		st.RowGap = Zero()
+		st.ColumnGap = Zero()
+	case "row-gap":
+		st.RowGap = Zero()
+	case "column-gap":
+		st.ColumnGap = Zero()
+	case "order":
+		st.Order = 0
+	case "flex":
+		st.FlexGrow = 0
+		st.FlexShrink = 1
+		st.FlexBasis = Auto()
+	case "flex-grow":
+		st.FlexGrow = 0
+	case "flex-shrink":
+		st.FlexShrink = 1
+	case "flex-basis":
+		st.FlexBasis = Auto()
 	case "box-shadow":
 		st.BoxShadow = nil
 	case "text-shadow":
