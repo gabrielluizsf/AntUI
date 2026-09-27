@@ -175,16 +175,26 @@ func (c *CSSClasses) GetStyle(tag string, classes []string, state State, width i
 	if c.sheet == nil {
 		return Style{}
 	}
-	all := append(append([]string(nil), c.classesOf(tag)...), classes...)
-	key := styleKey{tag: tag, state: state, width: width}
-	if st, ok := c.specs[key]; ok {
+	// The cache is keyed by what decides the answer: the widget kind, its
+	// state, and the width its lengths resolve against. A caller that adds
+	// classes of its own is asking for one widget to differ from the table's,
+	// and is looked up rather than cached — a map cannot key a list without
+	// building a string for it every frame, which is the very thing the cache
+	// is here to avoid. The template, which is the caller that matters, asks
+	// for the table's own classes and hits the cache every time.
+	if len(classes) == 0 {
+		key := styleKey{tag: tag, state: state, width: width}
+		if st, ok := c.specs[key]; ok {
+			return st
+		}
+		st := c.sheet.Style(tag, c.classesOf(tag), state, width)
+		if c.specs != nil {
+			c.specs[key] = st
+		}
 		return st
 	}
-	st := c.sheet.Style(tag, all, state, width)
-	if c.specs != nil {
-		c.specs[key] = st
-	}
-	return st
+	all := append(append([]string(nil), c.classesOf(tag)...), classes...)
+	return c.sheet.Style(tag, all, state, width)
 }
 
 // classesOf is the class table's entry for a widget kind.
