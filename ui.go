@@ -1,8 +1,6 @@
 package antui
 
 import (
-	"strings"
-
 	"github.com/gabrielluizsf/antui/canvas"
 )
 
@@ -433,13 +431,16 @@ func (win *Window) editText(text *string) bool {
 	}
 
 	if typed := win.TextInput(); typed != "" {
-		var b strings.Builder
-		b.Grow(len(*text) + len(typed))
-		b.WriteString((*text)[:win.uiCursor])
-		b.WriteString(typed)
-		b.WriteString((*text)[win.uiCursor:])
-		*text = b.String()
-		win.uiCursor += len(typed)
+		// The splice goes through a buffer the window keeps, so typing does
+		// not hand the collector a string per keystroke. A field is a handful
+		// of characters, and a person types a few a second.
+		at := win.uiCursor
+		buf := append(win.editBuf[:0], (*text)[:at]...)
+		buf = append(buf, typed...)
+		buf = append(buf, (*text)[at:]...)
+		*text = string(buf)
+		win.editBuf = buf
+		win.uiCursor = at + len(typed)
 		changed = true
 		win.uiBlink = 0
 	}
