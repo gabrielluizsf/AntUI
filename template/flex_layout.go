@@ -31,7 +31,8 @@ type flexItem struct {
 	inTop        int
 	inRight      int
 	inBottom     int
-	x, y         int // solved position relative to the content origin
+	x, y         int         // solved position relative to the content origin
+	nested       *gridNested // set when the item is a grid container of its own
 }
 
 // flexBatch is one flex layout: the container's style and box on the page,
@@ -82,9 +83,11 @@ func (b *flexBatch) col() bool {
 //
 // A Flex drawn inside another Flex's callback flattens into the outer
 // container: the nested block's own face is dropped and its children join
-// the outer items, which keeps the two-pass measurement honest.
+// the outer items, which keeps the two-pass measurement honest. A grid drawn
+// inside a flex is the other way round — it stays a box of its own and becomes
+// a flex item, while a Flex inside a grid flattens into the grid.
 func (c *CSS) Flex(draw func(*CSS)) {
-	if c.flexing {
+	if c.flexing || c.griding {
 		draw(c)
 		return
 	}
@@ -179,18 +182,18 @@ func (c *CSS) Flex(draw func(*CSS)) {
 func (c *CSS) clampDim(st css.Style, v int, axis string, base int) int {
 	switch axis {
 	case "width":
-		if st.Has("min-width") {
-			v = max(v, c.style.length(st, st.MinWidth, base))
-		}
-		if st.Has("max-width") {
+		if st.Has("max-width") && gridLengthDefinite(st.MaxWidth) {
 			v = min(v, c.style.length(st, st.MaxWidth, base))
 		}
-	case "height":
-		if st.Has("min-height") {
-			v = max(v, c.style.length(st, st.MinHeight, base))
+		if st.Has("min-width") && gridLengthDefinite(st.MinWidth) {
+			v = max(v, c.style.length(st, st.MinWidth, base))
 		}
-		if st.Has("max-height") {
+	case "height":
+		if st.Has("max-height") && gridLengthDefinite(st.MaxHeight) {
 			v = min(v, c.style.length(st, st.MaxHeight, base))
+		}
+		if st.Has("min-height") && gridLengthDefinite(st.MinHeight) {
+			v = max(v, c.style.length(st, st.MinHeight, base))
 		}
 	}
 	return v
@@ -254,27 +257,34 @@ func (c *CSS) flexPlaceOut(st css.Style, it flexItem) (x, y, w, h int, os css.St
 // set keep their CSS initial values, which do not always match the struct's
 // zero value: flex-shrink is 1, flex-basis and align-self are auto.
 func (c *CSS) flexItemMeasure(role, label string) flexItem {
-	b := c.flex
 	st := c.style.baseStyle(role, State{})
-	u := c.style.u()
-	nw, nh := c.style.natural(role, label, st, u)
+	nw, nh := c.style.natural(role, label, st, c.style.u())
+	return c.flexItemSized(st, nw, nh)
+}
+
+// flexItemSized collects one item the way the stylesheet asks for it, from a
+// size the item wants: a widget's own natural box, or the box a nested
+// container asked for. The properties a container reads are the same either
+// way, so a grid drawn inside a flex is placed as a real item.
+func (c *CSS) flexItemSized(st css.Style, nw, nh int) flexItem {
+	b := c.flex
 	if st.Has("width") {
 		nw = c.style.length(st, st.Width, b.contentW)
-	}
-	if st.Has("min-width") {
-		nw = max(nw, c.style.length(st, st.MinWidth, b.contentW))
 	}
 	if st.Has("max-width") {
 		nw = min(nw, c.style.length(st, st.MaxWidth, b.contentW))
 	}
+	if st.Has("min-width") {
+		nw = max(nw, c.style.length(st, st.MinWidth, b.contentW))
+	}
 	if st.Has("height") {
 		nh = c.style.length(st, st.Height, b.contentW)
 	}
-	if st.Has("min-height") {
-		nh = max(nh, c.style.length(st, st.MinHeight, b.contentW))
-	}
 	if st.Has("max-height") {
 		nh = min(nh, c.style.length(st, st.MaxHeight, b.contentW))
+	}
+	if st.Has("min-height") {
+		nh = max(nh, c.style.length(st, st.MinHeight, b.contentW))
 	}
 	shrink := 1.0
 	if st.Has("flex-shrink") {
@@ -289,7 +299,7 @@ func (c *CSS) flexItemMeasure(role, label string) flexItem {
 		self = st.AlignSelf
 	}
 	it := flexItem{
-		role: role, label: label, st: st,
+		st: st,
 		nw: nw, nh: nh, w: nw, h: nh,
 		ml:        c.style.length(st, st.Margin[3], b.contentW),
 		mr:        c.style.length(st, st.Margin[1], b.contentW),
@@ -372,11 +382,11 @@ func (b *flexBatch) baseMain(it *flexItem, availMain int, definite bool) int {
 			base = b.css.style.length(b.st, it.basis, availMain)
 		}
 	}
-	if it.minMain >= 0 {
-		base = max(base, it.minMain)
-	}
 	if it.maxMain >= 0 {
 		base = min(base, it.maxMain)
+	}
+	if it.minMain >= 0 {
+		base = max(base, it.minMain)
 	}
 	return base
 }
@@ -434,6 +444,12 @@ func (b *flexBatch) myMain(it *flexItem) int {
 
 // setMain stores the solved main-axis size; the cross stays where it was.
 func (b *flexBatch) setMain(it *flexItem, size int) {
+	if it.maxMain >= 0 {
+		size = min(size, it.maxMain)
+	}
+	if it.minMain >= 0 {
+		size = max(size, it.minMain)
+	}
 	if b.col() {
 		it.h = size
 		return

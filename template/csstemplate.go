@@ -45,9 +45,12 @@ type CSS struct {
 	// The flex block currently drawing its children. flexing is true while a
 	// [CSS.Flex] callback runs; measure marks the silent first pass, which
 	// collects the children's boxes so the draw pass can place them. A
-	// [CSS.Flex] inside one flattens into the same batch.
+	// [CSS.Flex] inside one flattens into the same batch, while a [CSS.Grid]
+	// inside one is a real item of it.
 	flex    *flexBatch
 	flexing bool
+	grid    *gridBatch
+	griding bool
 	measure bool
 }
 
@@ -118,6 +121,8 @@ func (c *CSS) Reset() {
 	c.lastMB = 0
 	c.flex = nil
 	c.flexing = false
+	c.grid = nil
+	c.griding = false
 	c.measure = false
 }
 
@@ -127,12 +132,15 @@ func (c *CSS) Reset() {
 // An absolutely- or fixed-positioned widget is placed by its inset edges and
 // does not advance the flow; a relative or sticky one keeps its slot and only
 // shifts; every other widget flows down, or along a line when inline. Inside
-// a [CSS.Flex] block a widget is a flex item instead: the silent pass
-// records it and reports ok=false, and the draw pass hands back the box the
-// solver placed it in.
+// a [CSS.Flex] or [CSS.Grid] block a widget is an item of that container
+// instead: the silent pass records it and reports ok=false, and the draw pass
+// hands back the box the solver placed it in.
 func (c *CSS) layout(role, label string) (x, y, w, h int, st css.Style, ok bool) {
 	if c.flexing {
 		return c.layoutFlex(role, label)
+	}
+	if c.griding {
+		return c.layoutGrid(role, label)
 	}
 	e := c.style.beginWidget(role, label)
 	return c.layoutBox(e, role, label, e.state)
@@ -152,20 +160,20 @@ func (c *CSS) layoutBox(e *widgetEntry, role, label string, s State) (x, y, w, h
 	if st.Has("width") {
 		w = c.style.length(st, st.Width, winW)
 	}
-	if st.Has("min-width") {
-		w = max(w, c.style.length(st, st.MinWidth, winW))
-	}
 	if st.Has("max-width") {
 		w = min(w, c.style.length(st, st.MaxWidth, winW))
+	}
+	if st.Has("min-width") {
+		w = max(w, c.style.length(st, st.MinWidth, winW))
 	}
 	if st.Has("height") {
 		h = c.style.length(st, st.Height, winH)
 	}
-	if st.Has("min-height") {
-		h = max(h, c.style.length(st, st.MinHeight, winH))
-	}
 	if st.Has("max-height") {
 		h = min(h, c.style.length(st, st.MaxHeight, winH))
+	}
+	if st.Has("min-height") {
+		h = max(h, c.style.length(st, st.MinHeight, winH))
 	}
 
 	ml := c.style.length(st, st.Margin[3], winW)
