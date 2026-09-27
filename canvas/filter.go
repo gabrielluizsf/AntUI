@@ -31,13 +31,15 @@ func (cv *Canvas) FilterRegion(x, y, w, h int, kind FilterKind, amount float64) 
 		return
 	}
 	x0, y0, x1, y1 := cv.filterBounds(x, y, w, h)
-	cv.markDirtyRect(Area{X: x0, Y: y0, Width: x1 - x0, Height: y1 - y0})
+	region := Area{X: x0, Y: y0, Width: x1 - x0, Height: y1 - y0}
+	cv.markDirtyRect(region)
 	for py := y0; py < y1; py++ {
 		row := cv.Pixels[py*cv.Stride : py*cv.Stride+cv.Width]
 		for px := x0; px < x1; px++ {
 			row[px] = applyFilter(row[px], kind, amount)
 		}
 	}
+	cv.markRegion(region)
 }
 
 // filterBounds intersects a rectangle with the canvas and its active clip.

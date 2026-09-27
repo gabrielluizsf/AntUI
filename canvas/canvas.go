@@ -72,6 +72,15 @@ type Canvas struct {
 	nearest []byte  // 32K: an RGB555 colour to its palette index
 	dither  bool
 
+	// base is the frame that was last presented, which every write is
+	// checked against; spans, rows and change record what really moved as it
+	// happens. Nil until Compare is called, and then a window is the only
+	// thing that has any use for it. See change.go.
+	base   []Color
+	spans  []rowSpan
+	rows   []int
+	change Area
+
 	// Premultiplied records whether each channel has already been multiplied
 	// by its own alpha. The flag lives beside the pixels rather than beside
 	// the image so that converting one twice — which darkens it by the alpha

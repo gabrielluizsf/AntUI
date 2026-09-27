@@ -67,8 +67,10 @@ type Window struct {
 	cv     *canvas.Canvas
 	native platform
 
-	shadow                    []canvas.Color // a copy of the previous frame
-	shadowWidth, shadowHeight int
+	// shadow is the frame that was last presented, which the canvas checks
+	// every write against: what the screen already holds is what does not
+	// have to be sent again. It is grown once and kept between resizes.
+	shadow []canvas.Color
 
 	width, height int
 	shouldClose   bool
@@ -619,83 +621,44 @@ func (win *Window) ResizeCanvas(width, height int) bool {
 	win.cv = cv
 	win.width, win.height = width, height
 
-	win.shadow = nil
-	win.shadowWidth, win.shadowHeight = 0, 0
+	// The copy of the last frame is the wrong size now, so it cannot be
+	// compared against. The buffer behind it is kept: a window that is
+	// resized once and then never again would otherwise throw away a
+	// megabyte and take it again on the next frame.
+	win.shadow = win.shadow[:0]
 	win.fullRedraw = true
 	win.safe = canvas.Area{}
 	return true
 }
 
-// dirtyRegion is the rectangle that changed since the previous frame, so that
-// only that much is sent to the display.
+// dirtyRegion is the rectangle to send: the pixels of this frame that really
+// changed, which the canvas knows as each one is written because the canvas is
+// comparing against the frame already on the screen. A frame that redraws the
+// same picture changes nothing and sends nothing — there is no scan of the
+// canvas left to find that out, because nothing has to look.
 func (win *Window) dirtyRegion() canvas.Area {
 	cv := win.cv
-	all := canvas.Area{X: 0, Y: 0, Width: cv.Width, Height: cv.Height}
-	count := cv.Width * cv.Height
-
-	if win.fullRedraw || win.shadow == nil ||
-		win.shadowWidth != cv.Width || win.shadowHeight != cv.Height {
-		win.shadow = make([]canvas.Color, count)
-		copy(win.shadow, cv.Pixels)
-		win.shadowWidth, win.shadowHeight = cv.Width, cv.Height
+	whole := canvas.Area{X: 0, Y: 0, Width: cv.Width, Height: cv.Height}
+	if win.fullRedraw || len(win.shadow) != cv.Width*cv.Height {
 		win.fullRedraw = false
-		return all
+		win.adoptShadow(cv)
+		return whole
 	}
-
-	firstRow, lastRow := -1, -1
-	for y := range cv.Height {
-		a := cv.Pixels[y*cv.Stride : y*cv.Stride+cv.Width]
-		b := win.shadow[y*cv.Width : y*cv.Width+cv.Width]
-		if !equalRow(a, b) {
-			if firstRow < 0 {
-				firstRow = y
-			}
-			lastRow = y
-		}
-	}
-	if firstRow < 0 {
-		return canvas.Area{}
-	}
-
-	minX, maxX := cv.Width, -1
-	for y := firstRow; y <= lastRow; y++ {
-		a := cv.Pixels[y*cv.Stride : y*cv.Stride+cv.Width]
-		b := win.shadow[y*cv.Width : y*cv.Width+cv.Width]
-		for x := 0; x < minX; x++ {
-			if a[x] != b[x] {
-				minX = x
-				break
-			}
-		}
-		for x := cv.Width - 1; x > maxX; x-- {
-			if a[x] != b[x] {
-				maxX = x
-				break
-			}
-		}
-		if minX == 0 && maxX == cv.Width-1 {
-			break
-		}
-	}
-	if maxX < minX {
-		return canvas.Area{}
-	}
-
-	for y := firstRow; y <= lastRow; y++ {
-		copy(win.shadow[y*cv.Width:y*cv.Width+cv.Width],
-			cv.Pixels[y*cv.Stride:y*cv.Stride+cv.Width])
-	}
-	return canvas.Area{
-		X: minX, Y: firstRow,
-		Width: maxX - minX + 1, Height: lastRow - firstRow + 1,
-	}
+	a := cv.PresentChanges()
+	return a
 }
 
-func equalRow(a, b []canvas.Color) bool {
-	for i := range a {
-		if a[i] != b[i] {
-			return false
-		}
+// adoptShadow takes the frame that is about to be sent whole as the one to
+// compare against from now on, and gives the canvas the copy to check writes
+// with. The pixels of the canvas are what the screen will hold, so the next
+// frame starts from them.
+func (win *Window) adoptShadow(cv *canvas.Canvas) {
+	count := cv.Width * cv.Height
+	if cap(win.shadow) < count {
+		win.shadow = make([]canvas.Color, count)
+	} else {
+		win.shadow = win.shadow[:count]
 	}
-	return true
+	copy(win.shadow, cv.Pixels)
+	cv.Compare(win.shadow)
 }

@@ -12,7 +12,8 @@ func (cv *Canvas) Blur(x, y, w, h, radius int) {
 	if x0 >= x1 || y0 >= y1 {
 		return
 	}
-	cv.markDirtyRect(Area{X: x0, Y: y0, Width: x1 - x0, Height: y1 - y0})
+	region := Area{X: x0, Y: y0, Width: x1 - x0, Height: y1 - y0}
+	cv.markDirtyRect(region)
 	rw, rh := x1-x0, y1-y0
 	buf := make([]float64, rw*rh*4)
 	for row := range rh {
@@ -41,6 +42,7 @@ func (cv *Canvas) Blur(x, y, w, h, radius int) {
 			cv.Pixels[(y0+row)*cv.Stride+x0+col] = RGBA(clampByte(r), clampByte(g), clampByte(b), clampByte(a*255))
 		}
 	}
+	cv.markRegion(region)
 }
 
 // boxBlur runs one moving-average pass, horizontally or vertically, clamping

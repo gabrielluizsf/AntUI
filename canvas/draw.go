@@ -19,6 +19,13 @@ func (cv *Canvas) Put(x, y int, c Color) {
 	}
 	cv.markDirty(x, y)
 	if cv.Pixels != nil {
+		// The write happens whatever the baseline says: the canvas has to end
+		// up holding what was drawn, because the next draw reads it and a
+		// later frame compares against it. The baseline only decides whether
+		// the pixel is worth telling the screen about.
+		if cv.base != nil && cv.base[y*cv.Width+x] != c {
+			cv.markSpan(y, x, x)
+		}
 		cv.Pixels[y*cv.Stride+x] = c
 		return
 	}
@@ -48,7 +55,11 @@ func (cv *Canvas) Pixel(x, y int, c Color) {
 		return
 	}
 	at := y*cv.Stride + x
-	cv.Pixels[at] = Blend(cv.Pixels[at], c)
+	v := Blend(cv.Pixels[at], c)
+	if cv.base != nil && cv.base[y*cv.Width+x] != v {
+		cv.markSpan(y, x, x)
+	}
+	cv.Pixels[at] = v
 }
 
 // At reads a pixel, in any format. Points outside the canvas read as zero.
@@ -104,14 +115,11 @@ func (cv *Canvas) FillRect(x, y, w, h int, c Color) {
 	case 0:
 	case 255:
 		for iy := y0; iy < y1; iy++ {
-			row := cv.Pixels[iy*cv.Stride : iy*cv.Stride+cv.Width]
-			for ix := x0; ix < x1; ix++ {
-				row[ix] = c
-			}
+			cv.fillRun(iy, x0, x1, c)
 		}
 	default:
 		for iy := y0; iy < y1; iy++ {
-			BlendRowSolid(cv.Pixels[iy*cv.Stride+x0:iy*cv.Stride+x1], c)
+			cv.blendRun(iy, x0, x1, c)
 		}
 	}
 }
@@ -119,6 +127,25 @@ func (cv *Canvas) FillRect(x, y, w, h int, c Color) {
 // Clear paints the whole clip region. The colour is forced opaque.
 func (cv *Canvas) Clear(c Color) {
 	cv.FillRect(cv.Clip.X, cv.Clip.Y, cv.Clip.Width, cv.Clip.Height, c|0xFF000000)
+}
+
+// fillRun writes an opaque colour over a run of pixels and records the part of
+// the run that moved. Deciding not to write a run that already holds the colour
+// would cost about as much as writing it — a comparison is a load and a compare
+// per pixel, and a store is a load and a store — so the run is written and then
+// measured against the frame on the screen, which does reject a whole frame in
+// one memcmp.
+func (cv *Canvas) fillRun(y, x0, x1 int, c Color) {
+	solidRunGo(cv.Pixels[y*cv.Stride+x0:y*cv.Stride+x1], c)
+	cv.markRun(y, x0, x1)
+}
+
+// blendRun composites a translucent colour over a run of pixels, and records
+// the part of the run that really moved: a blend has no answer to give before
+// it happens.
+func (cv *Canvas) blendRun(y, x0, x1 int, c Color) {
+	BlendRowSolid(cv.Pixels[y*cv.Stride+x0:y*cv.Stride+x1], c)
+	cv.markRun(y, x0, x1)
 }
 
 // Rect draws a one-pixel outline.
@@ -568,6 +595,7 @@ func (cv *Canvas) Blit(x, y int, src *Canvas) {
 			drow := cv.Pixels[sy*cv.Stride : sy*cv.Stride+cv.Width]
 			srow := src.Pixels[(sy-y)*src.Stride : (sy-y)*src.Stride+src.Width]
 			BlendRow(drow[x0:x1], srow[x0-x:x1-x])
+			cv.markRun(sy, x0, x1)
 		}
 		return
 	}
@@ -604,6 +632,7 @@ func (cv *Canvas) BlitOver(x, y int, src *Canvas) {
 					drow[i] = BlendOver(drow[i], c)
 				}
 			}
+			cv.markRun(sy, x0, x1)
 		}
 		return
 	}
