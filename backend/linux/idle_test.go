@@ -1,3 +1,4 @@
+//go:build linux || freebsd || openbsd || netbsd || dragonfly
 package linux
 
 import (
