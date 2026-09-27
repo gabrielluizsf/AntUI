@@ -383,39 +383,7 @@ func (cs *cssStyle) paintScrollbars(win *antui.Window, st css.Style, x, y, w, h,
 // natural is the size a widget wants before any CSS width or height says
 // otherwise: its text, its padding, its border, at the window's scale.
 func (cs *cssStyle) natural(role, label string, st css.Style, u int) (w, h int) {
-	var bx, by int
-	if st.BorderOn() {
-		bx = (st.BorderWidth[1] + st.BorderWidth[3]) * u
-		by = (st.BorderWidth[0] + st.BorderWidth[2]) * u
-	}
-	labelW := cs.measure(st, label)
-	switch role {
-	case css.RoleLabel:
-		return labelW, textHeight(u)
-	case css.RoleButton:
-		return labelW + 2*cs.padding(st, 3) + bx,
-			textHeight(u) + cs.padding(st, 2) + cs.padding(st, 0) + by
-	case css.RoleCheckbox, css.RoleRadio:
-		return 18*u + 8*u + labelW, 18 * u
-	case css.RoleSlider:
-		return 24 * canvas.FontWidth * u, 3 * canvas.FontHeight * u
-	case css.RoleInput:
-		return max(labelW+2*cs.padding(st, 3)+bx, 24*canvas.FontWidth*u),
-			textHeight(u) + cs.padding(st, 2) + cs.padding(st, 0) + by
-	case css.RoleSelect:
-		return max(labelW+2*cs.padding(st, 3)+16*u+bx, 24*canvas.FontWidth*u),
-			textHeight(u) + cs.padding(st, 2) + cs.padding(st, 0) + by
-	case css.RoleTextArea:
-		return max(24*canvas.FontWidth*u, 32*canvas.FontWidth*u), 3 * canvas.FontHeight * u
-	case css.RoleSwitch:
-		return 36*u + 8*u + labelW, 20 * u
-	case css.RoleProgress:
-		return 24 * canvas.FontWidth * u, 2 * canvas.FontHeight * u
-	case css.RoleDatePicker:
-		return max(labelW+2*cs.padding(st, 3)+16*u+bx, 24*canvas.FontWidth*u),
-			textHeight(u) + cs.padding(st, 2) + cs.padding(st, 0) + by
-	}
-	return labelW, textHeight(u)
+	return cs.sized(role, st, u, cs.measure(st, label))
 }
 
 // fontScale is how much the style's font-size enlarges the built-in face,
