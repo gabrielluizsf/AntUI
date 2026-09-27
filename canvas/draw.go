@@ -195,10 +195,24 @@ func (cv *Canvas) Line(x0, y0, x1, y1 int, c Color) {
 }
 
 // discCoverage is the antialiased coverage of a disc, 0 outside to 255 in.
+//
+// The square root is only worth taking in the one-pixel band along the edge.
+// Inside it the answer is 255 and outside it is 0, and both are decided by
+// comparing squares: a circle is mostly its own interior, and thirty-two
+// shifts per pixel to learn what a multiply would have said is most of what
+// drawing one costs.
 func discCoverage(dx, dy, radius int) int {
 	dist2 := uint64(dx*dx + dy*dy)
-	dist := int64(isqrt64(dist2 << 16))
 	edge := int64(radius)*256 + 128
+	// floor(256*sqrt(dist2)) is at most t exactly when dist2*65536 < (t+1)^2,
+	// which for a whole dist2 is dist2 < ceil((t+1)^2/65536).
+	if dist2 >= ceilSquare(uint64(edge)) {
+		return 0
+	}
+	if dist2 < ceilSquare(uint64(edge-255)) {
+		return 255
+	}
+	dist := int64(isqrt64(dist2 << 16))
 	cover := edge - dist
 	if cover <= 0 {
 		return 0
@@ -220,9 +234,17 @@ func ellipseCoverage(dx, dy, rx, ry int) int {
 	// scaled to integers is ((dx*ry)^2+(dy*rx)^2) / (rx*ry)^2.
 	ux := int64(dx) * int64(ry)
 	uy := int64(dy) * int64(rx)
+	dist2 := uint64(ux*ux + uy*uy)
 	den := int64(rx) * int64(ry)
-	dist := int64(isqrt64(uint64(ux*ux+uy*uy) << 16))
 	edge := den*256 + 128
+
+	if dist2 >= ceilSquare(uint64(edge)) {
+		return 0
+	}
+	if dist2 < ceilSquare(uint64(edge-255)) {
+		return 255
+	}
+	dist := int64(isqrt64(dist2 << 16))
 	cover := edge - dist
 	if cover <= 0 {
 		return 0
@@ -232,6 +254,11 @@ func ellipseCoverage(dx, dy, rx, ry int) int {
 	}
 	return int(cover)
 }
+
+// ceilSquare is ⌈v²/65536⌉, the smallest distance whose fixed-point root is at
+// least v — the threshold a squared distance is measured against to decide
+// which side of an edge a pixel is on without taking its root.
+func ceilSquare(v uint64) uint64 { return (v*v + 0xFFFF) >> 16 }
 
 // FillCircle draws a filled, antialiased disc.
 func (cv *Canvas) FillCircle(cx, cy, radius int, c Color) {
