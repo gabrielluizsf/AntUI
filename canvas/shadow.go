@@ -25,10 +25,11 @@ func (cv *Canvas) outerShadow(x, y, w, h, rx, ry, dx, dy, blur, spread int, c Co
 		return
 	}
 	pad := blur + 2
-	layer, err := NewCanvas(sw+2*pad, sh+2*pad)
-	if err != nil {
+	layer, ok := acquireLayer(sw+2*pad, sh+2*pad)
+	if !ok {
 		return
 	}
+	defer releaseLayer(layer)
 	fillRoundMask(layer, pad, pad, sw, sh, max(rx+spread, 0), max(ry+spread, 0), c)
 	layer.Blur(0, 0, layer.Width, layer.Height, blurRadius(blur))
 	ScaleAlpha(layer, float64(c.A())/255)
@@ -40,10 +41,11 @@ func (cv *Canvas) outerShadow(x, y, w, h, rx, ry, dx, dy, blur, spread int, c Co
 // the edges. The result is clipped to the box.
 func (cv *Canvas) insetShadow(x, y, w, h, rx, ry, dx, dy, blur, spread int, c Color) {
 	pad := blur + 2
-	layer, err := NewCanvas(w+2*pad, h+2*pad)
-	if err != nil {
+	layer, ok := acquireLayer(w+2*pad, h+2*pad)
+	if !ok {
 		return
 	}
+	defer releaseLayer(layer)
 	layer.FillRect(0, 0, layer.Width, layer.Height, c|0xFF000000)
 	holeX, holeY := pad+dx+spread, pad+dy+spread
 	holeW, holeH := w-2*spread, h-2*spread

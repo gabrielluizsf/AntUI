@@ -66,6 +66,12 @@ type Canvas struct {
 	Clip   Area // the active clip region
 	Dirty  Area // the bbox of every write since the last ResetDirty
 
+	// blurFront and blurBack are the two float buffers a blur passes its
+	// picture between. They are the largest thing a canvas ever allocates
+	// besides its pixels, and a window keeps them for as long as it lives
+	// rather than asking for new ones on every frame that blurs something.
+	blurFront, blurBack []float64
+
 	format  Format
 	narrow  []byte  // the 16- or 8-bit pixels
 	palette []Color // 256 entries, on Pal8
