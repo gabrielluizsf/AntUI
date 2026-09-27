@@ -132,11 +132,16 @@ type Driver struct {
 	deadKey   uint32 // a dead accent waiting for the next key
 	scratch   []byte // the staging buffer PutImage sends from
 	putBuffer []byte // and the request it is sent in, kept between frames
+	header    [20]byte
 
 	// samePixels is whether a canvas's own bytes are already what the server
 	// wants, which is every ordinary desktop and turns the conversion into a
 	// copy. Worked out once, when the server has said what it wants.
 	samePixels bool
+
+	// due is when the program's next frame is wanted, which the window core
+	// says; an idle Pump waits until then. See [Driver.SetFrameDeadline].
+	due time.Time
 
 	rbuf  []byte // bytes received and not consumed yet
 	rpos  int

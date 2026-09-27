@@ -57,8 +57,23 @@ type platform interface {
 	setClipboard(text string) bool
 }
 
+// framePacer is the optional half of a backend, and it is told when the next
+// frame is due rather than how long a frame may take: a platform that has to
+// wait for something to happen can spend the time until then asleep in the
+// kernel instead of coming straight back to be called again — the difference
+// between an idle window costing nothing and an idle window costing a core.
+// One that cannot wait is unaffected, since the core does the waiting itself.
+type framePacer interface {
+	setFrameDeadline(due time.Time)
+}
+
 // textBuffer bounds the text typed in one frame, in UTF-8 bytes.
 const textBuffer = 64
+
+// fallbackFPS is the frame rate a window keeps when the display will not say
+// how often it refreshes: a server without RandR, an offscreen canvas, a
+// platform still to be written.
+const fallbackFPS = 60
 
 // Window is an open window and everything drawn into it. It is not safe for
 // concurrent use: like every immediate-mode UI, one goroutine owns the frame
@@ -75,6 +90,7 @@ type Window struct {
 	width, height int
 	shouldClose   bool
 	fullRedraw    bool // forces sending the whole frame
+	presented     bool // whether the last End reached the display
 	visible       bool
 
 	fullscreen                    bool  // what was last asked for
@@ -122,7 +138,10 @@ type Window struct {
 
 	frameStart time.Time
 	delta      float64
-	targetFPS  int
+	nextFrame  time.Time // when the next frame is due; see pace
+	targetFPS  int       // 0 follows the display, see SetFPS
+	refreshHz  int       // the display's rate, 0 until asked, -1 when unknown
+	sleep      func(time.Duration)
 
 	theme    Theme
 	uiHot    uint32 // the widget under the pointer
@@ -258,9 +277,14 @@ func (win *Window) Begin() bool {
 	return !win.shouldClose
 }
 
-// End finishes the frame: it sends the pixels to the screen and applies the
-// frame-rate cap.
-func (win *Window) End() {
+// End finishes the frame: it sends the pixels that changed to the screen, then
+// holds the loop to the frame rate.
+//
+// It reports whether anything reached the display. A frame that redrew the
+// same picture — a window sitting still with no animation running — sends
+// nothing and answers false, and so costs almost nothing: no upload, no scan
+// of the canvas, no drawing the backend had to be woken for.
+func (win *Window) End() bool {
 	win.moveFocus()
 	// Drawings registered while the frame was being painted land here, above
 	// everything, before the pixels are presented.
@@ -268,16 +292,89 @@ func (win *Window) End() {
 		win.frontmost[i]()
 	}
 	if win.native == nil {
-		return
+		return false
 	}
-	win.native.present(win, win.dirtyRegion())
+	dirty := win.dirtyRegion()
+	// A frame that drew the picture already on the screen is not presented at
+	// all: the platform is not asked, which is what keeps an idle window from
+	// waking the compositor sixty times a second to be told there is nothing to
+	// do. The canvas's own copy of the screen has already been brought up to
+	// date by the measuring, so the next frame starts from the right place.
+	if dirty.Width > 0 && dirty.Height > 0 {
+		win.native.present(win, dirty)
+		win.presented = true
+	} else {
+		win.presented = false
+	}
+	win.pace()
+	return win.presented
+}
 
-	if win.targetFPS > 0 {
-		budget := time.Duration(float64(time.Second) / float64(win.targetFPS))
-		if elapsed := time.Since(win.frameStart); elapsed < budget {
-			time.Sleep(budget - elapsed)
+// Presented reports whether the last [Window.End] put anything on the screen.
+// A template can read it to see whether the frame it just drew was a change
+// or a repeat: the input state is settled either way, and a repeat is free.
+func (win *Window) Presented() bool { return win.presented }
+
+// frameBudget is how long one frame may take. The default is the display's own
+// refresh rate, so the loop is paced by the screen rather than by how fast the
+// machine can go; a rate given to [Window.SetFPS] is a ceiling on top of that.
+// A display that will not say is assumed to be the usual sixty.
+func (win *Window) frameBudget() time.Duration {
+	fps := win.targetFPS
+	if fps <= 0 {
+		if win.refreshHz == 0 && win.native != nil {
+			win.refreshHz = win.native.displayRefresh()
+		}
+		if fps = win.refreshHz; fps <= 0 {
+			fps = fallbackFPS
 		}
 	}
+	return time.Duration(float64(time.Second) / float64(fps))
+}
+
+// pace holds the loop to the budget. The frames land on an absolute grid, so
+// the time a frame took to draw does not add to the wait of the next one: a
+// frame that overran its budget starts the next frame now and the loop drops
+// frames rather than building a debt it can never pay back.
+//
+// The platform is told when the next frame is due, so a backend that waits on
+// its own event queue can stay asleep until then rather than being woken to be
+// told there is nothing to do.
+func (win *Window) pace() {
+	budget := win.frameBudget()
+	if budget <= 0 {
+		win.handOver(time.Time{})
+		return
+	}
+	now := time.Now()
+	if win.nextFrame.IsZero() {
+		win.nextFrame = now
+	}
+	win.nextFrame = win.nextFrame.Add(budget)
+	if !win.nextFrame.After(now) {
+		win.nextFrame = now
+		win.handOver(now)
+		return
+	}
+	win.handOver(win.nextFrame)
+	win.sleepUntil(win.nextFrame.Sub(now))
+}
+
+// handOver passes the frame deadline to a platform that can wait for it.
+func (win *Window) handOver(due time.Time) {
+	if pacer, ok := win.native.(framePacer); ok {
+		pacer.setFrameDeadline(due)
+	}
+}
+
+// sleepUntil waits out the rest of the frame. A platform with its own way to
+// idle can be given one; the default is the obvious thing.
+func (win *Window) sleepUntil(d time.Duration) {
+	if win.sleep != nil {
+		win.sleep(d)
+		return
+	}
+	time.Sleep(d)
 }
 
 // Quit marks the window for closing, so the next Begin returns false.
@@ -302,8 +399,15 @@ func (win *Window) Height() int { return win.cv.Height }
 // Delta is how long the last frame took, in seconds.
 func (win *Window) Delta() float64 { return win.delta }
 
-// SetFPS caps the frame rate in End. Zero turns the cap off.
-func (win *Window) SetFPS(fps int) { win.targetFPS = max(fps, 0) }
+// SetFPS caps the frame rate. Zero or less — the default — follows the
+// display, so a window is paced by the screen it is on; a positive number is a
+// ceiling whatever the display says. A window that used to run flat out between
+// Begin and End is now paced unless it asks otherwise.
+func (win *Window) SetFPS(fps int) {
+	win.targetFPS = max(fps, 0)
+	// The old grid was set for the old rate; it means nothing now.
+	win.nextFrame = time.Time{}
+}
 
 // SetFullscreen asks the system to put the window full screen, or to take it
 // back out. It reports whether the request could be made, not whether it was

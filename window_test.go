@@ -69,7 +69,7 @@ func (s *stubBackend) setSize(_ *Window, width, height int) bool {
 func (s *stubBackend) contentScale() float64 { return s.scale }
 
 // newTestWindow builds a window backed by the stub, at a known size.
-func newTestWindow(t *testing.T, w, h int) (*Window, *stubBackend) {
+func newTestWindow(t testing.TB, w, h int) (*Window, *stubBackend) {
 	t.Helper()
 	cv, err := canvas.NewCanvas(w, h)
 	if err != nil {

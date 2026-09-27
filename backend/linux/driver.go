@@ -21,6 +21,7 @@ import (
 	"encoding/binary"
 	"errors"
 	"syscall"
+	"time"
 	"unsafe"
 
 	"github.com/gabrielluizsf/antui/backend"
@@ -145,17 +146,36 @@ func (x *Driver) Close() {
 
 // Pump handles whatever is waiting on the connection this frame, folding it
 // into the window through win.push.
+//
+// With nothing to say it waits on the socket rather than handing the frame
+// straight back, so a program that draws as fast as it can is asleep in the
+// kernel between frames instead of asking the server a hundred thousand times
+// a second whether anything has happened. The wait ends early on whatever
+// arrives, and never runs past the frame the program asked for.
 func (x *Driver) Pump(win backend.Face) {
 	// Take the whole of what has arrived first, so a frame's worth of input
 	// is not spread over the next several frames.
 	for x.fill(0) {
 	}
+	x.dispatch(win)
+	if x.alive && x.fill(x.idleWait()) {
+		x.dispatch(win)
+	}
+	if !x.alive {
+		win.SetShouldClose()
+	}
+}
+
+// dispatch folds every whole packet in the buffer into the window. A packet
+// half-read is left for the next time: the reply it belongs to may still be
+// coming, and a read cannot be allowed to wait for one here.
+func (x *Driver) dispatch(win backend.Face) {
 	for {
 		packet, _, ok := x.takePacket()
 		if !ok {
 			// Half a packet is buffered: try to complete it without blocking.
 			if !x.fill(0) {
-				break
+				return
 			}
 			continue
 		}
@@ -163,10 +183,28 @@ func (x *Driver) Pump(win backend.Face) {
 			x.handleEvent(packet)
 		}
 	}
-	if !x.alive {
-		win.SetShouldClose()
-	}
 }
+
+// maxIdleWait caps how long a Pump will sit on the socket. The program's own
+// frame rate is the usual answer; this is the backstop for a program that has
+// not said, and it keeps a keystroke from waiting on a slow frame rate.
+const maxIdleWait = 16 * time.Millisecond
+
+// idleWait is how long to sit on the socket with nothing to do: until the
+// frame the program asked for is due, and no longer. A program whose frames
+// are already late gets no wait at all, which is what keeps a window that
+// cannot keep up running flat out instead of stalling between frames.
+func (x *Driver) idleWait() time.Duration {
+	if x.due.IsZero() {
+		return maxIdleWait
+	}
+	return min(max(time.Until(x.due), 0), maxIdleWait)
+}
+
+// SetFrameDeadline tells the driver when the program wants its next frame,
+// which is what an idle Pump waits for. A zero time means the program is not
+// pacing itself, and the driver waits its own short moment instead.
+func (x *Driver) SetFrameDeadline(due time.Time) { x.due = due }
 
 // SetTitle names the window in the window manager's decoration.
 func (x *Driver) SetTitle(title string) {
@@ -260,7 +298,7 @@ func (x *Driver) Present(win backend.Face, dirty canvas.Area) {
 			x.packRow(x.scratch[row*rowBytes:], cv.Pixels[at:at+rowPixels])
 		}
 
-		header := make([]byte, 20)
+		header := x.header[:20:20]
 		binary.LittleEndian.PutUint32(header[0:], x.window)
 		binary.LittleEndian.PutUint32(header[4:], x.gc)
 		binary.LittleEndian.PutUint16(header[8:], uint16(dirty.Width))

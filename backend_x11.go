@@ -3,6 +3,8 @@
 package antui
 
 import (
+	"time"
+
 	"github.com/gabrielluizsf/antui/backend"
 	x11 "github.com/gabrielluizsf/antui/backend/linux"
 	"github.com/gabrielluizsf/antui/canvas"
@@ -35,7 +37,11 @@ func (n *x11Native) pump(win *Window) { n.d.Pump(win) }
 func (n *x11Native) present(win *Window, dirty canvas.Area) {
 	n.d.Present(win, dirty)
 }
-func (n *x11Native) setTitle(title string) { n.d.SetTitle(title) }
+
+// setFrameDeadline tells the driver when the next frame is due, so an idle
+// Pump can sleep on the socket until then instead of spinning on it.
+func (n *x11Native) setFrameDeadline(due time.Time) { n.d.SetFrameDeadline(due) }
+func (n *x11Native) setTitle(title string)          { n.d.SetTitle(title) }
 func (n *x11Native) setFullscreen(on bool) bool {
 	return n.d.SetFullscreen(on)
 }
