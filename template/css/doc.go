@@ -94,4 +94,43 @@
 // names far more than any canvas can paint; the engine implements the surface
 // that maps directly onto it, and every property it does not know is ignored
 // with a warning rather than an error.
+//
+// # Layout containers
+//
+// Two properties hand a block over to a layout engine instead of the vertical
+// flow: display:flex makes it a flex container, display:grid a grid container.
+// Both take the whole box — margin, border, padding, width, height and
+// min/max — and place the widgets drawn inside them, which the template calls
+// CSS.Flex and CSS.Grid. The gap, alignment, order and sizing properties those
+// two engines read are:
+//
+//	flex-direction, flex-wrap, flex-grow, flex-shrink, flex-basis, order,
+//	gap, row-gap, column-gap, justify-content, justify-items, justify-self,
+//	align-content, align-items, align-self
+//
+// A flex item is sized along the main axis by its basis, grown and shrunk
+// against what is left, and placed on the cross axis by align-items. The main
+// axis runs with flex-direction, wraps with flex-wrap, and justify-content
+// packs the items along it.
+//
+// A grid container is split into tracks by grid-template-columns and
+// grid-template-rows. A track is a length, auto, a fraction (fr), minmax(),
+// the content keywords min-content, max-content and fit-content(), or
+// repeat() — with a count, or with auto-fill and auto-fit to work out the
+// count from the room the container has. gap separates the tracks,
+// grid-template-areas names the rectangles of cells, and an item places itself
+// with grid-column, grid-row and grid-area, by line number, by span, or by the
+// names given to the lines in a template, counting from the end with a leading
+// minus. grid-auto-flow chooses whether items fill the axis in turn (row) or
+// the other one (column), sparse or dense, and order moves an item along
+// without moving it in the source.
+//
+//	grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 8px; }
+//	grid { grid-template-columns: [full-start] 1fr [main-start] 2fr [main-end] 1fr [full-end]; }
+//	item { grid-column: main-start / main-end; }
+//
+// subgrid is not supported: asking a nested container to adopt the lines of
+// the one around it is an error, not a silent approximation. A grid inside
+// another grid, or inside a flex, lays its own tracks out from scratch inside
+// the box it was given.
 package css

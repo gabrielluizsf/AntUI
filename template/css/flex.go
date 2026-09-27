@@ -97,9 +97,11 @@ func parseFlexWrap(raw string) (uint8, bool) {
 // flex- counterparts.
 func parseJustifyContent(raw string) (uint8, bool) {
 	switch raw {
-	case "flex-start", "start":
+	case "normal", "stretch":
 		return JustifyFlexStart, true
-	case "flex-end", "end":
+	case "flex-start", "start", "left":
+		return JustifyFlexStart, true
+	case "flex-end", "end", "right":
 		return JustifyFlexEnd, true
 	case "center":
 		return JustifyCenter, true

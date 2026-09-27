@@ -162,6 +162,17 @@ type Style struct {
 	FlexBasis  Length
 	AlignSelf  uint8 // AlignAuto or one of the Align* constants
 
+	GridTemplateColumns GridTemplate
+	GridTemplateRows    GridTemplate
+	GridTemplateAreas   [][]string
+	GridAutoFlow        uint8
+	GridAutoFlowDense   bool
+	GridJustifyContent  uint8
+	JustifyItems        uint8
+	JustifySelf         uint8
+	GridColumn          GridPlacement
+	GridRow             GridPlacement
+
 	// Visual effects. OutlineStyle shares the Border* constants.
 	BoxShadow       []Shadow
 	TextShadow      []Shadow
@@ -584,6 +595,9 @@ func applyDecl(st *Style, set map[string]bool, customs, cascaded map[string]stri
 	case "justify-content":
 		if v, ok := parseJustifyContent(raw); ok {
 			st.JustifyContent = v
+			if grid, good := parseGridJustifyContent(raw); good {
+				st.GridJustifyContent = grid
+			}
 			note()
 		}
 	case "align-items":
@@ -647,6 +661,83 @@ func applyDecl(st *Style, set map[string]bool, customs, cascaded map[string]stri
 		if v, ok := parseFlexBasis(raw, *ctx); ok {
 			st.FlexBasis = v
 			note()
+		}
+	case "grid-template-columns":
+		if v, ok := parseGridTemplate(raw, *ctx); ok {
+			st.GridTemplateColumns = v
+			note()
+		}
+	case "grid-template-rows":
+		if v, ok := parseGridTemplate(raw, *ctx); ok {
+			st.GridTemplateRows = v
+			note()
+		}
+	case "grid-template-areas":
+		if v, ok := parseGridTemplateAreas(raw); ok {
+			st.GridTemplateAreas = v
+			note()
+		}
+	case "grid-auto-flow":
+		if flow, dense, ok := parseGridAutoFlow(raw); ok {
+			st.GridAutoFlow = flow
+			st.GridAutoFlowDense = dense
+			note()
+		}
+	case "justify-items":
+		if v, ok := parseJustifyItems(raw); ok {
+			st.JustifyItems = v
+			note()
+		}
+	case "justify-self":
+		if v, ok := parseJustifySelf(raw); ok {
+			st.JustifySelf = v
+			note()
+		}
+	case "grid-column":
+		if v, ok := parseGridPlacement(raw); ok {
+			st.GridColumn = v
+			note()
+			set["grid-column-start"] = true
+			set["grid-column-end"] = true
+		}
+	case "grid-row":
+		if v, ok := parseGridPlacement(raw); ok {
+			st.GridRow = v
+			note()
+			set["grid-row-start"] = true
+			set["grid-row-end"] = true
+		}
+	case "grid-column-start", "grid-column-end":
+		if v, ok := parseGridLine(raw); ok {
+			if prop == "grid-column-start" {
+				st.GridColumn.Start = v
+			} else {
+				st.GridColumn.End = v
+			}
+			note()
+			set["grid-column"] = true
+		}
+	case "grid-row-start", "grid-row-end":
+		if v, ok := parseGridLine(raw); ok {
+			if prop == "grid-row-start" {
+				st.GridRow.Start = v
+			} else {
+				st.GridRow.End = v
+			}
+			note()
+			set["grid-row"] = true
+		}
+	case "grid-area":
+		if column, row, ok := parseGridArea(raw); ok {
+			st.GridColumn = column
+			st.GridRow = row
+			note()
+			set["grid-column"] = true
+			set["grid-row"] = true
+			set["grid-column-start"] = true
+			set["grid-column-end"] = true
+			set["grid-row-start"] = true
+			set["grid-row-end"] = true
 		}
 	case "overflow":
 		if v, ok := parseOverflow(raw); ok {
@@ -1500,6 +1591,7 @@ func applyInitial(st *Style, prop string) {
 		st.FlexWrap = FlexWrapNowrap
 	case "justify-content":
 		st.JustifyContent = JustifyFlexStart
+		st.GridJustifyContent = ContentStretch
 	case "align-items":
 		st.AlignItems = AlignStretch
 	case "align-self":
@@ -1525,6 +1617,34 @@ func applyInitial(st *Style, prop string) {
 		st.FlexShrink = 1
 	case "flex-basis":
 		st.FlexBasis = Auto()
+	case "grid-template-columns":
+		st.GridTemplateColumns = nil
+	case "grid-template-rows":
+		st.GridTemplateRows = nil
+	case "grid-template-areas":
+		st.GridTemplateAreas = nil
+	case "grid-auto-flow":
+		st.GridAutoFlow = GridAutoFlowRow
+		st.GridAutoFlowDense = false
+	case "justify-items":
+		st.JustifyItems = AlignStretch
+	case "justify-self":
+		st.JustifySelf = AlignAuto
+	case "grid-column":
+		st.GridColumn = GridPlacement{}
+	case "grid-column-start":
+		st.GridColumn.Start = GridLine{}
+	case "grid-column-end":
+		st.GridColumn.End = GridLine{}
+	case "grid-row":
+		st.GridRow = GridPlacement{}
+	case "grid-row-start":
+		st.GridRow.Start = GridLine{}
+	case "grid-row-end":
+		st.GridRow.End = GridLine{}
+	case "grid-area":
+		st.GridColumn = GridPlacement{}
+		st.GridRow = GridPlacement{}
 	case "box-shadow":
 		st.BoxShadow = nil
 	case "text-shadow":
