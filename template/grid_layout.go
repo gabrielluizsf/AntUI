@@ -40,7 +40,8 @@ type gridItem struct {
 	inRight     int
 	inBottom    int
 	x, y        int
-	nested      *gridNested // set when the item is a grid container of its own
+	nested      *gridNested  // set when the item is a grid container of its own
+	columns     *multiNested // set when the item is a column block of its own
 }
 
 type gridBatch struct {

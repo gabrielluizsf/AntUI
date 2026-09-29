@@ -31,8 +31,9 @@ type flexItem struct {
 	inTop        int
 	inRight      int
 	inBottom     int
-	x, y         int         // solved position relative to the content origin
-	nested       *gridNested // set when the item is a grid container of its own
+	x, y         int          // solved position relative to the content origin
+	nested       *gridNested  // set when the item is a grid container of its own
+	columns      *multiNested // set when the item is a column block of its own
 }
 
 // flexBatch is one flex layout: the container's style and box on the page,
@@ -562,13 +563,24 @@ func (b *flexBatch) lineCross(line []int) int {
 	return cross
 }
 
+// alignItems is how the container places its items across the cross axis. A
+// sheet that never declared align-items has the field at its zero value, which
+// is not one of the Align* constants, so the initial value is asked for the way
+// the initial keyword sets it.
+func (b *flexBatch) alignItems() uint8 {
+	if !b.st.Has("align-items") {
+		return css.AlignStretch
+	}
+	return b.st.AlignItems
+}
+
 // alignCross plants every item across the cross axis of its line, offset by
 // where the line itself starts: stretch grows an auto-sized item to fill, and
 // the other keywords park it against a line edge or in the middle.
 func (b *flexBatch) alignCross(line []int, cross, off int) {
 	for _, idx := range line {
 		it := &b.items[idx]
-		a := b.st.AlignItems
+		a := b.alignItems()
 		if it.alignSelf != css.AlignAuto {
 			a = it.alignSelf
 		}
@@ -625,9 +637,13 @@ func (b *flexBatch) stackLines(lines [][]int, crosses []int, gap, avail int, def
 		total += c
 	}
 	if definite && b.st.AlignContent == css.ContentStretch {
-		extra := max(avail-total, 0) / len(lines)
+		// Stretch fills the cross size the container was given: the lines are
+		// made to add up to it, so a line wider than the container is narrowed
+		// to fit and what does not fit spills out of it rather than the
+		// container growing to hold it.
+		room := max(avail-gap*(len(lines)-1), 0) / len(lines)
 		for i := range crosses {
-			crosses[i] += extra
+			crosses[i] = room
 		}
 		total = 0
 		for i, c := range crosses {
@@ -753,7 +769,6 @@ func (b *flexBatch) solveColumn() {
 	for li, line := range lines {
 		b.alignCross(line, crosses[li], offsets[li])
 	}
-
 	if definite {
 		b.contentH = avail
 	} else {

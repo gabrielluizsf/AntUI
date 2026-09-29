@@ -173,6 +173,32 @@ type Style struct {
 	GridColumn          GridPlacement
 	GridRow             GridPlacement
 
+	// Multi-column geometry: how a block's content is split into columns.
+	// ColumnCount is how many, ColumnWidth how wide each one is when the count
+	// is left to the width, ColumnFill how a declared height is spent. The rule
+	// in the gutter is ColumnRuleWidth, ColumnRuleStyle (the Border* constants)
+	// and ColumnRuleColor. The gutter itself is ColumnGap, the same property
+	// flex and grid read as their gap along the inline axis.
+	ColumnCount     int
+	ColumnWidth     Length
+	ColumnFill      uint8 // one of the ColumnFill* constants
+	ColumnRuleWidth int
+	ColumnRuleStyle uint8
+	ColumnRuleColor canvas.Color
+
+	// BreakInside is whether a box may be cut in the middle where it is laid
+	// out: in a column, in a page or along a line. BreakAuto lets the flow cut
+	// it wherever it runs out of room, BreakAvoid asks for the whole box in
+	// one piece.
+	BreakInside uint8 // one of the Break* constants
+
+	// Float is the side a box is taken out of the flow towards and Clear the
+	// sides a box asks to be pushed past. Both are read, so a stylesheet that
+	// says float: right is heard and not warned about as a misspelling; see
+	// doc.go for why this flow has nothing to float inside.
+	Float uint8 // one of the Float* constants
+	Clear uint8 // one of the Clear* constants
+
 	// Visual effects. OutlineStyle shares the Border* constants.
 	BoxShadow       []Shadow
 	TextShadow      []Shadow
@@ -738,6 +764,67 @@ func applyDecl(st *Style, set map[string]bool, customs, cascaded map[string]stri
 			set["grid-column-end"] = true
 			set["grid-row-start"] = true
 			set["grid-row-end"] = true
+		}
+	case "columns":
+		if n, l, ok := parseColumns(raw, *ctx); ok {
+			st.ColumnCount, st.ColumnWidth = n, l
+			note()
+			set["column-count"] = true
+			set["column-width"] = true
+		}
+	case "column-count":
+		if v, ok := parseColumnCount(raw); ok {
+			st.ColumnCount = v
+			note()
+		}
+	case "column-width":
+		if v, ok := parseColumnWidth(raw, *ctx); ok {
+			st.ColumnWidth = v
+			note()
+		}
+	case "column-fill":
+		if v, ok := parseColumnFill(raw); ok {
+			st.ColumnFill = v
+			note()
+		}
+	case "column-rule":
+		applyColumnRule(st, set, raw, note)
+	case "column-rule-width":
+		if l, err := parseLength(raw); err == nil && l.u == unitPx {
+			st.ColumnRuleWidth = max(l.Px(0), 0)
+			note()
+		}
+	case "column-rule-style":
+		if v, ok := parseBorderStyle(raw); ok {
+			st.ColumnRuleStyle = v
+			note()
+		}
+	case "column-rule-color":
+		if c, err := ParseColor(raw); err == nil {
+			st.ColumnRuleColor = c
+			note()
+		}
+	case "break-inside", "page-break-inside":
+		if v, ok := parseBreakInside(raw); ok {
+			st.BreakInside = v
+			note()
+			set["break-inside"] = true
+		}
+	case "float":
+		if v, ok := parseFloat(raw); ok {
+			st.Float = v
+			note()
+			if v != FloatNone {
+				return []string{fmtErrf("%s is read but not applied: this template's flow has no line box to float inside", prop).Error()}
+			}
+		}
+	case "clear":
+		if v, ok := parseClear(raw); ok {
+			st.Clear = v
+			note()
+			if v != ClearNone {
+				return []string{fmtErrf("%s is read but not applied: nothing here floats, so there is nothing to be pushed past", prop).Error()}
+			}
 		}
 	case "overflow":
 		if v, ok := parseOverflow(raw); ok {
@@ -1645,6 +1732,31 @@ func applyInitial(st *Style, prop string) {
 	case "grid-area":
 		st.GridColumn = GridPlacement{}
 		st.GridRow = GridPlacement{}
+	case "columns":
+		st.ColumnCount = 0
+		st.ColumnWidth = Auto()
+	case "column-count":
+		st.ColumnCount = 0
+	case "column-width":
+		st.ColumnWidth = Auto()
+	case "column-fill":
+		st.ColumnFill = ColumnFillBalance
+	case "column-rule":
+		st.ColumnRuleWidth = 0
+		st.ColumnRuleStyle = BorderNone
+		st.ColumnRuleColor = CurrentColor
+	case "column-rule-width":
+		st.ColumnRuleWidth = 0
+	case "column-rule-style":
+		st.ColumnRuleStyle = BorderNone
+	case "column-rule-color":
+		st.ColumnRuleColor = CurrentColor
+	case "break-inside", "page-break-inside":
+		st.BreakInside = BreakAuto
+	case "float":
+		st.Float = FloatNone
+	case "clear":
+		st.Clear = ClearNone
 	case "box-shadow":
 		st.BoxShadow = nil
 	case "text-shadow":

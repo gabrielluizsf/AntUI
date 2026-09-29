@@ -51,7 +51,11 @@ type CSS struct {
 	flexing bool
 	grid    *gridBatch
 	griding bool
-	measure bool
+	multi   *multiBatch
+	// multicoling is true while a [CSS.MultiCol] callback runs, which is how a
+	// widget drawn in a column block tells it is in one.
+	multicoling bool
+	measure     bool
 }
 
 // TemplateWithCSS makes the coord-free template: the developer passes no
@@ -123,6 +127,8 @@ func (c *CSS) Reset() {
 	c.flexing = false
 	c.grid = nil
 	c.griding = false
+	c.multi = nil
+	c.multicoling = false
 	c.measure = false
 }
 
@@ -141,6 +147,9 @@ func (c *CSS) layout(role, label string) (x, y, w, h int, st css.Style, ok bool)
 	}
 	if c.griding {
 		return c.layoutGrid(role, label)
+	}
+	if c.multicoling {
+		return c.layoutMulti(role, label)
 	}
 	e := c.style.beginWidget(role, label)
 	return c.layoutBox(e, role, label, e.state)

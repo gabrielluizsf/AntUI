@@ -1,6 +1,7 @@
 package template
 
 import (
+	"strings"
 	"testing"
 
 	"github.com/gabrielluizsf/antui"
@@ -330,5 +331,50 @@ func TestFlexShrinksToFitLine(t *testing.T) {
 	total := got[0].w + got[1].w
 	if total != 400 {
 		t.Errorf("two 250px items shrink to fit 400px, got %d", total)
+	}
+}
+
+// TestFlexStretchesItemsAcrossTheLine: a sheet that says nothing about
+// align-items has its initial value, which grows an item without a width of its
+// own across the line. A column of a page leans on it: every block of the page
+// is as wide as the page.
+func TestFlexStretchesItemsAcrossTheLine(t *testing.T) {
+	got := flexRun(t, "flex { display: flex; flex-direction: column; padding: 0 10px; }", func(f *CSS, dst *[]box) {
+		flexLayout2(dst)(f)
+	})
+	if len(got) != 2 {
+		t.Fatalf("got %d boxes, want 2", len(got))
+	}
+	for i, at := range got {
+		if at.w != 380 {
+			t.Errorf("item %d is %d wide, want 380: the line, which is the 400px window less the padding", i, at.w)
+		}
+	}
+	if got[0].x != 10 {
+		t.Errorf("first item x=%d want 10 (the padding)", got[0].x)
+	}
+}
+
+// TestFlexLineIsAsWideAsTheContainer: the line is as wide as the container even
+// when an item asks for more of it, so the item is narrowed to the line and its
+// content spills out of it, the way a browser does. Otherwise one wide block
+// would drag every block of the page out to its own width.
+func TestFlexLineIsAsWideAsTheContainer(t *testing.T) {
+	long := strings.Repeat("wide ", 30)
+	got := flexRun(t, "flex { display: flex; flex-direction: column; padding: 0 10px; }", func(f *CSS, dst *[]box) {
+		lay := flexLayout(dst)
+		lay(f, "A")
+		lay(f, long)
+	})
+	if len(got) != 2 {
+		t.Fatalf("got %d boxes, want 2", len(got))
+	}
+	for i, at := range got {
+		if at.w != 380 {
+			t.Errorf("item %d is %d wide, want 380: the line, not the widest item", i, at.w)
+		}
+	}
+	if got[1].h == 0 {
+		t.Error("the second item has no height")
 	}
 }

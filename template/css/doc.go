@@ -133,4 +133,40 @@
 // the one around it is an error, not a silent approximation. A grid inside
 // another grid, or inside a flex, lays its own tracks out from scratch inside
 // the box it was given.
+//
+// # Columns and tables
+//
+// A block the stylesheet marks with the multicol class becomes a multi-column
+// container, which the template calls CSS.MultiCol, and the content inside it is
+// split into equal columns with a gutter between them. The properties that
+// decide the split are:
+//
+//	column-count, column-width, column-gap, column-rule, column-rule-width,
+//	column-rule-style, column-rule-color, column-fill, columns,
+//	break-inside, page-break-inside
+//
+// column-count says how many columns there are, column-width how wide one of
+// them is (which is also a way of asking for as many as fit), and the smaller of
+// the two wins. column-gap is the same gap flex and grid read, and column-rule —
+// a border's three declarations, which take a colour like currentColor — is
+// painted down the middle of it. column-fill: auto spends the whole height on one
+// column before starting the next; the default balance spreads the height over
+// them instead, and a container with no height of its own is as tall as the
+// tallest of its columns. A container with a height has one to cut a box
+// against: a box that runs out of room is cut and continued in the next column,
+// and a box with break-inside: avoid is moved whole to the next one instead. What
+// does not fit the columns the container asked for hangs below the last one.
+//
+//	multicolumn { column-count: 3; column-gap: 16px; column-rule: 1px solid #ddd; }
+//	quote     { break-inside: avoid; }
+//
+// A box is cut by giving its fragments a draw pass each, and the callback is run
+// once per pass, so it must draw the same widgets in the same order every run. A
+// box that would need more than 64 fragments is drawn whole in the piece that
+// overflows rather than costing the frame more passes.
+//
+// float and clear are read and warned about but change nothing: this flow has no
+// line box to float a box inside, and nothing here floats for clear to push
+// past. break-before and break-after are not supported; only break-inside, which
+// is what a multi-column cut needs.
 package css

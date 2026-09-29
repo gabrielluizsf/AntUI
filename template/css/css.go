@@ -452,6 +452,9 @@ func resolveCurrentColors(st *Style) {
 	if st.OutlineColor == CurrentColor {
 		st.OutlineColor = currentInk(st)
 	}
+	if st.ColumnRuleColor == CurrentColor {
+		st.ColumnRuleColor = currentInk(st)
+	}
 	for i := range st.Filters {
 		if st.Filters[i].Drop != nil && st.Filters[i].Drop.Color == CurrentColor {
 			st.Filters[i].Drop.Color = currentInk(st)
