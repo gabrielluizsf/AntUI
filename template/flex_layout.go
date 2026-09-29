@@ -34,6 +34,7 @@ type flexItem struct {
 	x, y         int          // solved position relative to the content origin
 	nested       *gridNested  // set when the item is a grid container of its own
 	columns      *multiNested // set when the item is a column block of its own
+	table        *tableNested // set when the item is a table of its own
 }
 
 // flexBatch is one flex layout: the container's style and box on the page,

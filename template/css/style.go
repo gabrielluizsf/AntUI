@@ -7,18 +7,6 @@ import (
 	"github.com/gabrielluizsf/antui/canvas"
 )
 
-// Display is the CSS outer display type of a box. Inline and inline-block
-// boxes flow along a line, the rest start a new line.
-const (
-	DisplayBlock uint8 = iota
-	DisplayNone
-	DisplayInline
-	DisplayInlineBlock
-	DisplayFlex
-	DisplayGrid
-	DisplayTable
-)
-
 // Position is the CSS positioning scheme. Absolute and fixed boxes are taken
 // out of flow; relative and sticky boxes keep their flow slot and only shift
 // where they are painted.
@@ -264,11 +252,6 @@ func (s *Style) Has(prop string) bool { return s.Set[prop] }
 func (s *Style) BorderOn() bool {
 	return s.BoxStyle[0] != BorderNone || s.BoxStyle[1] != BorderNone ||
 		s.BoxStyle[2] != BorderNone || s.BoxStyle[3] != BorderNone
-}
-
-// Inline reports whether the box flows along a line with its neighbours.
-func (s Style) Inline() bool {
-	return s.Display == DisplayInline || s.Display == DisplayInlineBlock
 }
 
 // OutOfFlow reports whether the box is positioned outside the normal flow.
@@ -1151,30 +1134,6 @@ func parseBorderStyles(raw string) ([4]uint8, bool) {
 	fill := expandFourInt8(vals)
 	copy(out[:], fill[:])
 	return out, true
-}
-
-func parseDisplay(raw string) (uint8, bool) {
-	switch raw {
-	case "block", "flow-root", "list-item":
-		return DisplayBlock, true
-	case "none":
-		return DisplayNone, true
-	case "inline":
-		return DisplayInline, true
-	case "inline-block", "inline-flex", "inline-grid", "inline-table":
-		return DisplayInlineBlock, true
-	case "flex":
-		return DisplayFlex, true
-	case "grid":
-		return DisplayGrid, true
-	case "table", "table-row", "table-cell", "table-caption", "table-column",
-		"table-column-group", "table-header-group", "table-footer-group",
-		"table-row-group":
-		return DisplayTable, true
-	case "contents":
-		return DisplayNone, true
-	}
-	return 0, false
 }
 
 func parsePosition(raw string) (uint8, bool) {

@@ -165,6 +165,32 @@
 // box that would need more than 64 fragments is drawn whole in the piece that
 // overflows rather than costing the frame more passes.
 //
+//	display:table makes a block a table container, which the template calls
+//	CSS.Table, and the widgets inside it are the cells of the rows the callback
+//	draws with CSS.TableRow. A column is as wide as the widest cell in it, a row
+//	as tall as the tallest cell in it, and a table with a width of its own shares
+//	that width out over the columns in proportion to what they asked for — a wide
+//	column keeps more of the extra room than a narrow one. A cell's content is
+//	placed in its row by the vertical-align of the cell's own style. The interior
+//	display values are read, not folded into display:table the way a browser folds
+//	them, so a stylesheet can say what a widget is:
+//
+//	table  { display: table; }
+//	cell   { display: table-cell; vertical-align: middle; }
+//	caption{ display: table-caption; }
+//
+// A widget drawn straight in a table, without a row around it, becomes a row of
+// one cell, which is what a browser's anonymous boxes do with a child that did
+// not ask to be a row. A widget marked display:table-caption is not a cell: it
+// is painted above the table, across its whole width.
+//
+// Tables are laid out with separated borders, the one case of the two that
+// collapses nothing: border-collapse and border-spacing are read as ordinary
+// properties and change nothing about where a border is painted. A table in a
+// cell, a column, a flex item or a grid item is an item of it — as wide as its
+// own columns ask for, and centred in what it was given — and a column block in
+// any of them keeps its own columns, re-solved at the box it really ended up in.
+//
 // float and clear are read and warned about but change nothing: this flow has no
 // line box to float a box inside, and nothing here floats for clear to push
 // past. break-before and break-after are not supported; only break-inside, which

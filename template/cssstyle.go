@@ -112,6 +112,17 @@ func (cs *cssStyle) fill(st css.Style) canvas.Color {
 	return canvas.Fade(st.Background, cs.alpha(st))
 }
 
+// fade is a colour the widget worked out for itself, faded by the style's
+// opacity. A colour with no alpha of its own stays that way: fading it would
+// hand the canvas the opaque black its colour carries underneath, painting
+// there what the sheet left unpainted.
+func (cs *cssStyle) fade(st css.Style, c canvas.Color) canvas.Color {
+	if c.A() == 0 {
+		return c
+	}
+	return canvas.Fade(c, cs.alpha(st))
+}
+
 // length measures a Length at the drawing scale against the window. A
 // percentage is of the base (usually the window width), a fixed or physical
 // length is its reference pixels times the scale, and the viewport/font units
@@ -137,6 +148,17 @@ func (cs *cssStyle) length(st css.Style, l css.Length, base int) int {
 // box once it is painted. A missing background leaves the window's own fill
 // showing through.
 func (cs *cssStyle) paintBox(win *antui.Window, st css.Style, x, y, w, h int) {
+	cs.paintBoxOf(win, st, x, y, w, h, true)
+}
+
+// paintFrame is paintBox without the surface: the border, the shadows and the
+// outline of a box whose background is not the box's to paint, because the
+// widget inside it draws a surface of its own over a smaller part of it.
+func (cs *cssStyle) paintFrame(win *antui.Window, st css.Style, x, y, w, h int) {
+	cs.paintBoxOf(win, st, x, y, w, h, false)
+}
+
+func (cs *cssStyle) paintBoxOf(win *antui.Window, st css.Style, x, y, w, h int, surface bool) {
 	cv := win.Canvas()
 	rx := st.Radius[0] * cs.u()
 	ry := rx
@@ -150,7 +172,7 @@ func (cs *cssStyle) paintBox(win *antui.Window, st css.Style, x, y, w, h int) {
 
 	cs.paintShadows(win, st, x, y, w, h, rx, ry, false)
 
-	hasBg := cs.backgroundOn(st)
+	hasBg := surface && cs.backgroundOn(st)
 	if hasBg {
 		cs.paintBackground(win, st, x, y, w, h, rx, ry)
 	}
@@ -158,7 +180,7 @@ func (cs *cssStyle) paintBox(win *antui.Window, st css.Style, x, y, w, h int) {
 	cs.paintShadows(win, st, x, y, w, h, rx, ry, true)
 
 	if st.BorderOn() {
-		cs.paintBorder(cv, st, x, y, w, h, rx, ry, cs.interior(win, st, hasBg))
+		cs.paintBorder(cv, st, x, y, w, h, rx, ry, cs.interior(st, hasBg))
 	}
 
 	if cs.outlineOn(st) {
@@ -181,13 +203,15 @@ func (cs *cssStyle) boxOn(st css.Style) bool {
 	return len(st.BoxShadow) > 0 || len(st.BackdropFilters) > 0
 }
 
-// interior is the colour behind the border: the box's own fill, or the theme
-// surface when the box has none.
-func (cs *cssStyle) interior(win *antui.Window, st css.Style, hasBg bool) canvas.Color {
+// interior is the colour behind the border: the box's own fill when it has one,
+// and nothing at all when it does not, so a sheet that gives a border and no
+// surface leaves the page showing through the middle of the ring instead of the
+// theme's colour painted over it.
+func (cs *cssStyle) interior(st css.Style, hasBg bool) canvas.Color {
 	if hasBg {
 		return cs.fill(st)
 	}
-	return win.Theme().Surface
+	return canvas.Transparent
 }
 
 // paintBorder strokes the border. A uniform, fully-solid border is drawn as a
@@ -201,8 +225,17 @@ func (cs *cssStyle) paintBorder(cv *canvas.Canvas, st css.Style, x, y, w, h, rx,
 		if bw <= 0 {
 			bw = u
 		}
-		col := st.BoxColor[0]
-		cv.FillRoundRectXY(x, y, w, h, max(rx, u), max(ry, u), canvas.Fade(col, cs.alpha(st)))
+		col := cs.fade(st, st.BoxColor[0])
+		if fill.A() == 0 {
+			// There is no surface to paint over the middle of the ring, so the
+			// ring is stroked instead of filled and left covered: one outline
+			// per unit of width, which follows the radius the way the fill did.
+			for i := range bw {
+				cv.RoundRectXY(x+i, y+i, w-2*i, h-2*i, max(rx-i, 0), max(ry-i, 0), col)
+			}
+			return
+		}
+		cv.FillRoundRectXY(x, y, w, h, max(rx, u), max(ry, u), col)
 		cv.FillRoundRectXY(x+bw, y+bw, w-2*bw, h-2*bw, max(rx-u, 0), max(ry-u, 0), fill)
 		return
 	}
@@ -215,7 +248,7 @@ func (cs *cssStyle) paintBorder(cv *canvas.Canvas, st css.Style, x, y, w, h, rx,
 		if bw <= 0 {
 			bw = u
 		}
-		cs.paintSide(cv, side, style, bw, x, y, w, h, canvas.Fade(st.BoxColor[side], cs.alpha(st)))
+		cs.paintSide(cv, side, style, bw, x, y, w, h, cs.fade(st, st.BoxColor[side]))
 	}
 }
 
@@ -466,7 +499,13 @@ func (cs *cssStyle) Radio(win *antui.Window, s State, x, y int, label string, on
 	if !st.BorderOn() {
 		border = canvas.Shade(cs.fill(st), -0.3)
 	}
-	cv.Circle(x+half, y+half, half, canvas.Fade(border, cs.alpha(st)))
+	if border.A() == 0 {
+		// The ring is the widget's: a sheet that gave the radio neither a border
+		// nor a background still gets one it can be picked by, in the ink it
+		// labels itself with.
+		border = cs.ink(st)
+	}
+	cv.Circle(x+half, y+half, half, cs.fade(st, border))
 	if on {
 		cv.FillCircle(x+half, y+half, half-4*u, cs.ink(st))
 	}
@@ -570,7 +609,7 @@ func (cs *cssStyle) SelectOption(win *antui.Window, s State, x, y, w, h int, lab
 	}
 	u := cs.u()
 	cv := win.Canvas()
-	cv.FillRect(x, y, w, h, canvas.Fade(fill, cs.alpha(st)))
+	cv.FillRect(x, y, w, h, cs.fade(st, fill))
 	if selected || s.Hovered {
 		cv.FillRect(x, y, 3*u, h, cs.ink(st))
 	}
@@ -633,7 +672,7 @@ func (cs *cssStyle) Switch(win *antui.Window, s State, x, y int, label string, o
 		fill = cs.ink(st)
 	}
 	cv := win.Canvas()
-	cv.FillRoundRect(x, y, trackW, trackH, trackH/2, canvas.Fade(fill, cs.alpha(st)))
+	cv.FillRoundRect(x, y, trackW, trackH, trackH/2, cs.fade(st, fill))
 	cx := x + trackH/2
 	if on {
 		cx = x + trackW - trackH/2
@@ -641,6 +680,12 @@ func (cs *cssStyle) Switch(win *antui.Window, s State, x, y int, label string, o
 	thumb := canvas.Shade(fill, -0.2)
 	if on {
 		thumb = cs.fill(st)
+	}
+	if thumb.A() == 0 {
+		// The thumb is the widget's, not the sheet's background: a sheet that
+		// gave the track no colour of its own still gets a switch that is off,
+		// drawn as the dot at the end of an empty track.
+		thumb = cs.ink(st)
 	}
 	cv.FillCircle(cx, y+trackH/2, trackH/2-2*u, thumb)
 	cs.run(cv, st, x+trackW+8*u, y+(trackH-cs.textHeight(st))/2, label)
@@ -714,7 +759,7 @@ func (cs *cssStyle) DatePicker(win *antui.Window, s State, x, y, w, h int, year,
 			cv.FillRoundRect(cx, cy, cc, cc, 2*u, canvas.Fade(cs.ink(st), cs.alpha(st)))
 			cs.runOn(cv, st, cs.surface(st), tx, ty, itoa(day))
 		case hover:
-			cv.FillRoundRect(cx, cy, cc, cc, 2*u, canvas.Fade(canvas.Shade(cs.fill(st), -0.15), cs.alpha(st)))
+			cv.FillRoundRect(cx, cy, cc, cc, 2*u, cs.fade(st, canvas.Shade(cs.fill(st), -0.15)))
 			cs.run(cv, st, tx, ty, itoa(day))
 		default:
 			cs.run(cv, st, tx, ty, itoa(day))

@@ -341,6 +341,115 @@ func TestMultiColInAFlexItemIsAnItem(t *testing.T) {
 	}
 }
 
+// TestMultiColInATableCellIsACell: a column block drawn inside a cell is that
+// cell's content, and its columns answer to the width the row gave the cell.
+func TestMultiColInATableCellIsACell(t *testing.T) {
+	win, _, err := antui.Offscreen(200, 200)
+	if err != nil {
+		t.Fatal(err)
+	}
+	tpl := TemplateWithCSS(win)
+	classes, path := cssTable(t,
+		"table { } label { width: 200px; height: 100px; } multicolumn { column-count: 2; } button { height: 10px; }")
+	if err := tpl.SetStyle(path, classes); err != nil {
+		t.Fatal(err)
+	}
+	var got []box
+	win.Begin()
+	tpl.Table(func(tb *CSS) {
+		tb.TableRow(func(r *CSS) {
+			r.MultiCol(func(m *CSS) {
+				for i := range 2 {
+					if x, y, w, h, _, ok := m.layout(css.RoleButton, string(rune('A'+i))); ok {
+						got = append(got, box{x, y, w, h})
+					}
+				}
+			})
+		})
+	})
+	win.End()
+	if len(got) != 2 {
+		t.Fatalf("got %d boxes, want 2", len(got))
+	}
+	if got[0].w != 100 || got[1].x != 100 {
+		t.Errorf("columns %+v %+v want two of 100 in a 200px cell", got[0], got[1])
+	}
+}
+
+// TestMultiColStraightInATableGetsARow: a column block drawn straight in a table
+// has no row to land in, so it becomes the content of a row of its own — the
+// same anonymous row a table makes for a child that did not ask to be one.
+func TestMultiColStraightInATableGetsARow(t *testing.T) {
+	win, _, err := antui.Offscreen(200, 200)
+	if err != nil {
+		t.Fatal(err)
+	}
+	tpl := TemplateWithCSS(win)
+	classes, path := cssTable(t, "table { } multicolumn { column-count: 2; } button { height: 10px; }")
+	if err := tpl.SetStyle(path, classes); err != nil {
+		t.Fatal(err)
+	}
+	var got []box
+	win.Begin()
+	tpl.Table(func(tb *CSS) {
+		tb.MultiCol(func(m *CSS) {
+			if x, y, w, h, _, ok := m.layout(css.RoleButton, "A"); ok {
+				got = append(got, box{x, y, w, h})
+			}
+		})
+	})
+	win.End()
+	if len(got) != 1 {
+		t.Fatalf("got %d boxes, want 1", len(got))
+	}
+	// The table is as wide as the window, so the anonymous row gives the block
+	// the whole of it and the block's own two columns are half each. The only
+	// box goes in the first column: a break before the first box would only
+	// move the taller column to the other side.
+	if got[0] != (box{x: 0, y: 0, w: 100, h: 10}) {
+		t.Errorf("the button %+v want the first of two 100px columns", got[0])
+	}
+}
+
+// TestMultiColTallerThanItsContentIsCutToTheBox: a column block that lands in a
+// cell taller than the block asked for — a row kept up by the cell beside it —
+// has a height to cut its children against, so a box too tall for a column is
+// cut and continued instead of being squeezed into the row.
+func TestMultiColTallerThanItsContentIsCutToTheBox(t *testing.T) {
+	win, _, err := antui.Offscreen(200, 200)
+	if err != nil {
+		t.Fatal(err)
+	}
+	tpl := TemplateWithCSS(win)
+	classes, path := cssTable(t,
+		"table { } label { width: 200px; height: 200px; } multicolumn { column-count: 2; } button { height: 150px; }")
+	if err := tpl.SetStyle(path, classes); err != nil {
+		t.Fatal(err)
+	}
+	var got []box
+	win.Begin()
+	tpl.Table(func(tb *CSS) {
+		tb.TableRow(func(r *CSS) {
+			r.Label("tall")
+			r.MultiCol(func(m *CSS) {
+				if x, y, w, h, _, ok := m.layout(css.RoleButton, "A"); ok {
+					got = append(got, box{x, y, w, h})
+				}
+			})
+		})
+	})
+	win.End()
+	// The row is 200 tall for the label beside it, so the columns have 100 each:
+	// the button is cut at the edge of the first and continued in the second.
+	if len(got) != 2 {
+		t.Fatalf("got %d fragments, want 2", len(got))
+	}
+	for i, want := range []box{{x: 100, y: 0, w: 50, h: 100}, {x: 150, y: 0, w: 50, h: 50}} {
+		if got[i] != want {
+			t.Errorf("fragment %d = %+v want %+v", i, got[i], want)
+		}
+	}
+}
 
 // TestMultiColInAFlexItemStartsInsideIt: a column block placed by a parent is
 // drawn where the parent put it, so the boxes its children get back carry the

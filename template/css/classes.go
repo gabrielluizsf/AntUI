@@ -19,6 +19,7 @@ const (
 	RoleFlex       = "flex"
 	RoleGrid       = "grid"
 	RoleMultiCol   = "multicolumn"
+	RoleTable      = "table"
 	RoleLabel      = "label"
 	RoleButton     = "button"
 	RoleCheckbox   = "checkbox"
@@ -34,9 +35,9 @@ const (
 
 // AllRoles is the full set of widget tags, in a stable order.
 var AllRoles = []string{
-	RoleBody, RoleFlex, RoleGrid, RoleMultiCol, RoleLabel, RoleButton,
-	RoleCheckbox, RoleRadio, RoleSlider, RoleInput, RoleSelect, RoleTextArea,
-	RoleSwitch, RoleProgress, RoleDatePicker,
+	RoleBody, RoleFlex, RoleGrid, RoleMultiCol, RoleTable, RoleLabel,
+	RoleButton, RoleCheckbox, RoleRadio, RoleSlider, RoleInput, RoleSelect,
+	RoleTextArea, RoleSwitch, RoleProgress, RoleDatePicker,
 }
 
 // CSSClasses is the class table a template draws from: one profile of CSS
@@ -55,8 +56,8 @@ var AllRoles = []string{
 type CSSClasses struct {
 	// One class list per widget kind. Empty strings mean the widget carries
 	// no classes, only its tag.
-	Body, Flex, Grid, MultiCol, Label, Button, Checkbox, Radio, Slider, Input,
-	Select, TextArea, Switch, Progress, DatePicker string
+	Body, Flex, Grid, MultiCol, Table, Label, Button, Checkbox, Radio, Slider,
+	Input, Select, TextArea, Switch, Progress, DatePicker string
 
 	sheet *Sheet
 	specs map[styleKey]Style // computed styles, cleared on SetStyle/SetProperty
@@ -210,6 +211,8 @@ func (c *CSSClasses) classesOf(tag string) []string {
 		s = c.Grid
 	case RoleMultiCol:
 		s = c.MultiCol
+	case RoleTable:
+		s = c.Table
 	case RoleLabel:
 		s = c.Label
 	case RoleButton:

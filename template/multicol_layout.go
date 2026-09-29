@@ -17,6 +17,7 @@ type multiItem struct {
 	pieces      []multiPiece
 	next        int
 	nested      *multiNested // set when the child is a container of its own
+	table       *tableNested // set when the child is a table
 }
 
 // multiPiece is one fragment: the column it lands in, how far down that column
@@ -92,7 +93,7 @@ type multiBatch struct {
 // fragment a child was cut into, so it must draw the same widgets in the same
 // order every run. Events are read on the last run, as [CSS.Flex] does.
 func (c *CSS) MultiCol(draw func(*CSS)) {
-	if c.multicoling || c.flexing || c.griding {
+	if c.multicoling || c.flexing || c.griding || c.tabling {
 		c.nestedMultiCol(draw)
 		return
 	}
@@ -187,11 +188,11 @@ func (c *CSS) setMultiBox(b *multiBatch, st css.Style, x, y, w, h, pctBase int) 
 // container inside this one is collected as its item, and a container of
 // another kind has its own solver put aside while these children are placed.
 func (c *CSS) multiWithin(b *multiBatch, draw func(*CSS)) {
-	outer, outerMulti, outerFlex, outerGrid := c.multi, c.multicoling, c.flexing, c.griding
-	c.multi, c.multicoling, c.flexing, c.griding = b, true, false, false
+	outer, outerMulti, outerFlex, outerGrid, outerTable := c.multi, c.multicoling, c.flexing, c.griding, c.tabling
+	c.multi, c.multicoling, c.flexing, c.griding, c.tabling = b, true, false, false, false
 	b.next = 0
 	draw(c)
-	c.multi, c.multicoling, c.flexing, c.griding = outer, outerMulti, outerFlex, outerGrid
+	c.multi, c.multicoling, c.flexing, c.griding, c.tabling = outer, outerMulti, outerFlex, outerGrid, outerTable
 }
 
 // layoutMulti routes a widget drawn inside a MultiCol callback. The silent pass

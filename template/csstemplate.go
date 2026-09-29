@@ -52,9 +52,13 @@ type CSS struct {
 	grid    *gridBatch
 	griding bool
 	multi   *multiBatch
-	// multicoling is true while a [CSS.MultiCol] callback runs, which is how a
-	// widget drawn in a column block tells it is in one.
+	table   *tableBatch
+	// multicoling and tabling are true while a [CSS.MultiCol] or a [CSS.Table]
+	// callback runs, and row is the row collecting cells inside a [CSS.TableRow],
+	// which is how a widget drawn in a table tells it is a cell and not a block.
 	multicoling bool
+	tabling     bool
+	row         *tableRow
 	measure     bool
 }
 
@@ -129,6 +133,9 @@ func (c *CSS) Reset() {
 	c.griding = false
 	c.multi = nil
 	c.multicoling = false
+	c.table = nil
+	c.tabling = false
+	c.row = nil
 	c.measure = false
 }
 
@@ -150,6 +157,9 @@ func (c *CSS) layout(role, label string) (x, y, w, h int, st css.Style, ok bool)
 	}
 	if c.multicoling {
 		return c.layoutMulti(role, label)
+	}
+	if c.tabling {
+		return c.layoutTable(role, label)
 	}
 	e := c.style.beginWidget(role, label)
 	return c.layoutBox(e, role, label, e.state)
@@ -291,7 +301,11 @@ func (c *CSS) paint(st css.Style, role, label string, x, y, w, h int, draw func(
 	}
 	c.style.transformed(st, x, y, w, h, func() {
 		if interactive(st) && c.style.boxOn(st) {
-			c.style.paintBox(c.win, st, x, y, w, h)
+			if ownSurface(role) {
+				c.style.paintFrame(c.win, st, x, y, w, h)
+			} else {
+				c.style.paintBox(c.win, st, x, y, w, h)
+			}
 		}
 		if st.Overflow == [2]uint8{css.OverflowVisible, css.OverflowVisible} {
 			draw()
@@ -326,6 +340,20 @@ func (c *CSS) interactionState(kind string, x, y, idW, idH int, label string, ho
 		s.Pressed = true
 	}
 	return s
+}
+
+// ownSurface reports whether the widget's own painter draws the background its
+// style declares. The three toggles are controls of a size of their own, drawn
+// inside a cell the solver gave them: a checkbox is a box of eighteen pixels
+// with its label beside it, not a surface running under the label, and a switch
+// is a track of thirty-six. Their border and shadow stay the cell's, which is
+// what a rule drawn under a row of a table is.
+func ownSurface(role string) bool {
+	switch role {
+	case css.RoleCheckbox, css.RoleRadio, css.RoleSwitch:
+		return true
+	}
+	return false
 }
 
 // interactive reports whether a widget takes pointer input. pointer-events:
@@ -376,18 +404,22 @@ func (c *CSS) Checkbox(label string, value *bool) event.Event {
 	}
 	u := c.style.u()
 	box := 18 * u
+	// The box and its label are one line standing in the middle of whatever
+	// height the solver gave the cell, so a row of taller cells still has its
+	// controls on one line.
+	cy := y + (h-box)/2
 	on := value != nil && *value
-	s := c.interactionState("checkbox", x, y, box, box, label, box+8*u+textWidth(u, label), box, State{On: on})
+	s := c.interactionState("checkbox", x, cy, box, box, label, box+8*u+textWidth(u, label), box, State{On: on})
 	st = c.style.entryStyle(c.style.cur, css.RoleCheckbox, s)
 	if !interactive(st) {
 		c.paint(st, css.RoleCheckbox, label, x, y, w, h, func() {
-			c.style.Checkbox(c.win, s, x, y, label, on)
+			c.style.Checkbox(c.win, s, x, cy, label, on)
 		})
 		return event.Nothing
 	}
 	var e event.Event
 	c.paint(st, css.RoleCheckbox, label, x, y, w, h, func() {
-		e = c.ui.Checkbox(c.win, x, y, label, value)
+		e = c.ui.Checkbox(c.win, x, cy, label, value)
 	})
 	return e
 }
@@ -401,18 +433,19 @@ func (c *CSS) Radio(label string, value *int, option int) event.Event {
 	}
 	u := c.style.u()
 	size := 18 * u
+	cy := y + (h-size)/2
 	on := value != nil && *value == option
-	s := c.interactionState("radio", x, y, size, option, label, size+8*u+textWidth(u, label), size, State{On: on})
+	s := c.interactionState("radio", x, cy, size, option, label, size+8*u+textWidth(u, label), size, State{On: on})
 	st = c.style.entryStyle(c.style.cur, css.RoleRadio, s)
 	if !interactive(st) {
 		c.paint(st, css.RoleRadio, label, x, y, w, h, func() {
-			c.style.Radio(c.win, s, x, y, label, on)
+			c.style.Radio(c.win, s, x, cy, label, on)
 		})
 		return event.Nothing
 	}
 	var e event.Event
 	c.paint(st, css.RoleRadio, label, x, y, w, h, func() {
-		e = c.ui.Radio(c.win, x, y, label, value, option)
+		e = c.ui.Radio(c.win, x, cy, label, value, option)
 	})
 	return e
 }
@@ -488,18 +521,19 @@ func (c *CSS) Switch(label string, value *bool) event.Event {
 		return event.Nothing
 	}
 	u := c.style.u()
+	cy := y + (h-20*u)/2
 	on := value != nil && *value
-	s := c.interactionState("switch", x, y, 36*u, 20*u, label, 36*u+8*u+textWidth(u, label), 20*u, State{On: on})
+	s := c.interactionState("switch", x, cy, 36*u, 20*u, label, 36*u+8*u+textWidth(u, label), 20*u, State{On: on})
 	st = c.style.entryStyle(c.style.cur, css.RoleSwitch, s)
 	if !interactive(st) {
 		c.paint(st, css.RoleSwitch, label, x, y, w, h, func() {
-			c.style.Switch(c.win, s, x, y, label, on)
+			c.style.Switch(c.win, s, x, cy, label, on)
 		})
 		return event.Nothing
 	}
 	var e event.Event
 	c.paint(st, css.RoleSwitch, label, x, y, w, h, func() {
-		e = c.ui.Switch(c.win, x, y, label, value)
+		e = c.ui.Switch(c.win, x, cy, label, value)
 	})
 	return e
 }

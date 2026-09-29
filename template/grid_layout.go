@@ -42,6 +42,7 @@ type gridItem struct {
 	x, y        int
 	nested      *gridNested  // set when the item is a grid container of its own
 	columns     *multiNested // set when the item is a column block of its own
+	table       *tableNested // set when the item is a table of its own
 }
 
 type gridBatch struct {
