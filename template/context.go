@@ -22,7 +22,7 @@ type Screen interface {
 //
 //	win, _ := antui.OpenWith(antui.Options{Title: "Shop", Width: 480, Height: 320})
 //
-//	app := template.NewContext(win, template.Cyberpunk(win))
+//	app := template.NewContext(win, template.Cyberpunk())
 //	app.Run(Home{})
 //
 // while Home's Draw decides when to leave:

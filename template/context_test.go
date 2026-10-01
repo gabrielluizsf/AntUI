@@ -14,7 +14,7 @@ func (s *screenSpy) Draw(c *Context) { s.drawn = true }
 
 func TestContextPushAndDraw(t *testing.T) {
 	win, _, _ := antui.Offscreen(300, 300)
-	ctx := NewContext(win, Cyberpunk(win))
+	ctx := NewContext(win, Cyberpunk())
 	sp := &screenSpy{}
 	ctx.Go(sp)
 
@@ -29,7 +29,7 @@ func TestContextPushAndDraw(t *testing.T) {
 
 func TestContextBack(t *testing.T) {
 	win, _, _ := antui.Offscreen(200, 200)
-	ctx := NewContext(win, Builtin(win))
+	ctx := NewContext(win, Builtin())
 	first := &screenSpy{}
 	ctx.Go(first)
 	second := &screenSpy{}
@@ -69,7 +69,7 @@ func TestContextBack(t *testing.T) {
 
 func TestContextHome(t *testing.T) {
 	win, _, _ := antui.Offscreen(200, 200)
-	ctx := NewContext(win, Builtin(win))
+	ctx := NewContext(win, Builtin())
 	ctx.Go(&screenSpy{})
 	ctx.Go(&screenSpy{})
 	ctx.Go(&screenSpy{})
@@ -81,7 +81,7 @@ func TestContextHome(t *testing.T) {
 
 func TestContextReplace(t *testing.T) {
 	win, _, _ := antui.Offscreen(200, 200)
-	ctx := NewContext(win, Builtin(win))
+	ctx := NewContext(win, Builtin())
 	ctx.Go(&screenSpy{})
 
 	after := &screenSpy{}
@@ -100,7 +100,7 @@ func (s *countingScreen) Draw(c *Context) { *s.n++ }
 
 func TestContextDrawCallsScreen(t *testing.T) {
 	win, _, _ := antui.Offscreen(128, 128)
-	ctx := NewContext(win, Cyberpunk(win))
+	ctx := NewContext(win, Cyberpunk())
 	var count int
 	ctx.Go(&countingScreen{&count})
 	win.Begin()
@@ -144,7 +144,7 @@ func (navCart) Draw(c *Context) {
 
 func TestContextNavigationStack(t *testing.T) {
 	win, _, _ := antui.Offscreen(400, 200)
-	ctx := NewContext(win, Cyberpunk(win))
+	ctx := NewContext(win, Cyberpunk())
 	ctx.Go(navHome{})
 
 	// Click "Shop".

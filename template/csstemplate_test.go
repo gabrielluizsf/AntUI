@@ -227,18 +227,17 @@ func TestCSSMarginsAndPosition(t *testing.T) {
 
 // cssUI builds a bare uiTemplate whose style is the CSS style bound to the
 // given sheet, for hit-testing the interaction layer without the flow layout.
-func cssUI(t *testing.T, sheet string) *uiTemplate {
+func cssUI(t *testing.T, win *antui.Window, sheet string) *uiTemplate {
 	t.Helper()
-	win, _, _ := antui.Offscreen(900, 800) // u=2, 16 px glyphs at 15px
 	classes, _ := cssTable(t, sheet)
 	st := &cssStyle{win: win, classes: classes}
-	ut := &uiTemplate{win: win, style: st}
+	ut := &uiTemplate{style: st}
 	return ut
 }
 
 func TestCSSInputClickPositionsCaret(t *testing.T) {
-	ut := cssUI(t, "input { font-size: 15px; }")
-	win := ut.win
+	win, _, _ := antui.Offscreen(900, 800)
+	ut := cssUI(t, win, "input { font-size: 15px; }")
 	glyph := 16 // one 15px glyph at scale 2
 
 	text := "abcdef"
@@ -264,8 +263,8 @@ func TestCSSInputClickPositionsCaret(t *testing.T) {
 }
 
 func TestCSSTextAreaClickPositionsCaret(t *testing.T) {
-	ut := cssUI(t, "textarea { font-size: 15px; }")
-	win := ut.win
+	win, _, _ := antui.Offscreen(900, 800)
+	ut := cssUI(t, win, "textarea { font-size: 15px; }")
 
 	text := "abc\ndef"
 	x, y, w, h := 20, 30, 400, 100

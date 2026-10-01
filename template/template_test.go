@@ -13,7 +13,7 @@ func TestCyberpunkButtonClicked(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	tpl := Cyberpunk(win)
+	tpl := Cyberpunk()
 
 	// No click before interaction.
 	win.Begin()
@@ -37,7 +37,7 @@ func TestBuiltinButtonClicked(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	tpl := Builtin(win)
+	tpl := Builtin()
 
 	win.Begin()
 	testClick(t, win, 100, 55)
@@ -50,7 +50,7 @@ func TestBuiltinButtonClicked(t *testing.T) {
 
 func TestButtonDragOffCancels(t *testing.T) {
 	win, _, _ := antui.Offscreen(400, 200)
-	tpl := Builtin(win)
+	tpl := Builtin()
 
 	// Press inside.
 	win.Begin()
@@ -71,7 +71,7 @@ func TestButtonDragOffCancels(t *testing.T) {
 
 func TestCheckboxToggles(t *testing.T) {
 	win, _, _ := antui.Offscreen(400, 200)
-	tpl := Builtin(win)
+	tpl := Builtin()
 	value := false
 
 	win.Begin()
@@ -85,7 +85,7 @@ func TestCheckboxToggles(t *testing.T) {
 
 func TestInputFiresFocusAndType(t *testing.T) {
 	win, _, _ := antui.Offscreen(400, 200)
-	tpl := Cyberpunk(win)
+	tpl := Cyberpunk()
 	text := ""
 
 	// Click the field to focus it.
@@ -115,7 +115,7 @@ func TestOffscreenCanvasIsDrawable(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	tpl := Cyberpunk(win)
+	tpl := Cyberpunk()
 	win.Begin()
 	tpl.Button(win, 10, 10, 44, 44, "X")
 	win.End()
@@ -160,7 +160,7 @@ func (busyboxStyle) DatePickerBox(*antui.Window, State, int, int, int, int, stri
 
 func TestNewCreatesATemplate(t *testing.T) {
 	win, _, _ := antui.Offscreen(200, 200)
-	tpl := New(win, busyboxStyle{}, nil)
+	tpl := New(busyboxStyle{}, nil)
 	if tpl == nil {
 		t.Fatal("New returned nil")
 	}
@@ -171,7 +171,7 @@ func TestNewCreatesATemplate(t *testing.T) {
 
 func TestSelectOpensPicksAndCloses(t *testing.T) {
 	win, _, _ := antui.Offscreen(400, 300)
-	tpl := Builtin(win)
+	tpl := Builtin()
 	options := []string{"Apple", "Banana", "Cherry"}
 	index := 0
 
@@ -201,7 +201,7 @@ func TestSelectOpensPicksAndCloses(t *testing.T) {
 
 func TestSelectKeyboardPicks(t *testing.T) {
 	win, _, _ := antui.Offscreen(400, 300)
-	tpl := Builtin(win)
+	tpl := Builtin()
 	options := []string{"Alpha", "Beta", "Gamma"}
 	index := 0
 
@@ -254,7 +254,7 @@ func TestSelectKeyboardPicks(t *testing.T) {
 
 func TestSelectAutoclosesOnOutsideClick(t *testing.T) {
 	win, _, _ := antui.Offscreen(400, 300)
-	tpl := Builtin(win)
+	tpl := Builtin()
 	options := []string{"Only"}
 	index := 0
 
@@ -275,7 +275,7 @@ func TestSelectAutoclosesOnOutsideClick(t *testing.T) {
 
 func TestTextAreaTypesAndWrapsCursor(t *testing.T) {
 	win, _, _ := antui.Offscreen(400, 300)
-	tpl := Cyberpunk(win)
+	tpl := Cyberpunk()
 	text := ""
 
 	// Click to focus.
@@ -310,7 +310,7 @@ func TestTextAreaTypesAndWrapsCursor(t *testing.T) {
 
 func TestSwitchToggles(t *testing.T) {
 	win, _, _ := antui.Offscreen(400, 200)
-	tpl := Builtin(win)
+	tpl := Builtin()
 	on := false
 
 	win.Begin()
@@ -324,7 +324,7 @@ func TestSwitchToggles(t *testing.T) {
 
 func TestProgressIsInert(t *testing.T) {
 	win, _, _ := antui.Offscreen(400, 200)
-	tpl := Builtin(win)
+	tpl := Builtin()
 	win.Begin()
 	// A click on the bar must not blow up.
 	testClick(t, win, 200, 100)
@@ -334,7 +334,7 @@ func TestProgressIsInert(t *testing.T) {
 
 func TestDatePickerPicksADay(t *testing.T) {
 	win, _, _ := antui.Offscreen(400, 400)
-	tpl := Builtin(win)
+	tpl := Builtin()
 
 	// The box sits at (10,10), 150x30. A click on it opens the calendar
 	// popup below it at (10,40).
@@ -375,7 +375,7 @@ func TestDatePickerPicksADay(t *testing.T) {
 
 func TestDatePickerMarkerFollowsMouse(t *testing.T) {
 	win, _, _ := antui.Offscreen(400, 400)
-	tpl := Builtin(win)
+	tpl := Builtin()
 	value := Date{Year: 2026, Month: 9, Day: 1}
 
 	// Open the calendar: clicking the box focuses it.
@@ -416,7 +416,7 @@ func TestDatePickerMarkerFollowsMouse(t *testing.T) {
 // the calendar does not steal the marker back from the arrow keys.
 func TestDatePickerArrowsWorkWhileMouseResting(t *testing.T) {
 	win, _, _ := antui.Offscreen(400, 400)
-	tpl := Builtin(win)
+	tpl := Builtin()
 	value := Date{Year: 2026, Month: 9, Day: 1}
 
 	// Open the calendar: clicking the box focuses it.
@@ -455,7 +455,7 @@ func TestDatePickerArrowsWorkWhileMouseResting(t *testing.T) {
 
 func TestDatePickerKeyboardPicksACloser(t *testing.T) {
 	win, _, _ := antui.Offscreen(400, 400)
-	tpl := Builtin(win)
+	tpl := Builtin()
 	value := Date{Year: 2026, Month: 9, Day: 1}
 
 	// Open the calendar: clicking the box focuses it.
@@ -490,7 +490,7 @@ func TestDatePickerKeyboardPicksACloser(t *testing.T) {
 
 func TestDatePickerEscapeCancels(t *testing.T) {
 	win, _, _ := antui.Offscreen(400, 400)
-	tpl := Builtin(win)
+	tpl := Builtin()
 	value := Date{Year: 2026, Month: 9, Day: 1}
 
 	// Open, walk to another day, then Escape without committing.

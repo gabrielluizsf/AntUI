@@ -9,8 +9,8 @@
 // Two templates come ready-made and match the two sound banks in
 // [github.com/gabrielluizsf/antui/template/audio]:
 //
-//	cyber := template.Cyberpunk(win)   // futuristic look, Tech sound
-//	built := template.Builtin(win)     // built-in look, Simple (cartoon) sound
+//	cyber := template.Cyberpunk()   // futuristic look, Tech sound
+//	built := template.Builtin()     // built-in look, Simple (cartoon) sound
 //
 //	clicked := cyber.Button(win, 20, 20, 120, 36, "Launch") // click clicks
 //	typed := built.Input(win, 20, 70, 180, 30, &name)       // typing tick-tocks
@@ -93,31 +93,30 @@ type Template interface {
 //
 //	myStyle := MyStyle{}
 //	mySound := MySoundBank{}
-//	tpl := template.New(win, myStyle, mySound)
-func New(win *antui.Window, style Style, sound event.SoundBank) Template {
-	return &uiTemplate{win: win, style: style, sound: sound}
+//	tpl := template.New(myStyle, mySound)
+func New(style Style, sound event.SoundBank) Template {
+	return &uiTemplate{style: style, sound: sound}
 }
 
 // Cyberpunk is the futuristic template: neon edges and glowing controls, the
 // level of finish a modern website skins itself in, voiced by
 // [github.com/gabrielluizsf/antui/template/audio.Tech].
-func Cyberpunk(win *antui.Window) Template {
-	return New(win, cyberStyle{}, audio.Tech)
+func Cyberpunk() Template {
+	return New(cyberStyle{}, audio.Tech)
 }
 
 // Builtin is the template that paints exactly like the built-in widgets — the
 // light and dark themes, the built-in face — voiced by
 // [github.com/gabrielluizsf/antui/template/audio.Simple]. It is the zero-cost
 // starting point, and the Cyberpunk template's plainspoken neighbour.
-func Builtin(win *antui.Window) Template {
-	return New(win, builtinStyle{}, audio.Simple)
+func Builtin() Template {
+	return New(builtinStyle{}, audio.Simple)
 }
 
 // uiTemplate is [New]'s ordinary answer to [Template]: it runs the shared
 // interaction machinery and leaves the painting to the style and the hearing
 // to the bank.
 type uiTemplate struct {
-	win              *antui.Window
 	style            Style
 	sound            event.SoundBank
 	sliderDragOffset int

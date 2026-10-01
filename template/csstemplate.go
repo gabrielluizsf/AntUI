@@ -71,7 +71,7 @@ func TemplateWithCSS(win *antui.Window) *CSS {
 	return &CSS{
 		win:   win,
 		style: cs,
-		ui:    &uiTemplate{win: win, style: cs, sound: audio.Simple},
+		ui:    &uiTemplate{style: cs, sound: audio.Simple},
 	}
 }
 

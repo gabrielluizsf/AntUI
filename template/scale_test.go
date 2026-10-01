@@ -42,7 +42,7 @@ func TestScaledScreensStillPaint(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		tpl := Cyberpunk(win)
+		tpl := Cyberpunk()
 		u := Scale(win)
 		win.Begin()
 		tpl.Button(win, 40*u, 40*u, 200*u, 80*u, "Launch")
@@ -74,7 +74,7 @@ func TestTemplateTabMovesBetweenInputs(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	tpl := Builtin(win)
+	tpl := Builtin()
 	title := ""
 	body := ""
 
