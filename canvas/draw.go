@@ -55,7 +55,17 @@ func (cv *Canvas) Pixel(x, y int, c Color) {
 		return
 	}
 	at := y*cv.Stride + x
-	v := Blend(cv.Pixels[at], c)
+	// A layer keeps the alpha of what was already there as well as of the
+	// colour being drawn, so a shape with a soft edge drawn into one comes out
+	// with a soft edge. Everywhere else the destination is a surface that is
+	// already solid, and the cheaper Blend that always answers opaque is the
+	// same answer.
+	var v Color
+	if cv.over {
+		v = BlendOver(cv.Pixels[at], c)
+	} else {
+		v = Blend(cv.Pixels[at], c)
+	}
 	if cv.base != nil && cv.base[y*cv.Width+x] != v {
 		cv.markSpan(y, x, x)
 	}
@@ -144,6 +154,18 @@ func (cv *Canvas) fillRun(y, x0, x1 int, c Color) {
 // the part of the run that really moved: a blend has no answer to give before
 // it happens.
 func (cv *Canvas) blendRun(y, x0, x1 int, c Color) {
+	// On a layer the run is composited rather than written, since what is under
+	// it may be partly transparent; the solid write below would flatten it. A
+	// fully opaque colour is the same arithmetic either way, so the fast path
+	// still takes it.
+	if cv.over && c.A() != 255 {
+		row := cv.Pixels[y*cv.Stride+x0 : y*cv.Stride+x1]
+		for i := range row {
+			row[i] = BlendOver(row[i], c)
+		}
+		cv.markRun(y, x0, x1)
+		return
+	}
 	BlendRowSolid(cv.Pixels[y*cv.Stride+x0:y*cv.Stride+x1], c)
 	cv.markRun(y, x0, x1)
 }
