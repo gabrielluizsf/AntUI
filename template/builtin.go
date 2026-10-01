@@ -70,11 +70,11 @@ func (builtinStyle) Checkbox(win *antui.Window, s State, x, y int, label string,
 	}
 
 	if on {
-		mark := th.TextOnAccent
-		cv.Line(x+4*u, y+9*u, x+7*u, y+13*u, mark)
-		cv.Line(x+5*u, y+9*u, x+8*u, y+13*u, mark)
-		cv.Line(x+7*u, y+13*u, x+14*u, y+5*u, mark)
-		cv.Line(x+8*u, y+13*u, x+15*u, y+5*u, mark)
+		// The tick is a drawing rather than a few lines so that it is one line of
+		// one weight: straight lines drawn to fake a stroke come out thicker on
+		// the diagonal than at the corner, which is what a tick drawn four times
+		// over used to look like.
+		DrawIconIn(cv, IconCheck, x+2*u, y+2*u, 14*u, th.TextOnAccent)
 	}
 	cv.TextScaled(x+box+8*u, y+(box-textHeight(u))/2, label, th.Text, u)
 }
@@ -99,7 +99,7 @@ func (builtinStyle) Radio(win *antui.Window, s State, x, y int, label string, on
 		cv.Circle(x+size/2, y+size/2, size/2+3*u, th.Accent)
 	}
 	if on {
-		cv.FillCircle(x+size/2, y+size/2, size/2-4*u, th.Accent)
+		DrawIconIn(cv, IconDot, x+4*u, y+4*u, 10*u, th.Accent)
 	}
 	cv.TextScaled(x+size+8*u, y+(size-textHeight(u))/2, label, th.Text, u)
 }
@@ -251,12 +251,12 @@ func (builtinStyle) Select(win *antui.Window, s State, x, y, w, h int, value str
 	textY := y + (h-textHeight(u))/2
 	cv.TextScaled(x+padding, textY, value, th.Text, u)
 
-	// The arrow that says "there is more below".
-	aw, ah := 6*u, 4*u
-	ax := x + w - padding - aw
-	ay := y + (h-ah)/2
-	cv.Line(ax, ay, ax+aw/2, ay+ah, th.TextMuted)
-	cv.Line(ax+aw/2, ay+ah, ax+aw, ay, th.TextMuted)
+	// The arrow that says "there is more below". It is drawn inside a square
+	// bigger than the arrow so that the arrow itself comes out at the size the
+	// drawing says it is, centred in the square whatever the scale.
+	caretBox := 10 * u
+	DrawIcon(cv, IconCaret,
+		x+w-padding-3*u-caretBox/2, y+(h-caretBox)/2, caretBox, caretBox, th.TextMuted)
 }
 
 func (builtinStyle) SelectOption(win *antui.Window, s State, x, y, w, h int, label string, selected bool) {
@@ -486,17 +486,15 @@ func (builtinStyle) DatePickerBox(win *antui.Window, s State, x, y, w, h int, va
 	padding := 8 * u
 	cv.TextScaled(x+padding, y+(h-textHeight(u))/2, value, th.Text, u)
 
-	// The caret that says "there is a calendar below".
-	aw, ah := 6*u, 4*u
-	ax := x + w - padding - aw
-	ay := y + (h-ah)/2
+	// The caret that says "there is a calendar below", flipped the way the
+	// dropdown's is while the picker is open.
+	name := IconCaret
 	if open {
-		cv.Line(ax, ay+ah, ax+aw/2, ay, th.TextMuted)
-		cv.Line(ax+aw/2, ay, ax+aw, ay+ah, th.TextMuted)
-	} else {
-		cv.Line(ax, ay, ax+aw/2, ay+ah, th.TextMuted)
-		cv.Line(ax+aw/2, ay+ah, ax+aw, ay, th.TextMuted)
+		name = IconCaretUp
 	}
+	caretBox := 10 * u
+	DrawIcon(cv, name,
+		x+w-padding-3*u-caretBox/2, y+(h-caretBox)/2, caretBox, caretBox, th.TextMuted)
 }
 
 func monthName(m int) string {
