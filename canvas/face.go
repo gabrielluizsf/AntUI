@@ -2,6 +2,7 @@ package canvas
 
 import (
 	"fmt"
+	"math"
 	"os"
 	"sync"
 	"sync/atomic"
@@ -32,6 +33,9 @@ type Face struct {
 	mu      sync.Mutex
 	glyphs  map[rune]*font.Mask
 	derived map[int]*Face
+	// sized is the same face at sizes asked for outright rather than as a
+	// multiple, keyed by the whole pixel it was made at. See [Face.AtSize].
+	sized map[int]*Face
 }
 
 // builtin is the 8x16 bitmap, as a Face.
@@ -275,6 +279,43 @@ func (f *Face) Scaled(n int) *Face {
 		return f
 	}
 	f.derived[n] = d
+	return d
+}
+
+// AtSize is this face at a size in pixels per em, made once and kept. Where
+// [Face.Scaled] asks for a multiple of the size the face already has, this one
+// asks for the size itself, which is what a caller measuring in its own units
+// wants: writing twelve pixels high and writing thirty-six both take the same
+// letters, drawn at the size asked for.
+//
+// The size is rounded to a whole pixel, because a glyph is rasterised once and
+// the cache it is kept in is keyed by the size it was made at. The built-in
+// font has one shape drawn n times over, so its sizes come out in steps of its
+// own height and anything below it asks for the one it has.
+func (f *Face) AtSize(pixels float64) *Face {
+	if pixels <= 0 {
+		return f
+	}
+	if f == nil || f.file == nil {
+		return BuiltinScaled(max(1, int(math.Round(pixels/float64(FontHeight)))))
+	}
+	n := int(math.Round(pixels))
+	if n == int(math.Round(f.size)) {
+		return f
+	}
+	f.mu.Lock()
+	defer f.mu.Unlock()
+	if f.sized == nil {
+		f.sized = map[int]*Face{}
+	}
+	if d, ok := f.sized[n]; ok {
+		return d
+	}
+	d, err := ParseFace(f.file.Data, float64(n))
+	if err != nil {
+		return f
+	}
+	f.sized[n] = d
 	return d
 }
 
