@@ -40,6 +40,18 @@ type Image struct {
 	// what points at it is written first.
 	clips map[string]*clipPath
 
+	// masks are the masks the drawing declared, by the id a `mask` names, read
+	// for the same reason as the clips and the gradients: a mask is written at
+	// the end of the drawing beside them, and what points at it is written
+	// first — sometimes inside another mask.
+	masks map[string]*maskDef
+
+	// patterns are the patterns the drawing declared, by the id a `fill` or a
+	// `stroke` names, read after the masks and for the same reason once more:
+	// what is inside a pattern paints with everything the drawing has, and a
+	// reference to one written further down the file would find nothing there.
+	patterns map[string]*pattern
+
 	// ids are the elements that wrote an id, under that id, so that a `<use>`
 	// can be followed to the element it names — which may be written after the
 	// `<use>`, and usually is, at the end of the drawing next to the gradients.
@@ -100,6 +112,24 @@ type Node struct {
 	// nothing, which is what a reference that the drawing cannot follow means
 	// everywhere else here too. See [Image.resolveClip].
 	clip *clipRegion
+	// mask is what the element's `mask` named: the picture that says how much
+	// of what this node paints is there, with the region it reaches already
+	// worked out against the box of everything inside it. Like a clip it is not
+	// inherited — a group is masked once as a whole, when its picture is made,
+	// rather than masked again at every child as it is drawn — so it lives here
+	// and not in the Style, and nil means no mask at all.
+	//
+	// A mask whose content the drawing cannot follow keeps nothing rather than
+	// keeping everything, the same as a clip that names a clipPath that is not
+	// there. See [Image.maskNamed] and [maskUnder].
+	mask *masked
+	// filters is what the element's `filter` put its picture through, in the
+	// order they were written. Like a clip and a mask it is not inherited — a
+	// group is filtered once as a whole, when its picture is made, rather than
+	// filtered again at every child as it is drawn — so it lives here and not
+	// in the Style, and nothing at all means no filter. What is beyond the
+	// picture in a blur comes from [applyFilters].
+	filters []filterOp
 }
 
 // find is the first node of that name anywhere at or below this one, and nil
@@ -164,18 +194,21 @@ type Style struct {
 	// [readFontSize].
 	FontSize float64
 	Anchor   TextAnchor
-	// A fill or a stroke may be a gradient rather than a colour, and the two
-	// never both hold: `fillGradient` is set only when the paint named a
-	// gradient that was in the drawing, and `fillRef` is the id it named until
-	// the drawing has been read far enough to say what that is. The fallback
-	// colour is the one written after the `url(...)`, which is what the shape is
-	// painted with when the reference is not there at all.
+	// A fill or a stroke may be a gradient or a pattern rather than a colour,
+	// and the three never both hold: `fillGradient` is set only when the paint
+	// named a gradient that was in the drawing, `fillPattern` the same for a
+	// pattern, and `fillRef` is the id it named until the drawing has been read
+	// far enough to say what that is. The fallback colour is the one written
+	// after the `url(...)`, which is what the shape is painted with when the
+	// reference is not there at all.
 	fillGradient          *gradient
+	fillPattern           *pattern
 	fillRef               string
 	fillFallback          canvas.Color
 	fillFallbackCurrent   bool
 	hasFillFallback       bool
 	strokeGradient        *gradient
+	strokePattern         *pattern
 	strokeRef             string
 	strokeFallback        canvas.Color
 	strokeFallbackCurrent bool
@@ -186,6 +219,21 @@ type Style struct {
 	// into this element's picture first and the picture is cut once. It is
 	// cleared as it is spent, see [Image.resolveClip].
 	clipRef string
+	// maskRef is the id a `mask="url(#id)"` named, kept the same way a clip
+	// reference is, and cleared as early: what it turns into is not inherited
+	// either, so it is taken off the style before the children are built from
+	// it and followed once the whole of this element is there — the region a
+	// mask reaches is measured against everything it paints. See
+	// [Image.maskNamed] and [maskUnder].
+	maskRef string
+	// filters is the list a `filter="blur(1) grayscale(1)"` gave the element,
+	// read where it is written rather than once the whole drawing is in hand:
+	// none of the functions needs to know what any id in the file is, and what
+	// is not read is said at once. It is not inherited either — a `<g filter>`
+	// turns the one picture it makes of its children once — so it comes off
+	// the style before the children are built from it and lives on the node;
+	// see [readFilters] and [applyFilters].
+	filters []filterOp
 }
 
 // Parse reads a drawing and answers it, or an error saying why it could not be
@@ -217,6 +265,15 @@ func Parse(src string) (*Image, error) {
 	// `clip-path` may name one written after the element it cuts, and building
 	// them is building shapes that may themselves be pointed at.
 	img.readClipPaths(root)
+	// The masks come after them, for the same reason taken once more: a mask's
+	// picture may be cut by a clip, filled with a gradient, drawn through a
+	// `<use>` and named from inside another mask, so every id the drawing has
+	// to offer has to be known before one of them is built.
+	img.readMasks(root)
+	// The patterns come last of the things that are pointed at: what is inside
+	// one is a picture painted with everything else — a gradient, a clip, a
+	// mask, a `<use>`, another pattern — so all of it has to be in place first.
+	img.readPatterns(root)
 	img.read(root)
 	return img, nil
 }
@@ -344,7 +401,23 @@ func (img *Image) build(e *element, inherited Style, forceKids bool) *Node {
 	// out so that a `<g clip-path>` says what it has to say once and not once
 	// for every shape inside it.
 	clip := img.resolveClip(&st, warn)
-	n := &Node{Name: e.Name, Style: st, clip: clip}
+	// The mask is named where the clip is followed, and its reference comes off
+	// the style for the same two reasons: a mask is not inherited either, and
+	// the children would each follow it and say the same thing once each if it
+	// were still there. What it turns into waits until the whole of this
+	// element is built — the region a mask reaches is measured against
+	// everything it paints, which is only known once everything inside it is.
+	maskRef := st.maskRef
+	st.maskRef = ""
+	def := img.maskNamed(maskRef, warn)
+	// The filter list comes off the style here for the same two reasons, and
+	// it goes onto the node as it comes: what the filter is put through is the
+	// whole picture this element makes, so the children must not each find the
+	// same list to run again, and the list itself needs no part of the drawing
+	// to be read — it was already read where it was written.
+	filters := st.filters
+	st.filters = nil
+	n := &Node{Name: e.Name, Style: st, clip: clip, filters: filters}
 	if n.Style.Hidden {
 		return n
 	}
@@ -356,6 +429,8 @@ func (img *Image) build(e *element, inherited Style, forceKids bool) *Node {
 		// around it, because it means nothing on its own.
 		n := img.textNode(e, st, warn)
 		n.clip = clip
+		n.filters = filters
+		n.mask = maskUnder(def, st, n)
 		return n
 	}
 	n.Path = img.shape(e, st)
@@ -386,44 +461,45 @@ func (img *Image) build(e *element, inherited Style, forceKids bool) *Node {
 	for _, k := range e.Kids {
 		n.Kids = append(n.Kids, img.node(k, st))
 	}
+	n.mask = maskUnder(def, st, n)
 	return n
 }
 
 // resolvePaints follows the `url(#id)` a fill or a stroke named, which only the
 // whole drawing can say anything about. What the reference turns into is the
-// gradient itself, where there was one in the drawing; the colour written after
-// the `url(...)` where there was not; and nothing, with one warning, where the
+// gradient or the pattern that was in the drawing; the colour written after the
+// `url(...)` where there was not; and nothing, with one warning, where the
 // shape asked for something that is not there and gave no second choice.
 //
 // The reference is cleared as it is spent, so that a shape inside a group with a
 // missing gradient does not say the same thing once for every shape inside it.
 func (img *Image) resolvePaints(st *Style, warn func(string, ...any)) {
 	if st.fillRef != "" {
-		g := img.grads[st.fillRef]
-		st.fillRef, st.fillGradient = "", g
+		g, p := img.grads[st.fillRef], img.patterns[st.fillRef]
+		st.fillRef, st.fillGradient, st.fillPattern = "", g, p
 		switch {
-		case g != nil:
+		case g != nil || p != nil:
 			st.HasFill = true
 		case st.hasFillFallback:
 			st.Fill, st.HasFill = st.fillFallback, true
 			st.FillCurrent = st.fillFallbackCurrent
 		default:
 			st.HasFill = false
-			warn("the fill names a gradient that is not in the drawing and has no colour after it, so the shape is not filled")
+			warn("the fill names a gradient or a pattern that is not in the drawing and has no colour after it, so the shape is not filled")
 		}
 	}
 	if st.strokeRef != "" {
-		g := img.grads[st.strokeRef]
-		st.strokeRef, st.strokeGradient = "", g
+		g, p := img.grads[st.strokeRef], img.patterns[st.strokeRef]
+		st.strokeRef, st.strokeGradient, st.strokePattern = "", g, p
 		switch {
-		case g != nil:
+		case g != nil || p != nil:
 			st.HasStroke = true
 		case st.hasStrokeFallback:
 			st.Stroke, st.HasStroke = st.strokeFallback, true
 			st.StrokeCurrent = st.strokeFallbackCurrent
 		default:
 			st.HasStroke = false
-			warn("the stroke names a gradient that is not in the drawing and has no colour after it, so the shape is not outlined")
+			warn("the stroke names a gradient or a pattern that is not in the drawing and has no colour after it, so the shape is not outlined")
 		}
 	}
 }

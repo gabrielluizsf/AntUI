@@ -40,6 +40,18 @@ func (img *Image) useNode(e *element, st Style, warn func(string, ...any)) *Node
 	// `<symbol>` is fitted over it, which moves what is drawn and not the place
 	// the `<use>` itself is.
 	clip := img.resolveClip(&st, warn)
+	// The mask is named and spent here for the same two reasons, and what it
+	// turns into is worked out against the box of everything the `<use>` ends
+	// up drawing, so it waits until the element it names has been built.
+	maskRef := st.maskRef
+	st.maskRef = ""
+	def := img.maskNamed(maskRef, warn)
+	// The filter list is spent here too, on the `<use>` itself rather than on
+	// what it points at: the filter is put through the whole picture the
+	// `<use>` makes, and what it names would otherwise run the same list a
+	// second time inside the first.
+	filters := st.filters
+	st.filters = nil
 	target, id := img.useTarget(e, warn)
 	switch {
 	case st.Hidden:
@@ -54,12 +66,15 @@ func (img *Image) useNode(e *element, st Style, warn func(string, ...any)) *Node
 			img.uses = append(img.uses, id)
 			kid := img.build(target, st, target.Name == "symbol")
 			img.uses = img.uses[:len(img.uses)-1]
-			n := &Node{Name: "use", Style: st, clip: clip}
+			n := &Node{Name: "use", Style: st, clip: clip, filters: filters}
 			n.Kids = append(n.Kids, kid)
+			n.mask = maskUnder(def, st, n)
 			return n
 		}
 	}
-	return &Node{Name: "use", Style: st, clip: clip}
+	n := &Node{Name: "use", Style: st, clip: clip, filters: filters}
+	n.mask = maskUnder(def, st, n)
+	return n
 }
 
 // useTarget is the element a `<use>` names and the id it named it by. Only the

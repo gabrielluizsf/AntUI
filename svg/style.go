@@ -47,25 +47,25 @@ func (s Style) with(e *element, warn func(string, ...any)) Style {
 			case isCurrentColor(raw):
 				s.Fill, s.HasFill, s.FillCurrent = 0, true, true
 				s.fillRef, s.fillFallback, s.hasFillFallback, s.fillFallbackCurrent = "", 0, false, false
-				s.fillGradient = nil
+				s.fillGradient, s.fillPattern = nil, nil
 			default:
 				if c, ok := parsePaint(raw); ok {
 					s.Fill, s.HasFill, s.FillCurrent = c, true, false
 					s.fillRef, s.fillFallback, s.hasFillFallback, s.fillFallbackCurrent = "", 0, false, false
-					s.fillGradient = nil
+					s.fillGradient, s.fillPattern = nil, nil
 				} else if id, ok := paintRef(raw); ok {
 					// The reference is kept whole: only a caller holding the
 					// whole drawing can say what `#name` is, and the colour
 					// after it is the one painted where the reference turns out
 					// to be nothing. Neither the fill nor its colour is decided
 					// here — see [Image.resolvePaints].
-					s.fillRef, s.fillGradient = id, nil
+					s.fillRef, s.fillGradient, s.fillPattern = id, nil, nil
 					s.fillFallback, s.fillFallbackCurrent, s.hasFillFallback = paintFallback(raw)
 					s.Fill, s.HasFill, s.FillCurrent = 0, false, false
 				} else {
 					s.Fill, s.HasFill, s.FillCurrent = 0, false, false
 					s.fillRef, s.fillFallback, s.hasFillFallback, s.fillFallbackCurrent = "", 0, false, false
-					s.fillGradient = nil
+					s.fillGradient, s.fillPattern = nil, nil
 				}
 			}
 		case "fill-rule":
@@ -97,6 +97,29 @@ func (s Style) with(e *element, warn func(string, ...any)) Style {
 			} else {
 				s.ClipRule = canvas.FillNonZero
 			}
+		case "mask":
+			// The picture that says how much of this element is there is
+			// elsewhere in the drawing, the same way a clip is, so only the id
+			// is kept here: only a caller holding the whole drawing can say
+			// what it is. It is not inherited — see the `maskRef` field of
+			// [Style] and [Image.maskNamed].
+			switch id, ok := paintRef(raw); {
+			case strings.EqualFold(strings.TrimSpace(raw), "none"):
+				s.maskRef = ""
+			case ok:
+				s.maskRef = id
+			default:
+				s.maskRef = ""
+				warn("the mask %q is not a reference to a <mask> this package can follow, so the element is drawn without it", raw)
+			}
+		case "filter":
+			// What this element's picture is put through when it is drawn,
+			// read as it is written rather than once the drawing is in hand:
+			// none of the functions needs to know what any id in the file is,
+			// and the ones that are not read are said here. It is not
+			// inherited — see the `filters` field of [Style] and
+			// [applyFilters].
+			s.filters = readFilters(raw, warn)
 		case "fill-opacity":
 			if v, ok := parseAlpha(raw); ok {
 				s.FillOpacity = v
@@ -106,20 +129,20 @@ func (s Style) with(e *element, warn func(string, ...any)) Style {
 			case isCurrentColor(raw):
 				s.Stroke, s.HasStroke, s.StrokeCurrent = 0, true, true
 				s.strokeRef, s.strokeFallback, s.hasStrokeFallback, s.strokeFallbackCurrent = "", 0, false, false
-				s.strokeGradient = nil
+				s.strokeGradient, s.strokePattern = nil, nil
 			default:
 				if c, ok := parsePaint(raw); ok {
 					s.Stroke, s.HasStroke, s.StrokeCurrent = c, true, false
 					s.strokeRef, s.strokeFallback, s.hasStrokeFallback, s.strokeFallbackCurrent = "", 0, false, false
-					s.strokeGradient = nil
+					s.strokeGradient, s.strokePattern = nil, nil
 				} else if id, ok := paintRef(raw); ok {
-					s.strokeRef, s.strokeGradient = id, nil
+					s.strokeRef, s.strokeGradient, s.strokePattern = id, nil, nil
 					s.strokeFallback, s.strokeFallbackCurrent, s.hasStrokeFallback = paintFallback(raw)
 					s.Stroke, s.HasStroke, s.StrokeCurrent = 0, false, false
 				} else {
 					s.Stroke, s.HasStroke, s.StrokeCurrent = 0, false, false
 					s.strokeRef, s.strokeFallback, s.hasStrokeFallback, s.strokeFallbackCurrent = "", 0, false, false
-					s.strokeGradient = nil
+					s.strokeGradient, s.strokePattern = nil, nil
 				}
 			}
 		case "stroke-width":

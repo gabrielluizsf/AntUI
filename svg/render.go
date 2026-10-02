@@ -84,7 +84,7 @@ func (img *Image) paint(width, height int, current canvas.Color) *canvas.Canvas 
 	// shifted, which is what keeps a viewBox of "0 0 24 24" and one of
 	// "-12 -12 24 24" both filling the icon the same way.
 	m := fitTransform(img.ViewBox, float64(width*supersample), float64(height*supersample))
-	paintNodes(big, img.Root, m, current)
+	paintNodes(big, img.Root, m, current, nil, nil)
 
 	if supersample == 1 {
 		return big
@@ -99,64 +99,160 @@ func (img *Image) paint(width, height int, current canvas.Color) *canvas.Canvas 
 // paintNodes walks the tree, drawing each node and then its children inside it.
 // The matrix is the one the node's own transform composed onto the one it
 // inherits, so a child is drawn where its parent put it.
-func paintNodes(cv *canvas.Canvas, n *Node, m canvas.Matrix, current canvas.Color) {
+//
+// masking is the masks whose pictures are being drawn on the way to this node,
+// and patterning the patterns whose tiles are being drawn on the way to it. A
+// mask may name one of them — itself, or two that name each other — and
+// following that would draw the same picture while it is already being drawn,
+// for ever; the mask is left off instead, which is what keeps a broken drawing
+// a picture rather than a program that does not come back. A pattern is left
+// off the same way, and the shape that asked for it takes the colour after the
+// `url(...)` if it brought one.
+func paintNodes(cv *canvas.Canvas, n *Node, m canvas.Matrix, current canvas.Color, masking []*maskDef, patterning []*pattern) {
 	if n.Style.Hidden {
 		return
 	}
-	if n.clip != nil {
-		paintClipped(cv, n, m, current)
+	if n.clip != nil || n.mask != nil || len(n.filters) > 0 {
+		paintLayered(cv, n, m, current, masking, patterning)
 		return
 	}
-	paintBody(cv, n, m, current)
+	paintBody(cv, n, m, current, masking, patterning)
 }
 
 // paintBody is one node and everything inside it, drawn straight onto the
 // canvas it is given: its shape first, then its writing, then its children in
 // the order they were written.
-func paintBody(cv *canvas.Canvas, n *Node, m canvas.Matrix, current canvas.Color) {
+func paintBody(cv *canvas.Canvas, n *Node, m canvas.Matrix, current canvas.Color, masking []*maskDef, patterning []*pattern) {
 	if n.Path != nil && !n.Path.Empty() {
-		paintShape(cv, n, m, current)
+		paintShape(cv, n, m, current, patterning)
 	}
 	if len(n.Runs) > 0 {
 		paintText(cv, n, m, current)
 	}
 	for _, k := range n.Kids {
-		paintNodes(cv, k, m, current)
+		paintNodes(cv, k, m, current, masking, patterning)
 	}
 }
 
-// paintClipped draws a node into a picture of its own, cuts that picture down
-// to the shapes its clip-path named, and lays the result over what is already
-// there. The picture has to be made before it is cut, whole: a group is one
-// picture with one clip over it, and cutting each of its children as it was
-// drawn would cut them apart from each other, so that two translucent shapes
-// overlapping under the edge of the clip would meet somewhere the clip does
-// not keep at all.
+// paintLayered draws a node into a picture of its own, puts that picture
+// through the filter list the element asked for, cuts the result down to the
+// shapes its clip-path named, takes what its mask says of what is left over,
+// and lays it over what is already there. The picture has to be made before it
+// is touched, whole: a group is one picture with one filter, one clip and one
+// mask over it, and cutting each of its children as it was drawn would cut
+// them apart from each other, so that two translucent shapes overlapping under
+// the edge of the clip would meet somewhere the clip does not keep at all.
+//
+// The order the picture goes through them is the order the spec puts them in:
+// the filter first, because it changes the picture itself and reaches a little
+// past where the element stopped; then the clip, which says where of that
+// picture is kept; then the mask, which says how much of what is left is
+// there. A clip or a mask measured before the filter would cut away the reach
+// of a blur that was still coming, and the filter after them would soften the
+// cut they made instead of the picture they were cut from.
 //
 // The picture is the size of the whole canvas rather than of the node, because
 // a clip may reach anywhere and the cut has to be of the picture where the clip
 // says and nowhere else. What a `<clipPath>` keeps nothing of comes out of this
 // the same way: a picture drawn, cut to nothing, and laid over what was there
-// as nothing at all.
-func paintClipped(cv *canvas.Canvas, n *Node, m canvas.Matrix, current canvas.Color) {
+// as nothing at all — and so does a mask whose reference the drawing could not
+// follow, which keeps nothing rather than keeping everything.
+func paintLayered(cv *canvas.Canvas, n *Node, m canvas.Matrix, current canvas.Color, masking []*maskDef, patterning []*pattern) {
+	if n.mask != nil && n.mask.def.content == nil {
+		// There is no picture to make: the mask keeps nothing, so nothing of
+		// what it masks is drawn.
+		return
+	}
 	layer, err := canvas.NewLayer(cv.Width, cv.Height)
 	if err != nil {
 		// There is no picture to make — a canvas of no size has nothing to
 		// draw on and nothing to draw into either.
 		return
 	}
-	paintBody(layer, n, m, current)
-	layer.MaskShapes(n.clip.measured(m)...)
+	paintBody(layer, n, m, current, masking, patterning)
+	if len(n.filters) > 0 {
+		// The scale the element is drawn at goes with the list because what
+		// the group's transform drew is bigger or smaller than the writing
+		// says: a blur written as 1 is 1 of the drawing's units wherever those
+		// units landed on the canvas. The transform is composed the same way
+		// the children were drawn with it.
+		applyFilters(layer, n.filters, scaleOf(m.Mul(n.Style.Transform)))
+	}
+	if n.clip != nil {
+		layer.MaskShapes(n.clip.measured(m)...)
+	}
+	if n.mask != nil {
+		paintMasked(layer, n, m, current, masking, patterning)
+	}
 	cv.BlitOver(0, 0, layer)
+}
+
+// paintMasked takes what the element painted down to what its mask keeps of
+// it: the mask's picture is drawn into a picture of its own, at the same size
+// and over the same transform so that what it says lines up with what it is
+// being said about, and then every pixel of the element is multiplied by how
+// much of the mask is over it.
+//
+// The mask's picture is drawn under the element's own transform, because a
+// mask — like the shapes a clip cuts with — is written in the coordinates of
+// the element it is put on: a `transform` on that element moves the mask along
+// with everything else it moves. Its region is measured in the drawing's own
+// coordinates and taken to the canvas by the same transform the element is,
+// for the same reason.
+func paintMasked(layer *canvas.Canvas, n *Node, m canvas.Matrix, current canvas.Color, masking []*maskDef, patterning []*pattern) {
+	md := n.mask
+	for _, being := range masking {
+		if being == md.def {
+			// This mask is already being drawn further up, so following it
+			// again would draw it while it is being drawn, for ever: a mask
+			// that names itself, or two that name each other, is left off and
+			// the element stands as it is rather than the drawing never
+			// coming back.
+			return
+		}
+	}
+	ml, err := canvas.NewLayer(layer.Width, layer.Height)
+	if err != nil {
+		// With no picture of the mask there is nothing to say how much is
+		// kept, and what no mask has anything to say about keeps nothing.
+		layer.MaskShapes()
+		return
+	}
+	if md.def.content != nil {
+		paintNodes(ml, md.def.content, m.Mul(n.Style.Transform), current, append(masking, md.def), patterning)
+	}
+	if md.cuts {
+		x0, y0, x1, y1 := regionArea(md.x, md.y, md.w, md.h, m)
+		layer.MaskRect(x0, y0, x1-x0, y1-y0)
+	}
+	layer.MaskBy(ml, md.def.measure)
+}
+
+// regionArea is where a mask reaches on the canvas: the four corners of the
+// region go through the transform that puts the drawing on it, and the box
+// around where they land is what is cut to — exact for the transforms that
+// keep a rectangle a rectangle, and never smaller than the truth for the ones
+// that do not, which is what a region has to be.
+func regionArea(x, y, w, h float64, m canvas.Matrix) (x0, y0, x1, y1 int) {
+	ax, ay := m.Map(x, y)
+	bx, by := m.Map(x+w, y)
+	cx, cy := m.Map(x, y+h)
+	dx, dy := m.Map(x+w, y+h)
+	minX := math.Floor(min(ax, bx, cx, dx))
+	minY := math.Floor(min(ay, by, cy, dy))
+	maxX := math.Ceil(max(ax, bx, cx, dx))
+	maxY := math.Ceil(max(ay, by, cy, dy))
+	return int(minX), int(minY), int(maxX), int(maxY)
 }
 
 // paintShape draws one node's shape: its fill first and its stroke over it,
 // which is the order SVG paints, so a stroke half its width over a fill covers
 // the fill's edge as it should.
-func paintShape(cv *canvas.Canvas, n *Node, m canvas.Matrix, current canvas.Color) {
+func paintShape(cv *canvas.Canvas, n *Node, m canvas.Matrix, current canvas.Color, patterning []*pattern) {
 	st := n.Style
 	if st.HasFill {
-		if st.fillGradient != nil {
+		switch {
+		case st.fillGradient != nil:
 			// A gradient is a colour at every point rather than one colour, so
 			// the fill is laid one pixel at a time. The path is still transformed
 			// first: the gradient moves with the shape it paints, and what is
@@ -165,7 +261,23 @@ func paintShape(cv *canvas.Canvas, n *Node, m canvas.Matrix, current canvas.Colo
 			fill := clonePath(n.Path)
 			fill.Transform(m)
 			cv.FillPathFunc(fill, st.FillRule, gradientShade(st.fillGradient, n, m, current, st.Opacity*st.FillOpacity))
-		} else {
+		case st.fillPattern != nil:
+			// A pattern is a picture at every point rather than one colour, so
+			// the fill is laid one pixel at a time the same way. Where the
+			// pattern has nothing to paint with — it names itself, the tile has
+			// no size to it, the transform has no way back — the colour after
+			// the `url(...)` is what the shape falls back on, and nothing at
+			// all where it brought none.
+			fill := clonePath(n.Path)
+			fill.Transform(m)
+			if shade, ok := patternShade(st.fillPattern, n, m, current, st.Opacity*st.FillOpacity, patterning); ok {
+				cv.FillPathFunc(fill, st.FillRule, shade)
+			} else if c, ok := st.fillFallbackColour(current); ok {
+				if c := fade(c, st.Opacity*st.FillOpacity); c.A() > 0 {
+					cv.FillPath(fill, c, st.FillRule)
+				}
+			}
+		default:
 			c := st.Fill
 			if st.FillCurrent {
 				c = current
@@ -203,6 +315,21 @@ func paintShape(cv *canvas.Canvas, n *Node, m canvas.Matrix, current canvas.Colo
 		// way it runs across the fill rather than being one colour of it.
 		outline := canvas.StrokeOutline(stroke, style)
 		cv.FillPathFunc(outline, canvas.FillNonZero, gradientShade(st.strokeGradient, n, m, current, st.Opacity*st.StrokeOpacity))
+		return
+	}
+	if st.strokePattern != nil {
+		// The stroke is widened into the shape it covers, and that shape is
+		// painted with the pattern, so the picture runs across the stroke the
+		// same way it runs across the fill — with the colour after the
+		// `url(...)` where the pattern has nothing to paint with.
+		outline := canvas.StrokeOutline(stroke, style)
+		if shade, ok := patternShade(st.strokePattern, n, m, current, st.Opacity*st.StrokeOpacity, patterning); ok {
+			cv.FillPathFunc(outline, canvas.FillNonZero, shade)
+		} else if c, ok := st.strokeFallbackColour(current); ok {
+			if c := fade(c, st.Opacity*st.StrokeOpacity); c.A() > 0 {
+				cv.FillPath(outline, c, canvas.FillNonZero)
+			}
+		}
 		return
 	}
 	c := st.Stroke
@@ -269,6 +396,31 @@ func fade(c canvas.Color, opacity float64) canvas.Color {
 	}
 	a := int(float64(c.A())*clampFloat(opacity, 0, 1) + 0.5)
 	return canvas.RGBA(c.R(), c.G(), c.B(), uint8(a))
+}
+
+// fillFallbackColour and strokeFallbackColour are the colour after a `url(...)`
+// where the reference is not one the drawing can follow — never there, or there
+// and with nothing to paint with — which is the second choice the file gave, if
+// it gave one. Writing it `currentColor` keeps the keyword: the colour of the
+// widget is only known when it is painted.
+func (st Style) fillFallbackColour(current canvas.Color) (canvas.Color, bool) {
+	if !st.hasFillFallback {
+		return 0, false
+	}
+	if st.fillFallbackCurrent {
+		return current, true
+	}
+	return st.fillFallback, true
+}
+
+func (st Style) strokeFallbackColour(current canvas.Color) (canvas.Color, bool) {
+	if !st.hasStrokeFallback {
+		return 0, false
+	}
+	if st.strokeFallbackCurrent {
+		return current, true
+	}
+	return st.strokeFallback, true
 }
 
 // scaleOf is how much a transform makes things bigger, taken as the square root

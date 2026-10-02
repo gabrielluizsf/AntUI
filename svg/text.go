@@ -63,8 +63,8 @@ func (img *Image) textNode(e *element, st Style, warn func(string, ...any)) *Nod
 			warn("the writing has a stroke, and writing is drawn by filling it, so the stroke is left out")
 			stroked = true
 		}
-		if r.Style.fillGradient != nil && !shaded {
-			warn("the writing is filled with a gradient, and writing cannot be filled with one, so it is left out")
+		if (r.Style.fillGradient != nil || r.Style.fillPattern != nil) && !shaded {
+			warn("the writing is filled with a gradient or a pattern, and writing cannot be filled with either, so it is left out")
 			shaded = true
 		}
 	}

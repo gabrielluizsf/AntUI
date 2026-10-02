@@ -379,17 +379,20 @@ func TestParseReadsTheSizeOfTheWriting(t *testing.T) {
 }
 
 // TestParseSaysWhatItCannotDoWithWriting is every sort of writing this package
-// cannot put down: a stroke it does not draw, a gradient it cannot fill with, a
-// turn it does not follow, and anything inside the writing that is not writing.
+// cannot put down: a stroke it does not draw, a gradient or a pattern it cannot
+// fill with, a turn it does not follow, and anything inside the writing that is
+// not writing.
 func TestParseSaysWhatItCannotDoWithWriting(t *testing.T) {
 	const head = `<svg viewBox="0 0 40 20"><defs><linearGradient id="g">` +
 		`<stop offset="0" stop-color="#ff0000"/><stop offset="1" stop-color="#0000ff"/>` +
-		`</linearGradient></defs>`
+		`</linearGradient><pattern id="p" width="2" height="2">` +
+		`<rect width="1" height="1" fill="#00ff00"/></pattern></defs>`
 	for _, tc := range []struct {
 		name, src, want string
 	}{
 		{"a stroke", head + `<text x="4" y="16" stroke="red">Hi</text></svg>`, "stroke"},
 		{"a gradient", head + `<text x="4" y="16" fill="url(#g)">Hi</text></svg>`, "gradient"},
+		{"a pattern", head + `<text x="4" y="16" fill="url(#p)">Hi</text></svg>`, "pattern"},
 		{"a turn", head + `<g transform="rotate(30)"><text x="4" y="16">Hi</text></g></svg>`, "turned"},
 		{"a place for each letter", head + `<text x="4 9" y="16">Hi</text></svg>`, "each letter"},
 		{"a position that is not a number", head + `<text x="nope" y="16">Hi</text></svg>`, "not a number"},
