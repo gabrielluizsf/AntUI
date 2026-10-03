@@ -1,6 +1,8 @@
 package template
 
 import (
+	"time"
+
 	"github.com/gabrielluizsf/antui"
 	"github.com/gabrielluizsf/antui/canvas"
 	"github.com/gabrielluizsf/antui/template/event"
@@ -41,8 +43,18 @@ type Context struct {
 
 // NewContext starts a session on a window with a template and nothing in
 // view. Run, or Draw once a frame, shows the first screen.
+//
+// The loading screen comes with it: the template's start-up screen is drawn
+// and presented right here, before the program has loaded anything, and
+// stays until Ready says the program is up — or the loading timeout closes
+// the app. A program that called SetDisableLoading on the template before
+// handing it over never shows it.
 func NewContext(win *antui.Window, tpl Template) *Context {
-	return &Context{win: win, tpl: tpl}
+	c := &Context{win: win, tpl: tpl}
+	if tpl != nil {
+		tpl.loadingState().showFirstFrame(win, tpl)
+	}
+	return c
 }
 
 // Go puts a screen on top of the stack. It becomes the current screen on the
@@ -97,8 +109,21 @@ func (c *Context) Depth() int { return len(c.stack) }
 // Draw paints the current screen once, cleared to the template's background
 // first. Call it every frame between Begin and End; [Context.Run] does that
 // for the whole life of the window.
+//
+// The loading screen arms first, before anything the screen draws: its draw
+// is registered ahead of any the screen registers, and Window.End runs them
+// in reverse, so the screen lands above a dropdown or a popup the app put
+// up while it was still loading. It arms even with no screen pushed at all —
+// a program still loading has nothing to show, and the loading screen is
+// the showing.
 func (c *Context) Draw() {
-	if c.win == nil || len(c.stack) == 0 {
+	if c.win == nil {
+		return
+	}
+	if c.tpl != nil {
+		c.tpl.loadingState().arm(c.win, c.tpl)
+	}
+	if len(c.stack) == 0 {
 		return
 	}
 	c.win.Canvas().Clear(c.tpl.Background(c.win))
@@ -106,7 +131,9 @@ func (c *Context) Draw() {
 }
 
 // Run is the whole application loop: it shows the first screen and keeps
-// drawing it (and whatever it pushes) until the window closes.
+// drawing it (and whatever it pushes) until the window closes — including
+// the loading screen, which is what the window shows until Ready arrives
+// and which closes the loop itself should the loading timeout pass first.
 func (c *Context) Run(first Screen) {
 	c.Go(first)
 	for c.win.Begin() {
@@ -115,6 +142,38 @@ func (c *Context) Run(first Screen) {
 		if !c.win.Running() {
 			break
 		}
+	}
+}
+
+// Ready tells the loading screen the program has finished loading; the next
+// frame shows the program itself. See [Template.Ready].
+func (c *Context) Ready() {
+	if c.tpl != nil {
+		c.tpl.Ready()
+	}
+}
+
+// SetDisableLoading turns the loading screen off or back on, and when it
+// turns it off after the screen was already presented, wipes the picture it
+// left behind so the window shows the plain background instead. See
+// [Template.SetDisableLoading].
+func (c *Context) SetDisableLoading(disabled bool) {
+	if c.tpl == nil {
+		return
+	}
+	ld := c.tpl.loadingState()
+	shown := ld.active()
+	c.tpl.SetDisableLoading(disabled)
+	if disabled && shown {
+		ld.wipe(c.win, c.tpl)
+	}
+}
+
+// SetLoadingTimeout changes how long the loading screen waits before the
+// app closes. See [Template.SetLoadingTimeout].
+func (c *Context) SetLoadingTimeout(d time.Duration) {
+	if c.tpl != nil {
+		c.tpl.SetLoadingTimeout(d)
 	}
 }
 

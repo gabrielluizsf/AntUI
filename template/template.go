@@ -29,6 +29,7 @@
 package template
 
 import (
+	"time"
 	"unicode/utf8"
 
 	"github.com/gabrielluizsf/antui"
@@ -84,6 +85,37 @@ type Template interface {
 	// Sounds is the bank the components' events ring through. A nil bank
 	// makes the template silent, which is a sound too.
 	Sounds() event.SoundBank
+	// Ready says everything the program loads at start-up has finished
+	// loading, so the loading screen can go away and the program itself can
+	// show. Until it is called — or the loading timeout passes and closes
+	// the app — the loading screen is what the window wears. It may be
+	// called from any goroutine, which is the point: whichever goroutine
+	// finished loading says so. Calling it twice, or after the screen is
+	// already gone, changes nothing: a start-up happens once.
+	Ready()
+	// SetDisableLoading turns the start-up loading screen off when disabled
+	// is true and back on when it is false. It is for a program with
+	// nothing worth waiting for, or one that does all of its loading before
+	// the window opens; by default the screen is on, and a program that
+	// never says Ready is closed by the timeout rather than left staring at
+	// a bar that never ends. See [CSS.SetDisableLoading] and
+	// [Context.SetDisableLoading] for the same flag on the two ways a
+	// program is usually wired.
+	SetDisableLoading(disabled bool)
+	// SetLoadingTimeout changes how long the loading screen waits before
+	// the app closes itself, which is also the span the bar fills over, so
+	// that 100% and the closing land on the same instant. The default is
+	// five seconds; a duration of zero or less changes nothing, and a
+	// program that wants the screen to stay without a deadline wants
+	// [SetDisableLoading] instead.
+	SetLoadingTimeout(d time.Duration)
+	// loadingState is the screen's own state, for this package to arm,
+	// wipe and read. It is unexported so that a Template is something only
+	// this package can answer for: the loading screen is not a decoration
+	// hung on a template but half of what a template is, and a type from
+	// outside could not keep that promise. A program makes templates with
+	// [New].
+	loadingState() *loading
 }
 
 // New joins a painting and a hearing into a working template: everything the
@@ -95,7 +127,7 @@ type Template interface {
 //	mySound := MySoundBank{}
 //	tpl := template.New(myStyle, mySound)
 func New(style Style, sound event.SoundBank) Template {
-	return &uiTemplate{style: style, sound: sound}
+	return &uiTemplate{style: style, sound: sound, ld: newLoading()}
 }
 
 // Cyberpunk is the futuristic template: neon edges and glowing controls, the
@@ -127,6 +159,12 @@ type uiTemplate struct {
 	dateYear         int    // the month an open calendar popup shows
 	dateMonth        int
 	dateCursor       int // the day an open calendar popup highlights
+
+	// ld is the start-up loading screen this template wears until the
+	// program says Ready — see [loading]. It is nil for a template built
+	// as a bare struct instead of through [New], and a nil screen is one
+	// that is never active, so such a template simply has no screen.
+	ld *loading
 }
 
 func (t *uiTemplate) Background(win *antui.Window) canvas.Color {
@@ -138,6 +176,14 @@ func (t *uiTemplate) Label(win *antui.Window, x, y int, text string) {
 }
 
 func (t *uiTemplate) Sounds() event.SoundBank { return t.sound }
+
+func (t *uiTemplate) Ready() { t.ld.markReady() }
+
+func (t *uiTemplate) SetDisableLoading(disabled bool) { t.ld.setDisabled(disabled) }
+
+func (t *uiTemplate) SetLoadingTimeout(d time.Duration) { t.ld.setTimeout(d) }
+
+func (t *uiTemplate) loadingState() *loading { return t.ld }
 
 // fire reports an event and, when one is attached, rings it through the
 // sound bank before answering.

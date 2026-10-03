@@ -1,6 +1,8 @@
 package template
 
 import (
+	"time"
+
 	"github.com/gabrielluizsf/antui"
 	"github.com/gabrielluizsf/antui/canvas"
 	"github.com/gabrielluizsf/antui/template/audio"
@@ -66,13 +68,21 @@ type CSS struct {
 // coordinates, and the template decides where each widget lives from an
 // external stylesheet. Call [CSS.SetStyle] with the CSS file and a class
 // table before drawing anything.
+//
+// The start-up loading screen comes with it: it is drawn and presented
+// before this returns, so the window already wears it while the program
+// loads what it needs — the stylesheet above, a font, a database. It stays
+// until [CSS.Ready], and a program that never gets there is closed by the
+// loading timeout. [CSS.SetDisableLoading] asks to be without it.
 func TemplateWithCSS(win *antui.Window) *CSS {
 	cs := newCSSStyle(win)
-	return &CSS{
+	c := &CSS{
 		win:   win,
 		style: cs,
-		ui:    &uiTemplate{style: cs, sound: audio.Simple},
+		ui:    &uiTemplate{style: cs, sound: audio.Simple, ld: newLoading()},
 	}
+	c.ui.ld.showFirstFrame(win, c.ui)
+	return c
 }
 
 // SetStyle loads the stylesheet into the table and binds it to every widget
@@ -109,6 +119,29 @@ func (c *CSS) SetSound(s event.SoundBank) { c.ui.sound = s }
 // its own pixel size until background-size scales it.
 func (c *CSS) SetImage(name string, cv *canvas.Canvas) { c.style.images[name] = cv }
 
+// Ready tells the loading screen everything the program loads has loaded:
+// the next frame is the program itself. Until then the loop keeps drawing
+// the screen, and past the loading timeout the app closes. It may come from
+// any goroutine. See [Template.Ready].
+func (c *CSS) Ready() { c.ui.Ready() }
+
+// SetDisableLoading turns the start-up loading screen off or back on. When
+// it goes off after the screen was already presented, the picture it left
+// is wiped, so a program that asks to be without it does not sit on it
+// until its first frame. See [Template.SetDisableLoading].
+func (c *CSS) SetDisableLoading(disabled bool) {
+	shown := c.ui.ld.active()
+	c.ui.SetDisableLoading(disabled)
+	if disabled && shown {
+		c.ui.ld.wipe(c.win, c.ui)
+	}
+}
+
+// SetLoadingTimeout changes how long the loading screen waits before the
+// app closes, which is also the span its bar fills over. See
+// [Template.SetLoadingTimeout].
+func (c *CSS) SetLoadingTimeout(d time.Duration) { c.ui.SetLoadingTimeout(d) }
+
 // Sounds is the bank the components' events ring through right now.
 func (c *CSS) Sounds() event.SoundBank { return c.ui.sound }
 
@@ -121,6 +154,12 @@ func (c *CSS) Background(win *antui.Window) canvas.Color {
 // Reset starts a new "page": the vertical cursor returns to the top of the
 // window, the widget timeline begins a fresh run, and the widgets drawn
 // afterwards flow down from it again. Call it once per frame before drawing.
+//
+// It is also where the loading screen takes the frame, when the program is
+// still loading: Reset runs once at the start of every frame of the
+// coord-free loop, which is the one place such a loop passes through, so
+// the screen can draw above the frame's widgets from there without the
+// developer wiring anything.
 func (c *CSS) Reset() {
 	c.style.resetTimeline()
 	c.cursorY = 0
@@ -137,6 +176,7 @@ func (c *CSS) Reset() {
 	c.tabling = false
 	c.row = nil
 	c.measure = false
+	c.ui.ld.arm(c.win, c.ui)
 }
 
 // layout measures and places one widget in the flow, opening the widget's
