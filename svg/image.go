@@ -34,6 +34,13 @@ type Image struct {
 	// written in, with the shapes first and the `<defs>` at the end.
 	grads map[string]*gradient
 
+	// pictures are the bitmaps the `<image>`s fetched, by the address each one
+	// named, so that a drawing pointing at the same file twice reads it once.
+	// What is in here is never written to: an `<image>` that wants the picture
+	// somewhere else or in another opacity is given where and how it fits rather
+	// than changing what every other element pointing at the same address holds.
+	pictures map[string]*canvas.Canvas
+
 	// clips are the clip paths the drawing declared, by the id a `clip-path`
 	// names. They are read before anything is built for the same reason as the
 	// gradients: a clip is written at the end of the drawing beside them, and
@@ -100,6 +107,12 @@ type Node struct {
 	// in a drawing that carries on across the elements inside it, so it is kept
 	// as the whole of it rather than as a node for each `<tspan>`.
 	Runs []TextRun
+	// Pic is the picture an `<image>` draws: the bitmap its href pointed at,
+	// fitted into the box the drawing gave it. Every other node leaves it nil,
+	// the same way as Runs — it is what puts a photograph in a drawing that is
+	// otherwise all vectors, and it is read whole while the drawing is read
+	// rather than when it is painted. See [Image.imageNode] and [paintPicture].
+	Pic *Picture
 	// Kids are the nodes written inside this one.
 	Kids []*Node
 	// box is the shape as the drawing wrote it, measured before the node's
@@ -326,7 +339,7 @@ func Parse(src string) (*Image, error) {
 	if root.Name != "svg" {
 		return nil, &Error{What: "the root tag is <" + root.Name + ">, not <svg>"}
 	}
-	img := &Image{Root: &Node{Name: "svg"}, grads: map[string]*gradient{}}
+	img := &Image{Root: &Node{Name: "svg"}, grads: map[string]*gradient{}, pictures: map[string]*canvas.Canvas{}}
 	img.readSize(root)
 	// The gradients come before the shapes, because a shape may name one that is
 	// only written later in the file, and every gradient that names another has
@@ -517,6 +530,19 @@ func (img *Image) build(e *element, inherited Style, forceKids bool) *Node {
 		n.mask = maskUnder(def, st, n)
 		return n
 	}
+	if e.Name == "image" {
+		// A photograph is not an outline with a paint over it either: it is a
+		// bitmap, fetched from wherever the href points while the drawing is
+		// read and fitted into the box the drawing gave it when it is painted.
+		// It is built whole here for the same reason as the writing, and there
+		// is nothing inside an `<image>` to build nodes for. See
+		// [Image.imageNode].
+		n := img.imageNode(e, st, warn)
+		n.clip = clip
+		n.filters = filters
+		n.mask = maskUnder(def, st, n)
+		return n
+	}
 	n.Path = img.shape(e, st)
 	if n.Path != nil {
 		if minX, minY, maxX, maxY, ok := n.Path.Bounds(); ok {
@@ -666,12 +692,11 @@ func (img *Image) shape(e *element, st Style) *canvas.Path {
 // warnings that matter.
 //
 // A tag that paints where it stands is not in here: `<image>` draws a picture
-// this package has no way to fetch or decode, and a drawing that asked for one
-// has asked for a picture that will not be there, which is worth saying. A
-// `<symbol>` is the other way round — it draws nothing where it stands and
-// everything it holds is drawn where a `<use>` points at it. A `<text>` is
-// neither: it paints where it stands, and is built as writing rather than as a
-// shape.
+// it fetches itself — see [Image.imageNode] — and it is built whole when its
+// turn comes, the way writing is rather than the way a shape is. A `<symbol>`
+// is the other way round — it draws nothing where it stands and everything it
+// holds is drawn where a `<use>` points at it. A `<text>` is neither: it paints
+// where it stands, and is built as writing rather than as a shape.
 func isKnownButUnpainted(name string) bool {
 	switch name {
 	case "defs", "title", "desc", "metadata", "style", "styleSheet", "script",

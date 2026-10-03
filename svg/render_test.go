@@ -82,9 +82,10 @@ func TestParsePutsTheShapesWhereTheyAreInTheDrawing(t *testing.T) {
 }
 
 func TestParseLeavesOutWhatItCannotDraw(t *testing.T) {
-	// A tag this package draws nothing for is a warning rather than an error, and
-	// the rest of the drawing still paints.
-	img, err := Parse(`<svg viewBox="0 0 10 10"><image href="a.png"/><rect x="0" y="0" width="5" height="5"/></svg>`)
+	// Something a drawing asked for that this package cannot do — here a
+	// picture behind an address that answers nothing — is a warning rather
+	// than an error, and the rest of the drawing still paints.
+	img, err := Parse(`<svg viewBox="0 0 10 10"><image href="a.png" width="5" height="5"/><rect x="0" y="0" width="5" height="5"/></svg>`)
 	if err != nil {
 		t.Fatalf("parse: %v", err)
 	}
@@ -92,7 +93,7 @@ func TestParseLeavesOutWhatItCannotDraw(t *testing.T) {
 		t.Error("the rectangle went out with the image")
 	}
 	if len(img.Warnings()) == 0 {
-		t.Error("nothing said that the image was not drawn")
+		t.Error("nothing said that the picture in the image could not be read")
 	}
 }
 
