@@ -124,7 +124,7 @@ func paintNodes(cv *canvas.Canvas, n *Node, m canvas.Matrix, current canvas.Colo
 // the order they were written.
 func paintBody(cv *canvas.Canvas, n *Node, m canvas.Matrix, current canvas.Color, masking []*maskDef, patterning []*pattern) {
 	if n.Path != nil && !n.Path.Empty() {
-		paintShape(cv, n, m, current, patterning)
+		paintShape(cv, n, m, current, masking, patterning)
 	}
 	if len(n.Runs) > 0 {
 		paintText(cv, n, m, current)
@@ -247,8 +247,9 @@ func regionArea(x, y, w, h float64, m canvas.Matrix) (x0, y0, x1, y1 int) {
 
 // paintShape draws one node's shape: its fill first and its stroke over it,
 // which is the order SVG paints, so a stroke half its width over a fill covers
-// the fill's edge as it should.
-func paintShape(cv *canvas.Canvas, n *Node, m canvas.Matrix, current canvas.Color, patterning []*pattern) {
+// the fill's edge as it should, and the marker over the pair of them last of
+// all — an arrowhead on the line rather than under it.
+func paintShape(cv *canvas.Canvas, n *Node, m canvas.Matrix, current canvas.Color, masking []*maskDef, patterning []*pattern) {
 	st := n.Style
 	if st.HasFill {
 		switch {
@@ -284,27 +285,48 @@ func paintShape(cv *canvas.Canvas, n *Node, m canvas.Matrix, current canvas.Colo
 			}
 			if c := fade(c, st.Opacity*st.FillOpacity); c.A() > 0 {
 				// The path is drawn in its own coordinates and the transform is
-				// put on a copy of it, so the fill follows the drawing while the
-				// stroke keeps its own width rather than being scaled with it.
+				// put on a copy of it, so the node keeps the shape the drawing
+				// wrote while the picture comes out where the transform put it.
+				// The stroke takes its width from the same transform rather
+				// than from the geometry — see [Style.strokeWidth].
 				fill := clonePath(n.Path)
 				fill.Transform(m)
 				cv.FillPath(fill, c, st.FillRule)
 			}
 		}
 	}
-	if !st.HasStroke || st.Width <= 0 {
-		return
+	if st.HasStroke && st.Width > 0 {
+		paintStroke(cv, n, m, current, patterning)
 	}
+	// The marker comes after the fill and the stroke, which is the order the
+	// spec puts them in. It is drawn where the shape has no stroke at all, and
+	// where it encloses no fill either: a marker is a picture put on a vertex,
+	// and the line beside it is not what puts it there — the vertex is.
+	if len(n.markers) > 0 {
+		paintMarkers(cv, n, m, current, masking, patterning)
+	}
+}
+
+// paintStroke widens the outline of one node's shape and paints what comes of
+// it. It is the whole of the stroke rather than a part of the shape, so that
+// the marker can be drawn after all of it rather than after only some.
+func paintStroke(cv *canvas.Canvas, n *Node, m canvas.Matrix, current canvas.Color, patterning []*pattern) {
+	st := n.Style
 	// A dashed stroke is cut into pieces along the line before it is widened,
 	// so that each dash is capped at both ends and a dash never starts halfway
-	// through a corner.
-	stroke := clonePath(n.Path)
-	stroke.Transform(m)
-	if st.Dash != nil {
-		stroke = stroke.Dashed(*st.Dash)
+	// through a corner. The cut was made where the shape was written and the
+	// transform of the element has carried it along with the shape ever since,
+	// so the outline taken here is already in the runs the pattern asked for,
+	// and taking it to the canvas carries the cut the rest of the way — the
+	// viewBox and the size asked for included.
+	outline := n.Path
+	if n.dashed != nil {
+		outline = n.dashed
 	}
+	stroke := clonePath(outline)
+	stroke.Transform(m)
 	style := canvas.StrokeStyle{
-		Width:      st.Width * scaleOf(m),
+		Width:      st.strokeWidth(m),
 		Cap:        st.Cap,
 		Join:       st.Join,
 		MiterLimit: st.MiterLimit,
@@ -430,6 +452,31 @@ func (st Style) strokeFallbackColour(current canvas.Color) (canvas.Color, bool) 
 func scaleOf(m canvas.Matrix) float64 {
 	det := math.Abs(m.A*m.D - m.B*m.C)
 	return math.Sqrt(det)
+}
+
+// strokeWidth is how wide the stroke comes out on the canvas: the width the
+// drawing wrote, taken through everything that scaled the shape — the viewBox
+// onto the canvas and the transforms the shape went through, which are the same
+// ones that moved the geometry, so that a shape scaled twice is a stroke twice
+// as wide. That is the default SVG has.
+//
+// `vector-effect="non-scaling-stroke"` asks for the other one: the width it
+// says, in the pixels the drawing comes out at, with nothing scaled at all —
+// neither the viewBox nor any transform, which is what keeps a hairline a
+// hairline when the drawing is zoomed. The canvas is painted supersample times
+// the size asked for and brought back down at the end, so the width is in those
+// bigger pixels and comes down with the rest of the picture.
+func (st Style) strokeWidth(m canvas.Matrix) float64 {
+	if st.NonScalingStroke {
+		return st.Width * supersample
+	}
+	// The transform only counts where it was put into the path, under the same
+	// condition the build used to put it there: a style with no transform of
+	// its own scales nothing, and a zero matrix would scale the width to none.
+	if st.HasTransform && st.Transform != (canvas.Matrix{}) {
+		m = m.Mul(st.Transform)
+	}
+	return st.Width * scaleOf(m)
 }
 
 // fitTransform is the transform that maps a viewBox onto a rectangle of the

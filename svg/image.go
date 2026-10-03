@@ -52,6 +52,13 @@ type Image struct {
 	// reference to one written further down the file would find nothing there.
 	patterns map[string]*pattern
 
+	// markers are the markers the drawing declared, by the id a `marker-start`
+	// names, read after the patterns and for the same reason yet again: what is
+	// inside a marker is a picture painted with everything else — a gradient, a
+	// clip, a mask, a `<use>`, another marker — so all of it has to be in place
+	// before one of them is built.
+	markers map[string]*markerDef
+
 	// ids are the elements that wrote an id, under that id, so that a `<use>`
 	// can be followed to the element it names — which may be written after the
 	// `<use>`, and usually is, at the end of the drawing next to the gradients.
@@ -130,6 +137,29 @@ type Node struct {
 	// in the Style, and nothing at all means no filter. What is beyond the
 	// picture in a blur comes from [applyFilters].
 	filters []filterOp
+	// dashed is the same shape as Path, cut into the runs a dashed stroke
+	// paints, and nil where the stroke takes no pattern or one that cuts
+	// nothing. The cut is made where the shape was written — the one place
+	// where a length of the pattern and a length of the path are the same
+	// numbers — and the transform of the element and the one that puts the
+	// drawing on the canvas carry it along with the shape from there, which is
+	// what makes a dashed stroke grow and shrink with the drawing rather than
+	// stay the same size on the screen. Path stays whole because the fill,
+	// the box and everything that cuts or masks the element need the shape as
+	// a shape; it is only the outline that is dashed. Paint takes this one
+	// for the stroke. See [Image.build].
+	dashed *canvas.Path
+	// markers is where the markers this element's marker-start, marker-mid and
+	// marker-end named are drawn: each entry is the marker and the matrix that
+	// puts it on one vertex, in the order the vertices come — first, the
+	// in-between ones, last. It is worked out where the shape is built, while
+	// the path is still in the coordinates it was written in, because the
+	// vertex and the direction of the path at it are numbers of the shape as
+	// it was written — and the transform goes into the matrix the same way it
+	// goes into the path, so that a marker follows the vertex wherever the
+	// shape goes. What the children inherit is the markers themselves rather
+	// than these places; each shape works out its own. See [placeMarkers].
+	markers []markerPlace
 }
 
 // find is the first node of that name anywhere at or below this one, and nil
@@ -176,13 +206,30 @@ type Style struct {
 	Cap           canvas.LineCap
 	Join          canvas.LineJoin
 	MiterLimit    float64
-	Opacity       float64
-	FillOpacity   float64
-	StrokeOpacity float64
-	Dash          *canvas.Dash
-	Hidden        bool
-	Transform     canvas.Matrix
-	HasTransform  bool
+	// NonScalingStroke is `vector-effect="non-scaling-stroke"`: the stroke is
+	// drawn at the width the drawing wrote, in the pixels the drawing comes out
+	// at, rather than taken through the viewBox and the transforms that carry
+	// it there — a hairline that stays a hairline however much the drawing is
+	// zoomed. It is not inherited, as the spec has it, so [Style.with] takes it
+	// off again before reading what the element itself said, the same as it
+	// does for pathLength.
+	NonScalingStroke bool
+	Opacity          float64
+	FillOpacity      float64
+	StrokeOpacity    float64
+	// Dash is the stroke broken into pieces along the path, with every length
+	// of it — the dashes, the gaps and the offset into them — written in the
+	// drawing's own units. On a shape whose element wrote a pathLength it
+	// holds those pieces stretched to the length that was declared, which is
+	// what the shape is cut with; what the shapes around it inherit is the
+	// pattern as it was written, since the length it was stretched against
+	// belongs to this shape alone. The cut itself happens where the shape is
+	// built and not where it is painted — see [Image.build] — so the pattern
+	// reaches the pixels the way everything else the drawing wrote does.
+	Dash         *canvas.Dash
+	Hidden       bool
+	Transform    canvas.Matrix
+	HasTransform bool
 	// FontSize is how tall the writing is, in the drawing's own units, and
 	// Anchor is where along the pen a piece of it hangs. Both only matter to a
 	// `<text>`, but both are inherited like the rest, so a size written on a
@@ -226,6 +273,25 @@ type Style struct {
 	// mask reaches is measured against everything it paints. See
 	// [Image.maskNamed] and [maskUnder].
 	maskRef string
+	// markerStart, markerMid and markerEnd are the `<marker>`s this element
+	// draws at the first, the in-between and the last vertex of its shape, and
+	// they are inherited, which is what sets them apart from the clip, the
+	// mask and the filter above: a marker is not a cut or a picture laid over
+	// one shape, it is a mark on a vertex, and a `<g marker-end>` is what every
+	// shape under it puts on its own last vertex. So the references turn into
+	// the markers themselves rather than into places on the node, and the
+	// children take them along with the fill. See [Image.resolveMarkers].
+	markerStart *markerDef
+	markerMid   *markerDef
+	markerEnd   *markerDef
+	// markerStartRef, markerMidRef and markerEndRef are those references — the
+	// ids the three `url(#id)`s named — until the whole drawing has been read
+	// far enough to say what they are, and each is cleared as it is spent so
+	// that a group says what it has to say once and not once for every shape
+	// inside it.
+	markerStartRef string
+	markerMidRef   string
+	markerEndRef   string
 	// filters is the list a `filter="blur(1) grayscale(1)"` gave the element,
 	// read where it is written rather than once the whole drawing is in hand:
 	// none of the functions needs to know what any id in the file is, and what
@@ -234,6 +300,14 @@ type Style struct {
 	// the style before the children are built from it and lives on the node;
 	// see [readFilters] and [applyFilters].
 	filters []filterOp
+	// pathLength is the total length the drawing says the path on this element
+	// has, in the drawing's own units, which is what the stroke of this shape
+	// is measured out against instead of the geometry — see [applyPathLength].
+	// It is not inherited, for the same reason the clip, the mask and the
+	// filter are not: a length declared by a group is a length of the group's
+	// own shape, and a group has none. [Style.with] takes it off again for
+	// every element that does not write one of its own.
+	pathLength float64
 }
 
 // Parse reads a drawing and answers it, or an error saying why it could not be
@@ -274,6 +348,10 @@ func Parse(src string) (*Image, error) {
 	// one is a picture painted with everything else — a gradient, a clip, a
 	// mask, a `<use>`, another pattern — so all of it has to be in place first.
 	img.readPatterns(root)
+	// The markers come after them, and are last for the same reason taken once
+	// more: what is inside a marker is a picture painted with everything else,
+	// and a marker may name another written further down the file.
+	img.readMarkers(root)
 	img.read(root)
 	return img, nil
 }
@@ -389,6 +467,12 @@ func (img *Image) build(e *element, inherited Style, forceKids bool) *Node {
 	// here can be followed now and the children inherit whatever it turned out to
 	// be, the same way they inherit a colour.
 	img.resolvePaints(&st, warn)
+	// The marker is followed here too, and it is the one reference that stays
+	// on the style after it has been spent: a marker is inherited, so what the
+	// children draw on their own vertices is this marker, looked up once here
+	// rather than once each down there. A `<use>` takes it along to whatever it
+	// points at for the same reason it takes the fill.
+	img.resolveMarkers(&st, warn)
 	if e.Name == "use" {
 		// A `<use>` follows its own clip itself, after its x and y have moved
 		// it and before it builds what it points at — see [Image.useNode].
@@ -442,12 +526,53 @@ func (img *Image) build(e *element, inherited Style, forceKids bool) *Node {
 			// along with the shape rather than stretching it again.
 			n.box = [4]float64{minX, minY, maxX - minX, maxY - minY}
 		}
+		// The length the drawing declared is spent here, on this node's own
+		// style and before the transform moves the path: it is a length of the
+		// shape as it was written, and the children are built from the style
+		// that still holds the pattern as it was written too.
+		applyPathLength(&n.Style, n.Path)
+		// The pattern is spent in the same place and for the same reason: the
+		// lengths of a dash pattern are lengths of the drawing, so the outline
+		// can only be cut into them where it is still in the coordinates it
+		// was written in. What comes out is kept beside the shape rather than
+		// in it, because the fill and everything measured against the shape —
+		// its box, its clip, the region of a mask — need the shape whole, and
+		// only the stroke is dashed. From here the two travel together: the
+		// transform below and the one that puts the drawing on the canvas move
+		// the cut along with the shape, which is what makes the pattern scale
+		// with the drawing instead of staying the same on the screen.
+		//
+		// A pattern that cuts nothing hands the path back as it is, and that
+		// is the shape itself rather than a second copy of it: taking it for
+		// the cut would put the transform through the path twice. Only what
+		// is going to be stroked is cut at all, by the same two conditions
+		// the painting checks before it widens anything.
+		if st.HasStroke && st.Width > 0 && n.Style.Dash != nil {
+			if cut := n.Path.Dashed(*n.Style.Dash); cut != n.Path {
+				n.dashed = cut
+			}
+		}
+		// Where the markers this element asked for sit on the shape, worked
+		// out while the path is still in the coordinates it was written in:
+		// the vertices they land on, the directions the path is going there and
+		// the rooms the markers asked for are all numbers of the shape as it
+		// was written, and the transform below takes them along with the
+		// vertices the same way it takes the shape.
+		n.markers = placeMarkers(n.Path, n.Style)
 		if st.HasTransform && st.Transform != (canvas.Matrix{}) {
-			// The transform belongs to the shape, not to the pixels around it, so
-			// it is applied to the path: a stroke then keeps its own width instead
-			// of being scaled with the drawing. A group has no shape of its own to
-			// put it on, and carries the transform to its children instead.
+			// The transform belongs to the shape, not to the pixels around it,
+			// so it is put into the path: the shape goes where the transform
+			// puts it and the stroke is widened afterwards, in the coordinates
+			// it landed in. The width it is widened by carries the same
+			// transform — see [Style.strokeWidth] — which is what makes a shape
+			// scaled twice a stroke twice as wide, the default SVG has and what
+			// `vector-effect="non-scaling-stroke"` asks to leave out. A group
+			// has no shape of its own to put it on, and carries the transform to
+			// its children instead.
 			n.Path.Transform(st.Transform)
+			if n.dashed != nil {
+				n.dashed.Transform(st.Transform)
+			}
 		}
 	}
 	if !forceKids && isKnownButUnpainted(e.Name) {

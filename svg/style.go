@@ -29,6 +29,17 @@ func (s Style) with(e *element, warn func(string, ...any)) Style {
 		attrs[k] = v
 	}
 
+	// pathLength is of the path on the element it is written on, so it does not
+	// travel: a group that declares how long its own shape is says nothing
+	// about the shapes inside, and each of those starts from none of its own.
+	s.pathLength = 0
+
+	// vector-effect does not travel either, and for a plainer reason than the
+	// length: the spec says it is not inherited, so what a `<g>` asks for is
+	// about the `<g>` — which has no outline of its own to compute — and the
+	// shapes inside start from the scaled stroke every drawing gets.
+	s.NonScalingStroke = false
+
 	// dash is the pattern as it was written, and dashOffset where along it the
 	// stroke starts; the two are read together once every other attribute has
 	// been, because the order a map is walked in is not one to depend on.
@@ -120,6 +131,31 @@ func (s Style) with(e *element, warn func(string, ...any)) Style {
 			// inherited — see the `filters` field of [Style] and
 			// [applyFilters].
 			s.filters = readFilters(raw, warn)
+		case "marker-start", "marker-mid", "marker-end":
+			// The markers drawn at the vertices of this element's shape, which
+			// unlike the clip, the mask and the filter ARE inherited: a `<g
+			// marker-end>` is what every shape under it marks its own last
+			// vertex with, so the reference is kept for the whole drawing to
+			// follow and what was inherited is dropped as this element writes
+			// one of its own — `none` among them, which is how a shape turns
+			// off the marker its group asked for. The three are read the same
+			// way, and each drops only the one it writes: a shape that says
+			// `marker-start="none"` still carries the marker-mid the group
+			// above it asked for. See [Image.resolveMarkers].
+			ref, def := &s.markerStartRef, &s.markerStart
+			if name == "marker-mid" {
+				ref, def = &s.markerMidRef, &s.markerMid
+			} else if name == "marker-end" {
+				ref, def = &s.markerEndRef, &s.markerEnd
+			}
+			*ref, *def = "", nil
+			switch id, ok := paintRef(raw); {
+			case strings.EqualFold(strings.TrimSpace(raw), "none"):
+			case ok:
+				*ref = id
+			default:
+				warn("the %s %q is not a reference to a <marker> this package can follow, so no marker is drawn at the vertices it names", name, raw)
+			}
 		case "fill-opacity":
 			if v, ok := parseAlpha(raw); ok {
 				s.FillOpacity = v
@@ -181,12 +217,35 @@ func (s Style) with(e *element, warn func(string, ...any)) Style {
 			if v, err := strconv.ParseFloat(strings.TrimSpace(raw), 64); err == nil && v > 0 {
 				s.MiterLimit = v
 			}
+		case "vector-effect":
+			// Whether the stroke is taken through everything that scaled the
+			// shape — which is what SVG does by default — or drawn at the width
+			// it says, in the pixels the drawing comes out at whatever scaled
+			// it. Any other value is a vector effect this package does not do,
+			// and saying so beats quietly painting a stroke nobody asked for.
+			switch strings.ToLower(strings.TrimSpace(raw)) {
+			case "none":
+				s.NonScalingStroke = false
+			case "non-scaling-stroke":
+				s.NonScalingStroke = true
+			default:
+				s.NonScalingStroke = false
+				if strings.TrimSpace(raw) != "" {
+					warn("the vector-effect %q is not none or non-scaling-stroke, so the stroke is scaled the way SVG scales it", raw)
+				}
+			}
 		case "stroke-dasharray":
 			dash = raw
 		case "stroke-dashoffset":
 			// Read together with the pattern below, since it means nothing on its
 			// own and the order the two are found in is not one to depend on.
 			dashOffset = raw
+		case "pathlength":
+			// The length is of the path on this element alone, which is what
+			// taking it off the inherited style above is about. An attribute
+			// name is lowercased as it is read, so `pathLength` is found here
+			// spelled the way every other name in this switch is.
+			s.pathLength = readPathLength(raw, warn)
 		case "font-size":
 			s.FontSize = readFontSize(s.FontSize, raw, warn)
 		case "text-anchor":
