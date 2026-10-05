@@ -742,3 +742,20 @@ int antui_d_display_refresh(antui_d_window *w)
     });
     return refresh;
 }
+
+// The appearance macOS is drawing its own interface in. AppleInterfaceStyle is
+// "Dark" while dark mode is on and absent otherwise, so absence is light
+// rather than no answer: a Mac without dark mode is a light one, and a Mac
+// too old to have the setting is the same.
+int antui_d_system_dark(void)
+{
+    __block int dark = 0;
+    antui_d_on_main(^{
+        @autoreleasepool {
+            NSString *style = [[NSUserDefaults standardUserDefaults]
+                stringForKey:@"AppleInterfaceStyle"];
+            dark = [style isEqualToString:@"Dark"] ? 1 : 0;
+        }
+    });
+    return dark;
+}

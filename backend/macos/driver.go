@@ -231,6 +231,11 @@ func (d *Driver) SetSize(win backend.Face, width, height int) bool {
 // every frame, which is a decision for a machine that can measure it.
 func (d *Driver) ContentScale() float64 { return 1 }
 
+// SystemDark is the appearance macOS paints its own interface in, read from
+// the defaults the system keeps. macOS always has one to give — a Mac older
+// than dark mode is a light one — so the answer is always known.
+func (d *Driver) SystemDark() (bool, bool) { return C.antui_d_system_dark() == 1, true }
+
 // Clipboard is what the system clipboard holds: its text, and the files it
 // names.
 func (d *Driver) Clipboard() (text string, files []string) {

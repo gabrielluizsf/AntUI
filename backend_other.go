@@ -38,6 +38,10 @@ func (noWindows) setLimits(*Window, Limits)      {}
 func (noWindows) setSize(*Window, int, int) bool { return false }
 func (noWindows) contentScale() float64          { return 0 }
 
+// systemDark has no system to ask. The canvas answers "no answer" rather
+// than a scheme, and prefers-color-scheme keeps its rule.
+func (noWindows) systemDark() (bool, bool) { return false, false }
+
 func (noWindows) clipboard() (string, []string) { return "", nil }
 
 func (noWindows) setIcon([]*canvas.Canvas) bool { return false }

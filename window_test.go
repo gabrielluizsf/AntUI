@@ -26,6 +26,11 @@ type stubBackend struct {
 	refuseSize         bool
 	displayW, displayH int
 	scale              float64
+
+	// What the stub says the system's theme is, so a frame loop can be
+	// tested against a dark one without a display to take it from.
+	themeDark  bool
+	themeKnown bool
 }
 
 func (s *stubBackend) open(*Window, string, int, int) error { return nil }
@@ -67,6 +72,8 @@ func (s *stubBackend) setSize(_ *Window, width, height int) bool {
 }
 
 func (s *stubBackend) contentScale() float64 { return s.scale }
+
+func (s *stubBackend) systemDark() (bool, bool) { return s.themeDark, s.themeKnown }
 
 // newTestWindow builds a window backed by the stub, at a known size.
 func newTestWindow(t testing.TB, w, h int) (*Window, *stubBackend) {

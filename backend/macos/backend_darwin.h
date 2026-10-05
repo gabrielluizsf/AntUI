@@ -68,6 +68,11 @@ void antui_d_set_opacity(antui_d_window *w, int alpha);
 int  antui_d_display_size(antui_d_window *w, int *width, int *height);
 int  antui_d_display_refresh(antui_d_window *w);
 
+// Whether macOS is drawing its own interface in dark: 1 for dark, 0 for
+// light. macOS always has an appearance to give, so there is no third
+// answer — a Mac too old for dark mode is a light one.
+int antui_d_system_dark(void);
+
 // The size limits. Zero on any of the four means no bound on that side, and
 // an aspect of 0 keeps no ratio. `fixed` and `no_maximize` are the two
 // style-mask bits: whether the window can be resized at all, and whether the

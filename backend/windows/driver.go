@@ -90,6 +90,7 @@ const (
 	wmClose         = 0x0010
 	wmQuit          = 0x0012
 	wmEraseBkgnd    = 0x0014
+	wmSettingChange = 0x001A
 	wmGetMinMaxInfo = 0x0024
 	wmNCCreate      = 0x0081
 	wmKeyDown       = 0x0100
@@ -107,6 +108,7 @@ const (
 	wmMButtonUp     = 0x0208
 	wmMouseWheel    = 0x020A
 	wmMouseLeave    = 0x02A3
+	wmThemeChanged  = 0x031A
 )
 
 // Styles, flags and the handful of constants the calls above want.
@@ -294,6 +296,11 @@ type Driver struct {
 	fullscreen                    bool
 	windowedWidth, windowedHeight int // the size to come back out to
 	mouseX, mouseY                int // the last position the pointer reported
+
+	// The color scheme Windows paints its own apps in, read from the
+	// registry by SystemDark in theme.go and read again once Windows posts
+	// the setting change that says it moved.
+	themeDark, themeKnown, themeRead, themeStale bool
 }
 
 var (
@@ -351,6 +358,7 @@ func Open(win backend.Face, opts backend.Options) (*Driver, error) {
 		win:            win,
 		windowedWidth:  opts.Width,
 		windowedHeight: opts.Height,
+		themeStale:     true, // nothing has read the theme yet
 	}
 	d.instance, _, _ = procGetModuleHandleW.Call(0)
 
@@ -752,6 +760,13 @@ func wndProc(hwnd, message, wparam, lparam uintptr) uintptr {
 
 	case wmEraseBkgnd:
 		return 1 // the frame covers everything, so erasing only flickers
+
+	case wmSettingChange, wmThemeChanged:
+		// The user flipped a theme somewhere in Settings. The registry is
+		// not read here — the frame loop asks when it next draws — so this
+		// only says the answer it has is out of date.
+		d.touchTheme()
+		return 0
 
 	case wmPaint:
 		var ps paintStruct

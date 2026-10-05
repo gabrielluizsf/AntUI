@@ -45,6 +45,10 @@ type platform interface {
 	setSize(win *Window, width, height int) bool
 	// contentScale is pixels per point, or 0 when the system does not say.
 	contentScale() float64
+	// systemDark is the color scheme the system paints its own interface in,
+	// and whether the system said at all — a platform with no way to ask
+	// answers known=false rather than guessing. See window_system.go.
+	systemDark() (dark, known bool)
 	// clipboard is what the system clipboard holds: its text, and the files
 	// it names when it names any. Both empty when there is nothing there or
 	// the platform cannot be asked.
@@ -99,6 +103,12 @@ type Window struct {
 
 	limits Limits  // what the window may be resized to; see window_size.go
 	scale  float64 // pixels per point, 0 until the backend says
+
+	// dark is the color scheme the system paints its own interface in,
+	// darkKnown says whether the platform had an answer to give, and
+	// darkForced is a SetSystemDark override standing in for both. See
+	// window_system.go.
+	dark, darkKnown, darkForced bool
 
 	queue         []Event
 	droppedEvents int
@@ -273,6 +283,14 @@ func (win *Window) Begin() bool {
 
 	if win.native != nil {
 		win.native.pump(win)
+		// The system's color scheme is asked every frame rather than
+		// remembered at open: a theme change the platform told us about is
+		// what prefers-color-scheme reads on the frame that follows it. The
+		// display's scale is not asked again — on X11 that would be a round
+		// trip to the server per frame — and is read as window.go set it.
+		if !win.darkForced {
+			win.dark, win.darkKnown = win.native.systemDark()
+		}
 	}
 	win.recognize(Now())
 

@@ -53,6 +53,13 @@ func (n *x11Native) setSize(win *Window, width, height int) bool {
 	return n.d.SetSize(win, width, height)
 }
 func (n *x11Native) contentScale() float64 { return n.d.ContentScale() }
+
+// systemDark answers that the system did not say. X11 has no standard signal
+// for the theme a desktop is drawing in — every toolkit keeps its own — and
+// reading a toolkit's private setting would be a guess about one desktop
+// dressed up as the answer for all of them. A program that knows otherwise
+// stands in with [Window.SetSystemDark].
+func (n *x11Native) systemDark() (bool, bool) { return false, false }
 func (n *x11Native) clipboard() (text string, files []string) {
 	return n.d.Clipboard()
 }

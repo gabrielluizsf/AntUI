@@ -64,6 +64,10 @@ func (d *Driver) SetSize(win backend.Face, width, height int) bool { return fals
 // ContentScale is pixels per point, or 0 when the system does not say.
 func (d *Driver) ContentScale() float64 { return 0 }
 
+// SystemDark is the appearance the system paints in, and without cgo there is
+// no AppKit to ask — the answer is that there is no answer.
+func (d *Driver) SystemDark() (bool, bool) { return false, false }
+
 // Clipboard is what the system clipboard holds.
 func (d *Driver) Clipboard() (text string, files []string) { return "", nil }
 

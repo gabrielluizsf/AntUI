@@ -47,6 +47,9 @@ func (n *windowsNative) setSize(win *Window, width, height int) bool {
 	return n.d.SetSize(win, width, height)
 }
 func (n *windowsNative) contentScale() float64 { return n.d.ContentScale() }
+func (n *windowsNative) systemDark() (bool, bool) {
+	return n.d.SystemDark()
+}
 func (n *windowsNative) clipboard() (text string, files []string) {
 	return n.d.Clipboard()
 }

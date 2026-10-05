@@ -34,6 +34,10 @@ type androidWindow struct {
 	// refresh is the display's rate, asked once. Zero means not yet asked
 	// and a negative means asked and not answered.
 	refresh int
+	// dark is whether the device is in night mode. It comes from the same
+	// configuration the density does, so it is read once at open and again
+	// on every configuration change rather than asked per frame.
+	dark bool
 }
 
 func newBackend() platform { return &androidWindow{primary: -1} }
@@ -52,6 +56,7 @@ func (b *androidWindow) open(win *Window, title string, width, height int) error
 		return errNotAndroidApp
 	}
 	b.scale = scaleFromDensity(b.activity.Density())
+	b.dark = b.activity.Config().Night
 	// There is no other kind of input here, so a game does not have to wait
 	// for a finger to know it needs controls on the screen.
 	win.SetTouchFirst()
@@ -150,6 +155,7 @@ func (b *androidWindow) handle(win *Window, e app.Event) {
 
 	case app.ConfigChanged:
 		b.scale = scaleFromDensity(b.activity.Density())
+		b.dark = b.activity.Config().Night
 		b.safe(win)
 		win.PushSimple(EventExpose)
 
@@ -274,6 +280,10 @@ func (b *androidWindow) displayRefresh() int {
 // contentScale is the density over 160, which is the number Android itself
 // multiplies a size in device-independent pixels by.
 func (b *androidWindow) contentScale() float64 { return b.scale }
+
+// systemDark is the device's night mode, which Android carries in every
+// configuration it hands the app and so always has an answer to give.
+func (b *androidWindow) systemDark() (bool, bool) { return b.dark, true }
 
 func scaleFromDensity(dpi int) float64 {
 	if dpi <= 0 {
