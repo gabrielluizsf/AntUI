@@ -81,11 +81,14 @@ func (cs *cssStyle) vAlignShift(st css.Style, th, h, padT, padB int) int {
 
 // units is the measurement context for lengths inside a style.
 func (cs *cssStyle) units(st css.Style) css.Units {
+	vp := cs.viewport()
 	return css.Units{
-		Width:  cs.win.Width(),
-		Height: cs.win.Height(),
+		Width:  vp.Width,
+		Height: vp.Height,
 		Font:   st.FontSize,
 		Root:   css.DefaultFontSize,
+		Scale:  vp.Scale,
+		Scheme: vp.Scheme,
 	}
 }
 

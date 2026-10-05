@@ -62,15 +62,20 @@ func (cs *cssStyle) styleFor(role string, s State) css.Style {
 // baseStyle is the computed cascade style for a role and state, animations
 // not yet folded in.
 func (cs *cssStyle) baseStyle(role string, s State) css.Style {
-	return cs.classes.GetStyle(role, nil, css.StateWith(
+	return cs.classes.GetStyleViewport(role, nil, css.StateWith(
 		s.Hovered, s.Focused, s.Active || s.Pressed, s.On,
-	), cs.win.Width())
+	), cs.viewport())
 }
 
 // unitsCtx is the measurement context an animated style resolves lengths
 // and viewport units in: the window and the widget's own font size.
 func (cs *cssStyle) unitsCtx(st css.Style) css.Units {
-	u := css.Units{Width: cs.win.Width(), Height: cs.win.Height(), Font: css.DefaultFontSize, Root: css.DefaultFontSize}
+	vp := cs.viewport()
+	u := css.Units{
+		Width: vp.Width, Height: vp.Height,
+		Font: css.DefaultFontSize, Root: css.DefaultFontSize,
+		Scale: vp.Scale, Scheme: vp.Scheme,
+	}
 	if st.FontSize > 0 {
 		u.Font = st.FontSize
 	}
@@ -126,13 +131,16 @@ func (cs *cssStyle) fade(st css.Style, c canvas.Color) canvas.Color {
 // length measures a Length at the drawing scale against the window. A
 // percentage is of the base (usually the window width), a fixed or physical
 // length is its reference pixels times the scale, and the viewport/font units
-// resolve against the real window and the widget's own font size.
+// resolve against this frame's window and the widget's own font size.
 func (cs *cssStyle) length(st css.Style, l css.Length, base int) int {
+	vp := cs.viewport()
 	ctx := css.Units{
-		Width:  cs.win.Width(),
-		Height: cs.win.Height(),
+		Width:  vp.Width,
+		Height: vp.Height,
 		Font:   st.FontSize,
 		Root:   css.DefaultFontSize,
+		Scale:  vp.Scale,
+		Scheme: vp.Scheme,
 	}
 	if l.IsPct() {
 		return l.Resolve(css.Units{Width: base})
@@ -448,7 +456,7 @@ func (cs *cssStyle) base(st css.Style, l css.Length) int {
 // ---------------------------------------------------------------------------
 
 func (cs *cssStyle) Background(win *antui.Window) canvas.Color {
-	st := cs.classes.GetStyle(css.RoleBody, nil, css.StateNone, win.Width())
+	st := cs.classes.GetStyleViewport(css.RoleBody, nil, css.StateNone, cs.viewport())
 	if st.Has("background-color") || st.Has("background") {
 		return canvas.Fade(st.Background, cs.alpha(st))
 	}
