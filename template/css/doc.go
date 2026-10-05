@@ -40,6 +40,26 @@
 //	@media (orientation: landscape) { nav { flex-direction: row; } }
 //	@media (prefers-color-scheme: dark) { body { background-color: #101014; } }
 //
+// # Feature tests
+//
+// An @supports rule gates its body on what the engine itself can do. The
+// condition is read against the same cascade the stylesheet runs on, so a test
+// passes only for a property the engine has holding a value it reads, or a
+// selector it can evaluate — and selector() asks the very reader that runs
+// every rule in the sheet. and, or, not and the groups around them read as
+// they read in CSS. A test that fails leaves its block out of the sheet, which
+// is what the test is for; a condition nothing can make sense of is reported
+// before the block goes, so a half-written condition is heard rather than
+// silently obeyed. The answer rests on the engine alone — it is read while the
+// sheet parses, not measured against the window — so the same stylesheet takes
+// the same branches in every frame. font-format() and font-tech() answer
+// false, since no font file is ever read: the engine draws with the faces it
+// was given.
+//
+//	@supports (display: grid) { .card { display: grid; } }
+//	@supports not (display: subgrid) { .card { display: grid; } }
+//	@supports selector(button:hover) and (color: #fff) { button { color: #fff; } }
+//
 // # Values
 //
 // Lengths are px (scaled with the window, like everything else a template

@@ -174,10 +174,10 @@ func (p *parser) parseRule(sh *Sheet, m Media) error {
 }
 
 // parseAtRule handles every at-rule: @media is evaluated against the window
-// the frame is drawn at, the rule-group at-rules (@supports, @layer,
-// @container) ignore their condition and apply the rules inside, and every
-// other at-rule is consumed wholesale and dropped with a warning. Whatever a
-// stylesheet throws, the parser walks on.
+// the frame is drawn at, @supports against the engine itself, and the
+// rule-group at-rules that have nothing to test (@layer, @container) apply
+// their body as written. Every other at-rule is consumed wholesale and dropped
+// with a warning. Whatever a stylesheet throws, the parser walks on.
 func (p *parser) parseAtRule(sh *Sheet, outer Media) error {
 	// Read the word after '@'.
 	start := p.i + 1
@@ -204,10 +204,38 @@ func (p *parser) parseAtRule(sh *Sheet, outer Media) error {
 		m := outer.and(inner)
 		return p.parseRuleGroup(sh, m)
 
-	case "supports", "layer", "container":
-		// The condition decides which browsers and windows a rule fits; a
-		// canvas does not support feature-testing, so the rules inside apply
-		// as if the condition held. A statement form (@layer a, b;) drops it.
+	case "supports":
+		// The condition tests the engine: the properties it has, the values
+		// it reads, the selectors it can evaluate. A block whose test fails is
+		// not part of the sheet — that is the test doing its job — and one
+		// whose condition cannot be read is reported and dropped the same way.
+		prelude, semi, err := p.readHeader(true)
+		if err != nil {
+			return err
+		}
+		if semi {
+			// A @supports with no block gates nothing, and there is nothing
+			// inside it to keep.
+			if p.peek() == ';' {
+				p.next()
+			}
+			return nil
+		}
+		ok, warns := supportsCondition(prelude)
+		sh.Warn = append(sh.Warn, warns...)
+		if !ok {
+			return p.skipBlock()
+		}
+		if p.peek() == '{' {
+			p.next()
+		}
+		return p.parseRuleGroup(sh, outer)
+
+	case "layer", "container":
+		// A cascade layer and a containment context are names for where a rule
+		// sits in a sheet a browser folds; a canvas has neither to fold, so
+		// the rules inside apply as if the name were the only one. A statement
+		// form (@layer a, b;) drops it.
 		_, semi, err := p.readHeader(true)
 		if err != nil {
 			return err
