@@ -99,8 +99,8 @@ func TestDisplayNone(t *testing.T) {
 }
 
 func TestWarnings(t *testing.T) {
-	c := load(t, "button { background-color: #333333; }\n@media (orientation: portrait) { button { color: red; } }")
+	c := load(t, "button { background-color: #333333; }\n@media (prefers-reduced-motion: reduce) { button { color: red; } }")
 	if len(c.Warnings()) == 0 {
-		t.Error("expected a warning for the unsupported media condition")
+		t.Error("expected a warning for the media condition this canvas has no sensor for")
 	}
 }

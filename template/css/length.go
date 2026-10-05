@@ -54,6 +54,13 @@ type Units struct {
 	Width, Height int // the window, for viewport units and %-of-width
 	Font          int // the element's font size, for em/ch/ex
 	Root          int // the document font size, for rem
+
+	// Scale and Scheme are the window's display density and the colour
+	// scheme its system paints in — what the resolution and
+	// prefers-color-scheme media features read. Zero and SchemeUnknown are
+	// "the system did not say".
+	Scale  float64
+	Scheme Scheme
 }
 
 // base is the fallback font when a context has not said anything.

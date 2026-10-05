@@ -104,38 +104,120 @@ func (s Selector) specificity() (a, b, c int) {
 	return a, b, c
 }
 
-// Media is a window-width window a rule lives inside. A stylesheet may list
-// several media queries — comma- and or-separated — and the rule applies while
-// any of them holds. Only the width features (min-width/max-width) are
-// evaluated; every other condition (orientation, resolution, a media type such
-// as print) is parsed, warned about, and treated as satisfied so the rule is
-// never dropped on a canvas. Negation flips a query's width window.
+// Media is the window a rule lives inside. A stylesheet may list several
+// media queries — comma- and or-separated — and the rule applies while any of
+// them holds. Every condition the canvas can answer is evaluated against the
+// viewport of the frame being drawn: the four min/max edges, orientation off
+// the window's two sides, resolution off the display's scale and
+// prefers-color-scheme off the color scheme the system paints in. A condition
+// with no sensor behind it (a media type such as print) is parsed, warned
+// about, and treated as satisfied so the rule is never dropped on a canvas —
+// and so is one whose answer the system withheld. Negation flips a query's
+// window.
 type Media struct {
 	Queries []MediaQuery
 }
 
-// MediaQuery is one alternative of an @media list: a width window, optional
-// negation. A query with no window matches any width; that is also how
-// conditions the engine cannot evaluate fall out.
+// MediaQuery is one alternative of an @media list: a window over the
+// viewport, with an optional negation. A query with no window matches any
+// viewport; that is also how conditions the engine cannot evaluate fall out.
 type MediaQuery struct {
-	MinWidth int
-	MaxWidth int
-	HasMin   bool
-	HasMax   bool
-	Negated  bool
+	MinWidth     int
+	MaxWidth     int
+	MinHeight    int
+	MaxHeight    int
+	HasMin       bool
+	HasMax       bool
+	HasMinHeight bool
+	HasMaxHeight bool
+
+	// Resolution is the window's device density in dots per inch, read
+	// from the display's scale. An exact resolution writes both bounds.
+	MinDpi    float64
+	MaxDpi    float64
+	HasMinDpi bool
+	HasMaxDpi bool
+
+	// Orientation is the window's shape: Portrait at least as tall as it
+	// is wide, landscape the other way round.
+	HasOrientation bool
+	Portrait       bool
+
+	// Scheme is prefers-color-scheme, which a system that did not say
+	// leaves out of the answer entirely.
+	HasScheme bool
+	Dark      bool
+
+	Negated bool
+
+	// never marks two nested queries that contradicted each other — a
+	// portrait window inside a landscape one, a light scheme inside a dark
+	// one — and no viewport is on both sides of that.
+	never bool
 }
 
-// matches tests one alternative against the window width.
-func (q MediaQuery) matches(width int) bool {
-	if !q.HasMin && !q.HasMax {
+// constrained reports whether the query measures the viewport at all. One
+// that does not — a media type on its own, or a condition the canvas has no
+// sensor for — matches every window, which is what keeps a rule from being
+// dropped for want of a measurement.
+func (q MediaQuery) constrained() bool {
+	return q.HasMin || q.HasMax || q.HasMinHeight || q.HasMaxHeight ||
+		q.HasMinDpi || q.HasMaxDpi ||
+		q.HasOrientation || q.HasScheme
+}
+
+// matches tests one alternative against the viewport: everything it declares
+// must hold, and a negated query flips that answer as a whole. A query that
+// contradicted its own nesting matches nothing at all, and one whose sensors
+// all withheld their answer matches everything — a condition the canvas
+// cannot judge is neither true nor false for it, so the rule stands.
+func (q MediaQuery) matches(vp Viewport) bool {
+	if q.never {
+		return false
+	}
+	if !q.constrained() {
 		return true
 	}
 	in := true
-	if q.HasMin && width < q.MinWidth {
+	answered := false
+	if q.HasMin && vp.Width < q.MinWidth {
 		in = false
 	}
-	if q.HasMax && width > q.MaxWidth {
+	if q.HasMax && vp.Width > q.MaxWidth {
 		in = false
+	}
+	if q.HasMinHeight && vp.Height < q.MinHeight {
+		in = false
+	}
+	if q.HasMaxHeight && vp.Height > q.MaxHeight {
+		in = false
+	}
+	if q.HasMin || q.HasMax || q.HasMinHeight || q.HasMaxHeight {
+		answered = true
+	}
+	if q.HasOrientation {
+		answered = true
+		if q.Portrait != (vp.Height >= vp.Width) {
+			in = false
+		}
+	}
+	if dpi, ok := vp.resolutionDpi(); ok && (q.HasMinDpi || q.HasMaxDpi) {
+		answered = true
+		if q.HasMinDpi && dpi < q.MinDpi {
+			in = false
+		}
+		if q.HasMaxDpi && dpi > q.MaxDpi {
+			in = false
+		}
+	}
+	if q.HasScheme && vp.Scheme != SchemeUnknown {
+		answered = true
+		if q.Dark != (vp.Scheme == SchemeDark) {
+			in = false
+		}
+	}
+	if !answered {
+		return true
 	}
 	if q.Negated {
 		return !in
@@ -143,14 +225,14 @@ func (q MediaQuery) matches(width int) bool {
 	return in
 }
 
-// matches reports whether any query alternative holds at this width. An empty
-// query list (a rule with no @media at all) always matches.
-func (m Media) matches(width int) bool {
+// matches reports whether any query alternative holds at this viewport. An
+// empty query list (a rule with no @media at all) always matches.
+func (m Media) matches(vp Viewport) bool {
 	if len(m.Queries) == 0 {
 		return true
 	}
 	for _, q := range m.Queries {
-		if q.matches(width) {
+		if q.matches(vp) {
 			return true
 		}
 	}
@@ -158,8 +240,8 @@ func (m Media) matches(width int) bool {
 }
 
 // and conjoins two media lists the way nested @media requires: every pair of
-// query alternatives intersects its width windows. Either side without queries
-// passes the other through unchanged.
+// query alternatives intersects its windows over the viewport. Either side
+// without queries passes the other through unchanged.
 func (m Media) and(n Media) Media {
 	if len(m.Queries) == 0 {
 		return n
@@ -176,10 +258,11 @@ func (m Media) and(n Media) Media {
 	return out
 }
 
-// intersectQuery narrows two width windows to their overlap. Negation is left
-// on the outer window's side only when it is safe to guess, which in practice
-// means: keep whichever side actually constrains the width, and a pair where
-// the negations disagree degrades to "always matches" (reported, not fatal).
+// intersectQuery narrows two windows over the viewport to their overlap, edge
+// by edge. Negation is left on the outer window's side only when it is safe to
+// guess, which in practice means: keep whichever side actually constrains the
+// viewport, and a pair where the negations disagree degrades to "always
+// matches" (reported, not fatal).
 func intersectQuery(a, b MediaQuery) MediaQuery {
 	if a.Negated != b.Negated {
 		// A negated window AND a normal one is rare; fall back to the normal
@@ -190,19 +273,61 @@ func intersectQuery(a, b MediaQuery) MediaQuery {
 		return b
 	}
 	q := MediaQuery{Negated: a.Negated}
-	if a.HasMin {
-		q.MinWidth, q.HasMin = a.MinWidth, true
+	q.MinWidth, q.HasMin = intersectBound(a.HasMin, a.MinWidth, b.HasMin, b.MinWidth, true)
+	q.MaxWidth, q.HasMax = intersectBound(a.HasMax, a.MaxWidth, b.HasMax, b.MaxWidth, false)
+	q.MinHeight, q.HasMinHeight = intersectBound(a.HasMinHeight, a.MinHeight, b.HasMinHeight, b.MinHeight, true)
+	q.MaxHeight, q.HasMaxHeight = intersectBound(a.HasMaxHeight, a.MaxHeight, b.HasMaxHeight, b.MaxHeight, false)
+	q.MinDpi, q.HasMinDpi = intersectBound(a.HasMinDpi, a.MinDpi, b.HasMinDpi, b.MinDpi, true)
+	q.MaxDpi, q.HasMaxDpi = intersectBound(a.HasMaxDpi, a.MaxDpi, b.HasMaxDpi, b.MaxDpi, false)
+	// Orientation and the color scheme are the two features that are not
+	// ranges. Where the nested queries agree, the answer carries over; where
+	// they disagree there is no window on both sides of it, and the rule
+	// belongs to nothing.
+	q.HasOrientation = a.HasOrientation || b.HasOrientation
+	if a.HasOrientation {
+		q.Portrait = a.Portrait
 	}
-	if b.HasMin && (!q.HasMin || b.MinWidth > q.MinWidth) {
-		q.MinWidth, q.HasMin = b.MinWidth, true
+	if b.HasOrientation && a.HasOrientation && a.Portrait != b.Portrait {
+		q.never = true
 	}
-	if a.HasMax {
-		q.MaxWidth, q.HasMax = a.MaxWidth, true
+	if b.HasOrientation && !a.HasOrientation {
+		q.Portrait = b.Portrait
 	}
-	if b.HasMax && (!q.HasMax || b.MaxWidth < q.MaxWidth) {
-		q.MaxWidth, q.HasMax = b.MaxWidth, true
+	q.HasScheme = a.HasScheme || b.HasScheme
+	if a.HasScheme {
+		q.Dark = a.Dark
+	}
+	if b.HasScheme && a.HasScheme && a.Dark != b.Dark {
+		q.never = true
+	}
+	if b.HasScheme && !a.HasScheme {
+		q.Dark = b.Dark
 	}
 	return q
+}
+
+// intersectBound narrows one edge of two windows to their overlap: a minimum
+// (rise) climbs to the higher of the two bounds, a maximum falls to the lower,
+// and a side that declares no bound there passes the other side's through.
+// It reads ranges of any ordered kind — the pixel edges are integers, the
+// resolution bounds are dots per inch.
+func intersectBound[T int | float64](hasA bool, a T, hasB bool, b T, rise bool) (T, bool) {
+	switch {
+	case hasA && hasB:
+		if rise && b > a {
+			return b, true
+		}
+		if !rise && b < a {
+			return b, true
+		}
+		return a, true
+	case hasA:
+		return a, true
+	case hasB:
+		return b, true
+	}
+	var zero T
+	return zero, false
 }
 
 // Declaration is a single property/value pair.
@@ -264,14 +389,15 @@ func (sh *Sheet) Rules() []*Rule { return sh.rules }
 // rest, the way the cascade would compute it: the last matching declaration
 // in stylesheet order, with any !important declaration overriding a normal one.
 // It is how a template answers "what does my button's background say" without
-// computing the whole style.
+// computing the whole style. Media queries are read against a window as tall
+// as baseWidth is wide; [Sheet.StyleViewport] reads them against a real one.
 func (sh *Sheet) Property(tag string, classes []string, prop string, baseWidth int) (string, bool) {
 	prop = strings.ToLower(strings.TrimSpace(prop))
 	var normalRaw string
 	var impRaw string
 	var hasNormal, hasImp bool
 	for _, r := range sh.rules {
-		if !r.Media.matches(baseWidth) {
+		if !r.Media.matches(Viewport{Width: baseWidth, Height: baseWidth}) {
 			continue
 		}
 		match := false
@@ -320,17 +446,20 @@ func (sh *Sheet) SetProperty(tag string, classes []string, prop, raw string) {
 // would. Custom properties (the --foo kind) are resolved first, then normal
 // declarations — and every !important declaration applies last, overwriting
 // anything from the same cascade scope. baseWidth is the window width, which
-// media queries test against and percentage/viewport lengths scale with. The
-// method appends warnings about vendor-prefixed properties, unknown properties
-// and unrecognised media conditions to the sheet's warning list.
+// media queries test against and percentage/viewport lengths scale with; the
+// window it draws is taken to be as tall as it is wide. [Sheet.StyleViewport]
+// hands the cascade a real window instead. The method appends warnings about
+// vendor-prefixed properties, unknown properties and unrecognised media
+// conditions to the sheet's warning list.
 func (sh *Sheet) Style(tag string, classes []string, state State, baseWidth int) Style {
-	return sh.StyleUnits(tag, classes, state, Units{Width: baseWidth, Height: baseWidth})
+	return sh.StyleViewport(tag, classes, state, Viewport{Width: baseWidth, Height: baseWidth})
 }
 
-// StyleUnits is [Sheet.Style] with the full measurement context: the window
-// size for vw/vh/vmin/vmax and percentages, and the font sizes for em/rem.
-// The context's Font is also the cascade hook — a font-size declaration living
-// inside the rules updates Font before later em lengths resolve.
+// StyleUnits is [Sheet.StyleViewport] with the rest of the measurement
+// context: the font sizes for em/rem, and the window the viewport units and
+// percentages resolve against. The context's Font is also the cascade hook —
+// a font-size declaration living inside the rules updates Font before later
+// em lengths resolve.
 func (sh *Sheet) StyleUnits(tag string, classes []string, state State, ctx Units) Style {
 	return sh.styleUnits(tag, classes, state, ctx, true)
 }
@@ -346,7 +475,9 @@ func (sh *Sheet) styleUnits(tag string, classes []string, state State, ctx Units
 	}
 	var got []candidate
 	for _, r := range sh.rules {
-		if !r.Media.matches(ctx.Width) {
+		if !r.Media.matches(Viewport{
+			Width: ctx.Width, Height: ctx.Height, Scale: ctx.Scale, Scheme: ctx.Scheme,
+		}) {
 			continue
 		}
 		for _, sel := range r.Selectors {

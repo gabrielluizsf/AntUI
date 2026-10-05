@@ -174,10 +174,10 @@ func (p *parser) parseRule(sh *Sheet, m Media) error {
 }
 
 // parseAtRule handles every at-rule: @media is evaluated against the window
-// width, the rule-group at-rules (@supports, @layer, @container) ignore their
-// condition and apply the rules inside, and every other at-rule is consumed
-// wholesale and dropped with a warning. Whatever a stylesheet throws, the
-// parser walks on.
+// the frame is drawn at, the rule-group at-rules (@supports, @layer,
+// @container) ignore their condition and apply the rules inside, and every
+// other at-rule is consumed wholesale and dropped with a warning. Whatever a
+// stylesheet throws, the parser walks on.
 func (p *parser) parseAtRule(sh *Sheet, outer Media) error {
 	// Read the word after '@'.
 	start := p.i + 1
@@ -618,9 +618,11 @@ func scanParen(s string, i int) int {
 }
 
 // parseMedia reads an @media prelude into a Media. The full grammar is
-// walked — not/only, and/or, comma-separated query lists — while only the
-// width features constrain the rule; everything else warns and is treated as
-// satisfied, so a canvas never drops a rule it merely cannot measure.
+// walked — not/only, and/or, comma-separated query lists — while the
+// features the viewport answers constrain the rule (its two edges, the
+// window's shape, the display's density and the system's color scheme);
+// everything else warns and is treated as satisfied, so a canvas never drops
+// a rule it merely cannot measure.
 func parseMedia(prelude string) (Media, []string) {
 	var m Media
 	var warns []string
@@ -640,7 +642,7 @@ func parseMediaQuery(branch string) ([]MediaQuery, []string) {
 	negated := false
 	cur := MediaQuery{}
 	flush := func() {
-		if !cur.HasMin && !cur.HasMax {
+		if !cur.constrained() {
 			// A negation of nothing we can evaluate is left unconstrained so
 			// the rule still applies.
 			cur.Negated = false
@@ -674,18 +676,55 @@ func parseMediaQuery(branch string) ([]MediaQuery, []string) {
 				key := strings.TrimSpace(kv[0])
 				val := strings.TrimSpace(kv[1])
 				n, ok := mediaPx(val)
+				// measure writes one edge of the window, or says the number
+				// was not a number and leaves the edge unset.
+				measure := func(dst *int, has *bool, edge string) {
+					if ok {
+						*dst, *has = n, true
+						return
+					}
+					warns = append(warns, fmtErrf("ignoring media %s %q", edge, val).Error())
+				}
 				switch key {
 				case "min-width":
-					if ok {
-						cur.MinWidth, cur.HasMin = n, true
-					} else {
-						warns = append(warns, fmtErrf("ignoring media width %q", val).Error())
-					}
+					measure(&cur.MinWidth, &cur.HasMin, "width")
 				case "max-width":
-					if ok {
-						cur.MaxWidth, cur.HasMax = n, true
-					} else {
-						warns = append(warns, fmtErrf("ignoring media width %q", val).Error())
+					measure(&cur.MaxWidth, &cur.HasMax, "width")
+				case "min-height":
+					measure(&cur.MinHeight, &cur.HasMinHeight, "height")
+				case "max-height":
+					measure(&cur.MaxHeight, &cur.HasMaxHeight, "height")
+				case "orientation":
+					switch val {
+					case "portrait":
+						cur.HasOrientation, cur.Portrait = true, true
+					case "landscape":
+						cur.HasOrientation, cur.Portrait = true, false
+					default:
+						warns = append(warns, fmtErrf("ignoring media orientation %q", val).Error())
+					}
+				case "resolution", "min-resolution", "max-resolution":
+					dpi, ok := mediaDpi(val)
+					if !ok {
+						warns = append(warns, fmtErrf("ignoring media resolution %q", val).Error())
+						continue
+					}
+					switch key {
+					case "resolution":
+						cur.MinDpi, cur.MaxDpi, cur.HasMinDpi, cur.HasMaxDpi = dpi, dpi, true, true
+					case "min-resolution":
+						cur.MinDpi, cur.HasMinDpi = dpi, true
+					case "max-resolution":
+						cur.MaxDpi, cur.HasMaxDpi = dpi, true
+					}
+				case "prefers-color-scheme":
+					switch val {
+					case "light":
+						cur.HasScheme, cur.Dark = true, false
+					case "dark":
+						cur.HasScheme, cur.Dark = true, true
+					default:
+						warns = append(warns, fmtErrf("ignoring media color-scheme %q", val).Error())
 					}
 				default:
 					warns = append(warns, fmtErrf("ignoring media condition %q", t).Error())
@@ -742,6 +781,32 @@ func mediaPx(s string) (int, bool) {
 		return 0, false
 	}
 	return int(f + 0.5), true
+}
+
+// mediaDpi reads a resolution — 96dpi, 40dpcm, 2dppx — and answers it in dots
+// per inch, the unit every query is compared in. A bare number, a value with
+// no digits in it, or a unit the spec does not give a resolution returns
+// ok=false and the caller warns.
+func mediaDpi(s string) (float64, bool) {
+	t := strings.TrimSpace(strings.ToLower(s))
+	i := 0
+	for i < len(t) && (t[i] == '.' || (t[i] >= '0' && t[i] <= '9')) {
+		i++
+	}
+	v, err := strconv.ParseFloat(t[:i], 64)
+	if err != nil {
+		return 0, false
+	}
+	switch strings.TrimSpace(t[i:]) {
+	case "dpi":
+	case "dpcm":
+		v *= 2.54
+	case "dppx":
+		v *= 96
+	default:
+		return 0, false
+	}
+	return roundDpi(v), true
 }
 
 // stripComments removes every /* … */ comment from a string. A comment in a

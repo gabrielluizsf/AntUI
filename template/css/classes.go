@@ -41,9 +41,10 @@ var AllRoles = []string{
 }
 
 // CSSClasses is the class table a template draws from: one profile of CSS
-// classes per widget kind. The template reads [CSSClasses.GetStyle] to paint
-// and to lay out, and the table caches the computed styles so a screen that
-// draws its widgets every frame computes each style once.
+// classes per widget kind. The template reads [CSSClasses.GetStyleViewport]
+// to paint and to lay out, and the table caches the computed styles — keyed
+// by the window they were read against — so a screen that draws its widgets
+// every frame computes each style once.
 //
 //	classes := NewTable()
 //	classes.Button = "primary"
@@ -61,12 +62,17 @@ type CSSClasses struct {
 
 	sheet *Sheet
 	specs map[styleKey]Style // computed styles, cleared on SetStyle/SetProperty
+	vp    Viewport           // the window those styles were computed for
 }
 
+// styleKey is what decides an answer: the widget, the state it is in and the
+// viewport the cascade read. Media queries test the viewport, so two windows
+// of the same width but different heights are two different keys.
 type styleKey struct {
-	tag   string
-	state State
-	width int
+	tag    string
+	state  State
+	width  int
+	height int
 }
 
 // NewTable makes an empty class table, with no stylesheet behind it. Load the
@@ -147,8 +153,9 @@ func (c *CSSClasses) Apply(rule string) error {
 
 // Property reads the winning raw value of one property for a tag and class
 // list, computed the way the cascade would compute it. It answers what the
-// stylesheet says, outside of the folded [Style] the drawing uses; width is
-// the window's, which media queries test against.
+// stylesheet says, outside of the folded [Style] the drawing uses, reading
+// media queries against a window as tall as width is wide — the drawing goes
+// through [CSSClasses.GetStyleViewport], which measures a real one.
 func (c *CSSClasses) Property(tag string, classes []string, prop string, width int) (string, bool) {
 	if c.sheet == nil {
 		return "", false
@@ -167,36 +174,13 @@ func (c *CSSClasses) SetProperty(tag string, classes []string, prop, raw string)
 	c.specs = make(map[styleKey]Style)
 }
 
-// GetStyle computes the winning style for one widget: body for the window
-// itself, or one of the Role tags. Classes are the widget's own, combined
-// with the class table's entries for its kind. media queries test against
-// width, and state carries the pseudo-classes the widget is in. The result is
-// cached, so a template that paints every widget each frame computes each
-// style once.
+// GetStyle computes the winning style for one widget in a window that is as
+// tall as it is wide — [CSSClasses.GetStyleViewport] is the form that takes a
+// real window, which is what a template drawing a frame uses. The result is
+// cached, so a caller that paints every widget each frame computes each style
+// once.
 func (c *CSSClasses) GetStyle(tag string, classes []string, state State, width int) Style {
-	if c.sheet == nil {
-		return Style{}
-	}
-	// The cache is keyed by what decides the answer: the widget kind, its
-	// state, and the width its lengths resolve against. A caller that adds
-	// classes of its own is asking for one widget to differ from the table's,
-	// and is looked up rather than cached — a map cannot key a list without
-	// building a string for it every frame, which is the very thing the cache
-	// is here to avoid. The template, which is the caller that matters, asks
-	// for the table's own classes and hits the cache every time.
-	if len(classes) == 0 {
-		key := styleKey{tag: tag, state: state, width: width}
-		if st, ok := c.specs[key]; ok {
-			return st
-		}
-		st := c.sheet.Style(tag, c.classesOf(tag), state, width)
-		if c.specs != nil {
-			c.specs[key] = st
-		}
-		return st
-	}
-	all := append(append([]string(nil), c.classesOf(tag)...), classes...)
-	return c.sheet.Style(tag, all, state, width)
+	return c.GetStyleViewport(tag, classes, state, Viewport{Width: width, Height: width})
 }
 
 // classesOf is the class table's entry for a widget kind.

@@ -444,10 +444,10 @@ func TestMediaGrammar(t *testing.T) {
 	if _, ok := widthAt(500, "e"); ok {
 		t.Error("or list should reject 500")
 	}
-	// A condition the engine cannot measure is treated as satisfied, so the
-	// rule is never dropped for lack of a sensor.
-	if _, ok := widthAt(600, "f"); !ok {
-		t.Error("unknown condition should not drop the rule")
+	// Orientation is read off the two edges: the width-only call answers a
+	// window as tall as it is wide, which is a portrait one.
+	if v, ok := widthAt(600, "f"); !ok || v != 60 {
+		t.Errorf("portrait on a window as tall as it is wide: %d, %v; want 60, true", v, ok)
 	}
 }
 

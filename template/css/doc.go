@@ -22,11 +22,23 @@
 //
 // # Media queries
 //
-// An @media rule with min-width or max-width (or both) applies only while the
-// window's width is in that range, which is how a template stays responsive as
-// the window resizes. Everything else in the rule follows the normal cascade.
+// An @media rule with min-width, max-width, min-height or max-height (or any
+// combination of them) applies only while the window the frame draws at sits
+// in that range, which is how a template stays responsive as the window
+// resizes: the window is read at every lookup rather than remembered when a
+// style is first asked for, so a resize lands on the whole next frame. Three
+// more features are read the same way — orientation off the window's two
+// edges, resolution off the display's scale in dpi, dpcm or dppx, and
+// prefers-color-scheme off the color scheme the system paints in. A condition
+// the canvas has no sensor for — a media type, a feature this engine does not
+// implement — is reported and treated as satisfied, and so is one whose
+// answer the system withheld: a rule is never dropped for want of a
+// measurement. Everything else in the rule follows the normal cascade.
 //
 //	@media (min-width: 720px) { button { font-size: 20px; } }
+//	@media (max-height: 480px) { body { font-size: 14px; } }
+//	@media (orientation: landscape) { nav { flex-direction: row; } }
+//	@media (prefers-color-scheme: dark) { body { background-color: #101014; } }
 //
 // # Values
 //
