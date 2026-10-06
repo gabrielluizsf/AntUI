@@ -99,8 +99,7 @@ func (c *CSSClasses) SetStyle(cssFile string) error {
 }
 
 // ParseFile reads a CSS file, exactly as [Parse] reads its text, and gives
-// the file's directory to a relative url in it so it is read from beside the
-// file that names it.
+// the file's directory to the @imports in it so they are read from beside it.
 func ParseFile(cssFile string) (*Sheet, error) {
 	data, err := os.ReadFile(cssFile)
 	if err != nil {

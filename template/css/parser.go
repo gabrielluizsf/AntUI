@@ -2,6 +2,7 @@ package css
 
 import (
 	"fmt"
+	"os"
 	"strconv"
 	"strings"
 )
@@ -17,10 +18,25 @@ type parser struct {
 	i   int
 
 	// path is the file this text came from, cleaned, and empty when it came
-	// from no file at all — which is also what leaves a relative url with
-	// nowhere to resolve to.
+	// from no file at all — which is also what leaves a relative @import
+	// with nowhere to resolve to.
 	path string
+
+	// seen is every file this parse has read or is reading. An @import of
+	// one of them would read it a second time, and two files importing each
+	// other would never end, so the whole tree of files shares one list.
+	seen map[string]bool
+
+	// depth is how many @imports deep this text was read — the sheet's own
+	// file is 0. It bounds a chain in which every file is a different one
+	// and the seen list alone would let it run on.
+	depth int
 }
+
+// maxImportDepth is how many @imports may nest: one sheet reading another,
+// that reading another, and so on. A chain longer than this is reported and
+// left unread rather than followed to wherever it goes.
+const maxImportDepth = 16
 
 func (p *parser) eof() bool { return p.i >= len(p.src) }
 
@@ -220,9 +236,10 @@ func (p *parser) parseAll(sh *Sheet, m Media) error {
 // parseAtRule handles every at-rule: @media is evaluated against the window
 // the frame is drawn at, @supports against the engine itself, the
 // rule-group at-rules that have nothing to test (@layer, @container) apply
-// their body as written, and @font-face names a font file to draw the family
-// it declares with. Every other at-rule is consumed wholesale and dropped
-// with a warning. Whatever a stylesheet throws, the parser walks on.
+// their body as written, @import reads another stylesheet in at the place the
+// statement stands, and @font-face names a font file to draw the family it
+// declares with. Every other at-rule is consumed wholesale and dropped with a
+// warning. Whatever a stylesheet throws, the parser walks on.
 func (p *parser) parseAtRule(sh *Sheet, outer Media) error {
 	// Read the word after '@'.
 	start := p.i + 1
@@ -306,17 +323,153 @@ func (p *parser) parseAtRule(sh *Sheet, outer Media) error {
 		}
 		return p.parseKeyframes(sh, strings.TrimSpace(prelude))
 
+	case "import":
+		return p.parseImport(sh, outer)
+
 	case "font-face":
 		return p.parseFontFace(sh)
 
 	default:
-		// Statement and declaration at-rules — @charset, @import, @namespace,
+		// Statement and declaration at-rules — @charset, @namespace,
 		// @font-face, @page, @property, vendor and future ones — name things
 		// no box can paint: fonts, faces, fallbacks, namespaces. Their
 		// prelude and body are consumed, and the rule is reported.
 		sh.Warn = append(sh.Warn, fmtErrf("ignoring @%s", word).Error())
 		return p.skipAtRuleBody()
 	}
+}
+
+// parseImport reads another stylesheet in where the @import stands, so its
+// rules land in this sheet at that point, carrying the media the statement is
+// inside and the media query the statement itself names. Every reason the file
+// cannot be read is a warning rather than an error: a stylesheet that imports
+// something this canvas cannot open still styles everything else in it.
+func (p *parser) parseImport(sh *Sheet, outer Media) error {
+	prelude, semi, err := p.readHeader(true)
+	if err != nil {
+		// The statement never ended, and it is the last thing left to read:
+		// either the file was cut off before its ';', or what follows is
+		// inside a string that never closes. Both end the sheet there.
+		sh.Warn = append(sh.Warn, fmtErrf("ignoring an unfinished @import").Error())
+		p.i = len(p.src)
+		return nil
+	}
+	if !semi {
+		// An @import has no block, but the one written all the same is
+		// swallowed so the rest of the sheet still is.
+		if p.peek() == '{' {
+			p.next()
+			if err := p.skipBlock(); err != nil {
+				return err
+			}
+		}
+		sh.Warn = append(sh.Warn, fmtErrf("ignoring an @import with a block").Error())
+		return nil
+	}
+	if p.peek() == ';' {
+		p.next()
+	}
+
+	ref, mediaText, warns := splitImport(prelude)
+	sh.Warn = append(sh.Warn, warns...)
+	if ref == "" {
+		return nil
+	}
+	what := fmt.Sprintf("@import of %q", ref)
+	path, warn := p.localFile(ref, what)
+	if warn != "" {
+		sh.Warn = append(sh.Warn, warn)
+		return nil
+	}
+	if p.depth >= maxImportDepth {
+		sh.Warn = append(sh.Warn, fmtErrf("ignoring %s: more than %d files deep", what, maxImportDepth).Error())
+		return nil
+	}
+	if p.seen == nil {
+		p.seen = make(map[string]bool)
+	}
+	if p.seen[path] {
+		sh.Warn = append(sh.Warn, fmtErrf("ignoring %s: already read", what).Error())
+		return nil
+	}
+	p.seen[path] = true
+	data, err := os.ReadFile(path)
+	if err != nil {
+		sh.Warn = append(sh.Warn, fmtErrf("ignoring %s: %v", what, err).Error())
+		return nil
+	}
+	m, mediaWarns := parseMedia(mediaText)
+	sh.Warn = append(sh.Warn, mediaWarns...)
+	sub := &parser{src: string(data), path: path, seen: p.seen, depth: p.depth + 1}
+	return sub.parseAll(sh, outer.and(m))
+}
+
+// splitImport takes an @import prelude apart: the URL it names, the media
+// query that gates the whole of it, and the layer() and supports() clauses
+// between the two — which this engine does not fold, and reports rather than
+// drop the import along with them.
+func splitImport(prelude string) (ref, media string, warns []string) {
+	s := strings.TrimSpace(prelude)
+	switch {
+	case len(s) >= 4 && strings.EqualFold(s[:4], "url("):
+		end := parenEnd(s, 3)
+		if end < 0 {
+			return "", "", []string{fmtErrf("ignoring an @import whose url( never ends").Error()}
+		}
+		ref = unquote(strings.TrimSpace(s[4:end]))
+		s = strings.TrimSpace(s[end+1:])
+	case len(s) > 0 && (s[0] == '"' || s[0] == '\''):
+		end := quoteEnd(s, 0)
+		if end < 0 {
+			return "", "", []string{fmtErrf("ignoring an @import with an unterminated url").Error()}
+		}
+		ref = s[1:end]
+		s = strings.TrimSpace(s[end+1:])
+	default:
+		return "", "", []string{fmtErrf("ignoring an @import with no file name").Error()}
+	}
+	// A query and a fragment are for a server to answer; localFile strips
+	// them when it comes to open the file.
+	if strings.TrimSpace(ref) == "" {
+		return "", "", []string{fmtErrf("ignoring an @import with no file name").Error()}
+	}
+	for s != "" {
+		s = strings.TrimLeft(s, " \t\r\n")
+		clause := clauseWord(s)
+		if clause == "" {
+			break
+		}
+		s = s[len(clause):]
+		if strings.HasPrefix(s, "(") {
+			end := parenEnd(s, 0)
+			if end < 0 {
+				warns = append(warns, fmtErrf("ignoring an @import whose %s( never ends", clause).Error())
+				return ref, "", warns
+			}
+			s = s[end+1:]
+		}
+		warns = append(warns, fmtErrf("ignoring the %s() clause of @import", clause).Error())
+	}
+	return ref, strings.TrimSpace(s), warns
+}
+
+// clauseWord reads the layer or supports keyword an @import may carry after
+// its URL, or "" when what comes next is something else — a media type, or
+// the end of the statement. s is already trimmed.
+func clauseWord(s string) string {
+	for _, clause := range []string{"layer", "supports"} {
+		if len(s) < len(clause) || !strings.EqualFold(s[:len(clause)], clause) {
+			continue
+		}
+		if len(s) == len(clause) {
+			return clause
+		}
+		switch s[len(clause)] {
+		case '(', ' ', '\t', '\r', '\n':
+			return clause
+		}
+	}
+	return ""
 }
 
 // isRemoteRef reports whether an @import names something outside this

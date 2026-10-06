@@ -61,6 +61,30 @@
 //	@supports not (display: subgrid) { .card { display: grid; } }
 //	@supports selector(button:hover) and (color: #fff) { button { color: #fff; } }
 //
+// # Imports
+//
+// An @import statement reads another stylesheet in where it stands, so the
+// rules it holds land at that point: before the rules written after it, which
+// still win when both say the same thing. The file is read from beside the
+// file that names it, so a relative URL resolves in the directory of the
+// sheet that wrote it rather than at the root, and the media query after the
+// URL gates everything the file holds — folded with an @media inside that
+// file, and with the @media the statement itself sits in. A file is read
+// once: importing it again, directly or around a loop, is reported and
+// dropped, and a chain of imports is bounded so no stylesheet reads forever.
+//
+//	@import url("theme.css") screen and (min-width: 600px);
+//	@import "widgets/buttons.css";
+//
+// Only a file on this machine is read. A URL naming another host, a data:
+// document or a protocol-relative one is reported and skipped — a canvas that
+// went out to fetch one would be a network client as well as a renderer — and
+// so is one in text [Parse] read with no file of its own behind it, since a
+// relative URL there has nothing to resolve against; [ParseFile] reads a file,
+// and reads its imports from beside it. The layer() and supports() clauses an
+// @import may carry are not folded into the cascade: they are reported, and
+// the file they qualified is read without them.
+//
 // # Fonts
 //
 // An @font-face block reads a TrueType file for a family while the sheet
