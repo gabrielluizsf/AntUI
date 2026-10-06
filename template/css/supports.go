@@ -141,10 +141,20 @@ func (r *supportsReader) function(name, inner string) bool {
 	switch strings.ToLower(name) {
 	case "selector":
 		return supportsSelector(inner)
-	case "font-format", "font-tech":
-		// No font file is ever read: the engine draws with the faces it was
-		// given, so there is no format or technology it could load.
-		return false
+	case "font-format":
+		// Only TrueType outlines are read from a file, under either name
+		// the spec gives them; the woff containers and the CFF outlines of
+		// an OpenType file are formats no @font-face here can open.
+		f := unquote(strings.ToLower(strings.TrimSpace(inner)))
+		return f == "truetype" || f == "ttf"
+	case "font-tech":
+		// One technology is promised: the colour bitmaps of a CBDT
+		// table, which an @font-face reads and every frame draws. The
+		// rest — the COLR, SVG and sbix colour formats, variations,
+		// layout features — are not read, so no stylesheet is told they
+		// are.
+		f := unquote(strings.ToLower(strings.TrimSpace(inner)))
+		return f == "color-cbdt"
 	}
 	r.bad = true
 	return false

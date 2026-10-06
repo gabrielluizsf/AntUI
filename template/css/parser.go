@@ -15,6 +15,11 @@ import (
 type parser struct {
 	src string
 	i   int
+
+	// path is the file this text came from, cleaned, and empty when it came
+	// from no file at all — which is also what leaves a relative url with
+	// nowhere to resolve to.
+	path string
 }
 
 func (p *parser) eof() bool { return p.i >= len(p.src) }
@@ -150,6 +155,22 @@ func (p *parser) parseRule(sh *Sheet, m Media) error {
 	sh.Warn = append(sh.Warn, warns...)
 	rule := &Rule{Media: m, Selectors: selectors, Order: sh.order}
 	sh.order++
+	if err := p.declBlock(func(text string) error {
+		if d, ok := parseDeclaration(text); ok {
+			rule.Decls = append(rule.Decls, d)
+		}
+		return nil
+	}); err != nil {
+		return err
+	}
+	sh.rules = append(sh.rules, rule)
+	return nil
+}
+
+// declBlock reads the declarations inside a '{' … '}' block, one at a time,
+// handing each to fn until the closing '}' — which the caller has not been
+// given yet. It is the body both a rule and a @font-face share.
+func (p *parser) declBlock(fn func(text string) error) error {
 	for {
 		p.skipSpace()
 		if p.eof() {
@@ -157,7 +178,6 @@ func (p *parser) parseRule(sh *Sheet, m Media) error {
 		}
 		if p.peek() == '}' {
 			p.next()
-			sh.rules = append(sh.rules, rule)
 			return nil
 		}
 		text, err := p.readDecl()
@@ -167,16 +187,41 @@ func (p *parser) parseRule(sh *Sheet, m Media) error {
 		if p.peek() == ';' {
 			p.next()
 		}
-		if d, ok := parseDeclaration(text); ok {
-			rule.Decls = append(rule.Decls, d)
+		if err := fn(text); err != nil {
+			return err
+		}
+	}
+}
+
+// parseAll reads the whole of one stylesheet's text: rules and at-rules, one
+// statement at a time, until the text runs out. m is the media the text sits
+// inside, which for a file read on its own is none at all.
+func (p *parser) parseAll(sh *Sheet, m Media) error {
+	for {
+		p.skipSpace()
+		if p.eof() {
+			return nil
+		}
+		switch {
+		case p.peek() == '@':
+			if e := p.parseAtRule(sh, m); e != nil {
+				return e
+			}
+		case p.peek() == ';':
+			p.next()
+		default:
+			if e := p.parseRule(sh, m); e != nil {
+				return e
+			}
 		}
 	}
 }
 
 // parseAtRule handles every at-rule: @media is evaluated against the window
-// the frame is drawn at, @supports against the engine itself, and the
+// the frame is drawn at, @supports against the engine itself, the
 // rule-group at-rules that have nothing to test (@layer, @container) apply
-// their body as written. Every other at-rule is consumed wholesale and dropped
+// their body as written, and @font-face names a font file to draw the family
+// it declares with. Every other at-rule is consumed wholesale and dropped
 // with a warning. Whatever a stylesheet throws, the parser walks on.
 func (p *parser) parseAtRule(sh *Sheet, outer Media) error {
 	// Read the word after '@'.
@@ -261,6 +306,9 @@ func (p *parser) parseAtRule(sh *Sheet, outer Media) error {
 		}
 		return p.parseKeyframes(sh, strings.TrimSpace(prelude))
 
+	case "font-face":
+		return p.parseFontFace(sh)
+
 	default:
 		// Statement and declaration at-rules — @charset, @import, @namespace,
 		// @font-face, @page, @property, vendor and future ones — name things
@@ -269,6 +317,30 @@ func (p *parser) parseAtRule(sh *Sheet, outer Media) error {
 		sh.Warn = append(sh.Warn, fmtErrf("ignoring @%s", word).Error())
 		return p.skipAtRuleBody()
 	}
+}
+
+// isRemoteRef reports whether an @import names something outside this
+// machine: another host, a data: document, anything with a scheme behind it.
+// Reading a stylesheet means reading a file beside this one; a canvas that
+// went out to fetch one would be a network client as well as a renderer.
+func isRemoteRef(ref string) bool {
+	if strings.HasPrefix(ref, "//") {
+		return true
+	}
+	// A colon before any '/' is a scheme, unless it is a single letter —
+	// that is a drive root, and reads as a path like any other.
+	if i := strings.Index(ref, ":"); i > 0 && i != 1 && !strings.ContainsAny(ref[:i], `/\`) {
+		return true
+	}
+	return false
+}
+
+// unquote drops the quotes around a url() body, if it has any.
+func unquote(s string) string {
+	if len(s) >= 2 && (s[0] == '"' || s[0] == '\'') && s[len(s)-1] == s[0] {
+		return s[1 : len(s)-1]
+	}
+	return s
 }
 
 // parseRuleGroup reads the body of a rule-group at-rule — @media, @supports,

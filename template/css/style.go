@@ -105,6 +105,7 @@ type Style struct {
 	TextAlign      uint8
 	FontWeight     uint16  // 0 means normal (400)
 	FontStyle      uint8   // one of the FontStyle* constants
+	FontFamily     string  // the font-family list, lowercased; empty means none was asked for
 	LineHeight     float64 // multiplier of the font size; 0 means normal
 	LetterSpacing  Length
 	WordSpacing    Length
@@ -386,6 +387,11 @@ func applyDecl(st *Style, set map[string]bool, customs, cascaded map[string]stri
 	case "font-style":
 		if v, ok := parseFontStyle(raw); ok {
 			st.FontStyle = v
+			note()
+		}
+	case "font-family":
+		if v := normalizeFamily(raw); v != "" {
+			st.FontFamily = v
 			note()
 		}
 	case "line-height":
@@ -1436,6 +1442,7 @@ var inheritedProps = map[string]bool{
 	"font-size":      true,
 	"font-weight":    true,
 	"font-style":     true,
+	"font-family":    true,
 	"line-height":    true,
 	"letter-spacing": true,
 	"word-spacing":   true,
@@ -1511,6 +1518,8 @@ func applyInitial(st *Style, prop string) {
 		st.FontWeight = 0
 	case "font-style":
 		st.FontStyle = FontStyleNormal
+	case "font-family":
+		st.FontFamily = ""
 	case "line-height":
 		st.LineHeight = 0
 	case "letter-spacing":

@@ -2,8 +2,10 @@ package css
 
 import (
 	"fmt"
+	"path/filepath"
 	"sort"
 	"strings"
+	"sync"
 
 	"github.com/gabrielluizsf/antui/canvas"
 )
@@ -353,33 +355,35 @@ type Sheet struct {
 	rules     []*Rule
 	order     int
 	keyframes map[string]*Keyframes
-	Warn      []string
+	fonts     []*FontFace
+
+	// fontCache holds what a Font query answered — itself, or nil when the
+	// sheet holds none of its names — so a frame walks the list once rather
+	// than every line it draws. It is thrown away when a @font-face is
+	// added, which happens only while the sheet is still being read.
+	fontCache map[fontKey]*FontFace
+	fontMu    sync.RWMutex
+
+	Warn []string
 }
 
 // Parse turns CSS source text into a Sheet. Unknown declarations are skipped
 // and reported through Warn; a malformed selector or an unbalanced block is an
 // error.
 func Parse(src string) (*Sheet, error) {
-	p := &parser{src: src}
+	return parseText(src, "")
+}
+
+// parseText reads source text that came from path — "" when it came from no
+// file at all — into a Sheet, with the directory of path standing for where a
+// relative url resolves to.
+func parseText(src, path string) (*Sheet, error) {
 	sh := &Sheet{}
-	for {
-		p.skipSpace()
-		if p.eof() {
-			return sh, nil
-		}
-		switch {
-		case p.peek() == '@':
-			if e := p.parseAtRule(sh, Media{}); e != nil {
-				return sh, e
-			}
-		case p.peek() == ';':
-			p.next()
-		default:
-			if e := p.parseRule(sh, Media{}); e != nil {
-				return sh, e
-			}
-		}
+	p := &parser{src: src}
+	if path != "" {
+		p.path = filepath.Clean(path)
 	}
+	return sh, p.parseAll(sh, Media{})
 }
 
 // Rules returns every rule in the sheet, in stylesheet order.
@@ -641,6 +645,8 @@ func inheritOne(st *Style, set map[string]bool, body Style, prop string) {
 		st.FontWeight = body.FontWeight
 	case "font-style":
 		st.FontStyle = body.FontStyle
+	case "font-family":
+		st.FontFamily = body.FontFamily
 	case "line-height":
 		st.LineHeight = body.LineHeight
 	case "letter-spacing":

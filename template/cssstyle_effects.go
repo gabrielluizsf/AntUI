@@ -95,7 +95,7 @@ func (cs *cssStyle) paintTextShadows(win *antui.Window, st css.Style, tx, ty int
 			continue
 		}
 		pad := blur + 2
-		layer, err := canvas.NewCanvas(cv.TextWidthStyled(text, o)+2*pad, canvas.TextHeight()*o.Scale+2*pad)
+		layer, err := canvas.NewCanvas(cv.TextWidthStyled(text, o)+2*pad, o.Height()+2*pad)
 		if err != nil {
 			continue
 		}

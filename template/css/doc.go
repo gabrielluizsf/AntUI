@@ -52,13 +52,57 @@
 // before the block goes, so a half-written condition is heard rather than
 // silently obeyed. The answer rests on the engine alone — it is read while the
 // sheet parses, not measured against the window — so the same stylesheet takes
-// the same branches in every frame. font-format() and font-tech() answer
-// false, since no font file is ever read: the engine draws with the faces it
-// was given.
+// the same branches in every frame. font-format() answers yes for TrueType,
+// the outlines an @font-face reads, and no for the woff containers.
+// font-tech() answers yes for color-CBDT, the colour bitmaps an @font-face
+// reads and every frame draws, and no for the rest.
 //
 //	@supports (display: grid) { .card { display: grid; } }
 //	@supports not (display: subgrid) { .card { display: grid; } }
 //	@supports selector(button:hover) and (color: #fff) { button { color: #fff; } }
+//
+// # Fonts
+//
+// An @font-face block reads a TrueType file for a family while the sheet
+// parses, at the size the program draws its own text at, and the family,
+// font-weight and font-style it declares are how a font-family asking for
+// that name finds it: the leaning face first when the style leans and the
+// straight one first when it does not, and inside that the weight asked for
+// and then the nearest ones the spec turns up. A source this engine does not
+// read — local(), naming a font this machine already has, or a woff container
+// — is reported and passed over, and so is a file that will not open: a
+// @font-face leaves its family with no face rather than failing the sheet that
+// held it.
+//
+//	font-family: "Roboto", sans-serif;
+//	@font-face {
+//	    font-family: "Roboto";
+//	    src: url("Roboto-Regular.ttf") format("truetype");
+//	    font-weight: 400;
+//	}
+//
+// A font-family list is not only a chooser of one file: the names after the
+// first are the faces a rune the first one lacks falls through to, in order,
+// ending at the face the program draws with by default — so a character one
+// font holds and another does not still comes out in the right shape. The
+// chain is drawn at the size the rest of the program's text is, so naming a
+// family changes which letters draw and not how big they come out; the
+// stylesheet's own font-size is what sizes them. A face that already leans or
+// already carries the weight asked for has no synthetic italic or bold drawn
+// over it, and a line is as tall as the face in it, so line-height multiplies
+// that height rather than the built-in font's. A list naming no family the
+// sheet holds a file for answers with no face, and the canvas keeps drawing in
+// the face it already had.
+//
+// A file whose glyphs are pictures rather than outlines — the CBDT colour
+// bitmaps an emoji font is made of — is read beside the rest: the strike the
+// file cut nearest the size being drawn supplies the picture, and its
+// bearings and advance are what put it on the line and move the pen on by.
+// The chain above decides whose rune draws as it always did — a rune the
+// first face holds a glyph for comes from that file, whether it draws an
+// outline or a picture of it, and only the runes it lacks reach the faces
+// after it — and a picture leans and doubles under font-style and font-weight
+// the way an outline does.
 //
 // # Values
 //
@@ -78,8 +122,9 @@
 // drop-shadow to the box or what is behind it. transform turns a widget
 // through translate/scale/rotate/skew/matrix lists around its
 // transform-origin, a pivot with keyword, length or percentage values whose
-// initial value sits at the box's centre. opacity fades, and
-// font-size/text-align/color drive the text. display:none leaves the widget
+// initial value sits at the box's centre. opacity fades, and font-size,
+// font-family, line-height, text-align and color drive the text.
+// display:none leaves the widget
 // out of the frame entirely, and position:absolute with top/left lifts a
 // widget out of the flow so it can be parked against the window edges.
 //

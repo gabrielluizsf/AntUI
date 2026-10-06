@@ -24,7 +24,24 @@ func (cs *cssStyle) textOpts(st css.Style) canvas.TextStyle {
 		LetterSpacing: cs.length(st, st.LetterSpacing, cs.win.Width()),
 		WordSpacing:   cs.length(st, st.WordSpacing, cs.win.Width()),
 	}
+	if ff := cs.fontFace(st); ff != nil {
+		// The file already leans or already carries the weight it was cut
+		// for, so only the part it does not have is faked on top of it.
+		o.Face = ff.Face()
+		o.Bold = o.Bold && !ff.Bold()
+		o.Italic = o.Italic && !ff.Slanted()
+	}
 	return o
+}
+
+// fontFace is the file the style's font-family list names, or nil when it
+// named none — or none this table holds a file for — which is when the canvas
+// keeps drawing in the face it already had.
+func (cs *cssStyle) fontFace(st css.Style) *css.FontFace {
+	if st.FontFamily == "" {
+		return nil
+	}
+	return cs.classes.Font(st.FontFamily, st.FontWeight, st.FontStyle != css.FontStyleNormal)
 }
 
 // measure is how wide text is once the style's transform, weight, slant and
@@ -48,10 +65,10 @@ func (cs *cssStyle) runOn(cv *canvas.Canvas, st css.Style, colour canvas.Color, 
 	cv.DrawStyled(x, y, transformText(text, st.TextTransform), colour, o)
 }
 
-// lineHeight is the distance between two baselines: the font's own height
+// lineHeight is the distance between two baselines: the face's own height
 // enlarged by line-height, or multiplied by it when the style set one.
-func (cs *cssStyle) lineHeight(st css.Style, scale int) int {
-	base := canvas.TextHeight() * scale
+func (cs *cssStyle) lineHeight(st css.Style) int {
+	base := cs.textOpts(st).Height()
 	if st.LineHeight > 0 {
 		return max(int(float64(base)*st.LineHeight+0.5), 1)
 	}
@@ -186,7 +203,7 @@ func (cs *cssStyle) drawTextLine(win *antui.Window, st css.Style, x, y, w, h int
 	padL, padR := cs.padding(st, 3), cs.padding(st, 1)
 	padT, padB := cs.padding(st, 2), cs.padding(st, 0)
 	avail := w - padL - padR
-	th := canvas.TextHeight() * o.Scale
+	th := o.Height()
 
 	if justify {
 		o.WordSpacing += justifyGap(cv, text, o, avail)

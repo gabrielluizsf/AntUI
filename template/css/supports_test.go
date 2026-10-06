@@ -134,10 +134,22 @@ func TestSupportsReportsTheConditionItCannotRead(t *testing.T) {
 	}
 }
 
-// TestSupportsFontFunctionsAnswerNo keeps the two font functions readable and
-// false: no font file is ever opened, so there is no format or technology to
-// have.
-func TestSupportsFontFunctionsAnswerNo(t *testing.T) {
+// TestSupportsFontFunctionsAnswerWhatIsRead keeps the two font functions
+// readable: TrueType is a format this engine opens from an @font-face, and
+// so is a colour bitmap table for font-tech(); the woff containers and every
+// other technology font-tech() names are not.
+func TestSupportsFontFunctionsAnswerWhatIsRead(t *testing.T) {
+	for _, cond := range []string{
+		`(font-format("truetype"))`,
+		`font-format(ttf)`,
+		`font-tech(color-CBDT)`,
+		`font-tech("color-CBDT")`,
+	} {
+		got, warns := supportsCondition(cond)
+		if !got || len(warns) != 0 {
+			t.Errorf("supportsCondition(%s) = %v, warns %q; want true in silence", cond, got, warns)
+		}
+	}
 	for _, cond := range []string{
 		`(font-format("woff2"))`,
 		`(font-tech(color-COLRv1))`,

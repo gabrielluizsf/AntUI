@@ -43,7 +43,7 @@ func (cs *cssStyle) sized(role string, st css.Style, u, labelW int) (w, h int) {
 		bx = (st.BorderWidth[1] + st.BorderWidth[3]) * u
 		by = (st.BorderWidth[0] + st.BorderWidth[2]) * u
 	}
-	ph := textHeight(u)
+	ph := cs.textHeight(st)
 	switch role {
 	case css.RoleLabel:
 		return labelW, ph

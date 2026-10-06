@@ -574,12 +574,12 @@ func (cs *cssStyle) TextAreaTextPos(win *antui.Window, s State, x, y, w, h int, 
 	textW := max((w-2*padding)/cs.fontScale(st), 12)
 	cursor = clampInt(cursor, 0, len(text))
 	lines := wrapLines(text, textW, st.WhiteSpace, st.OverflowWrap)
-	return textAreaTextPos(text, lines, padding, x, y, h, cursor, cs.lineHeight(st, cs.fontScale(st)),
+	return textAreaTextPos(text, lines, padding, x, y, h, cursor, cs.lineHeight(st),
 		func(prefix string) int { return cs.measure(st, prefix) }, mx, my)
 }
 
 func (cs *cssStyle) textHeight(st css.Style) int {
-	return canvas.TextHeight() * cs.fontScale(st)
+	return cs.textOpts(st).Height()
 }
 
 func (cs *cssStyle) Select(win *antui.Window, s State, x, y, w, h int, value string, open bool) {
@@ -634,7 +634,7 @@ func (cs *cssStyle) TextArea(win *antui.Window, s State, x, y, w, h int, text st
 	cursor = clampInt(cursor, 0, len(text))
 	lines := wrapLines(text, textW, st.WhiteSpace, st.OverflowWrap)
 
-	lineH := cs.lineHeight(st, cs.fontScale(st))
+	lineH := cs.lineHeight(st)
 	visible := max((h-2*padding)/lineH, 1)
 	viewTop := 0
 	for li, l := range lines {

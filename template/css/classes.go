@@ -98,17 +98,29 @@ func (c *CSSClasses) SetStyle(cssFile string) error {
 	return nil
 }
 
-// ParseFile reads a CSS file, exactly as [Parse] reads its text.
+// ParseFile reads a CSS file, exactly as [Parse] reads its text, and gives
+// the file's directory to a relative url in it so it is read from beside the
+// file that names it.
 func ParseFile(cssFile string) (*Sheet, error) {
 	data, err := os.ReadFile(cssFile)
 	if err != nil {
 		return nil, err
 	}
-	return Parse(string(data))
+	return parseText(string(data), cssFile)
 }
 
 // Sheet is the parsed stylesheet the table draws from.
 func (c *CSSClasses) Sheet() *Sheet { return c.sheet }
+
+// Font is the @font-face a font-family list asks for at a weight and a
+// slant, or nil when the table's sheet holds none of the names — which is
+// when the canvas keeps the face it already draws with.
+func (c *CSSClasses) Font(family string, weight uint16, slanted bool) *FontFace {
+	if c == nil || c.sheet == nil {
+		return nil
+	}
+	return c.sheet.Font(family, weight, slanted)
+}
 
 // Keyframes returns the @keyframes block with the given name, the definition
 // the stylesheet gave that an animation references, or nil.
