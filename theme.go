@@ -20,7 +20,9 @@ type Theme struct {
 	Padding       int // inner spacing
 }
 
-// LightTheme is the default: dark text on a light background.
+// LightTheme is the default: dark text on a light background, and what a
+// window starts from unless the system it opens on paints its own interface
+// dark.
 func LightTheme() Theme {
 	return Theme{
 		Background:    0xFFF4F4F6,

@@ -118,4 +118,58 @@ func TestSystemDarkOnAWindowThatIsNotThere(t *testing.T) {
 	}
 	none.SetSystemDark(true) // must not panic
 	none.SetDisplayScale(2)  // must not panic
+	none.adoptSystemTheme()  // must not panic
+}
+
+// TestWindowStartsWithTheSystemTheme is the half of the system's answer that
+// is a theme rather than a media query: what the system paints in is the
+// theme a window opens with, so a program that never chooses one is not a
+// light window on a dark desktop. Only dark is written over what the window
+// already had — it opens light — and a system that said nothing says
+// nothing here too.
+func TestWindowStartsWithTheSystemTheme(t *testing.T) {
+	for _, want := range []struct {
+		name         string
+		dark, known  bool
+		isDarkSystem bool
+	}{
+		{name: "a dark system", dark: true, known: true, isDarkSystem: true},
+		{name: "a light system", dark: false, known: true},
+		{name: "a system that said nothing", dark: false, known: false},
+		{name: "a system that said dark but is not known to", dark: true, known: false},
+	} {
+		win, stub := newTestWindow(t, 64, 64)
+		stub.themeDark, stub.themeKnown = want.dark, want.known
+		win.adoptSystemTheme()
+
+		switch got := *win.Theme(); {
+		case want.isDarkSystem && got != DarkTheme():
+			t.Errorf("%s: theme = %#v, want the dark one the system paints in", want.name, got)
+		case !want.isDarkSystem && got != LightTheme():
+			t.Errorf("%s: theme = %#v, want the light one the window opened with", want.name, got)
+		}
+	}
+
+	// From the start the theme is the program's: SetTheme is the last word
+	// over what the system began it with, and a frame's worth of system
+	// answers goes on without restyling the window underneath it.
+	win, stub := newTestWindow(t, 64, 64)
+	stub.themeDark, stub.themeKnown = true, true
+	win.adoptSystemTheme()
+	win.SetTheme(LightTheme())
+	win.Begin()
+	if *win.Theme() != LightTheme() {
+		t.Errorf("theme after a frame = %#v, want the light one the program chose", *win.Theme())
+	}
+
+	// And a window with no system behind it — offscreen, or closed — has
+	// nothing to take and does not fail trying.
+	off, _, err := Offscreen(8, 8)
+	if err != nil {
+		t.Fatalf("Offscreen: %v", err)
+	}
+	off.adoptSystemTheme()
+	if *off.Theme() != LightTheme() {
+		t.Errorf("offscreen theme = %#v, want the light one", *off.Theme())
+	}
 }

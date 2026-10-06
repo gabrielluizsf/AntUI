@@ -35,6 +35,10 @@ func (win *Window) DisplayScale() (float64, bool) {
 // condition as unanswered, so the rule stands instead of being guessed at a
 // theme the canvas never learned.
 //
+// The same answer picks the window's starting theme, once, at open; from
+// there [Window.SetTheme] and the fields [Window.Theme] hands out are the
+// program's to change.
+//
 // [Window.SetSystemDark] stands in for the system.
 func (win *Window) SystemDark() (dark, ok bool) {
 	if win == nil {
