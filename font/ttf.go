@@ -92,6 +92,12 @@ func parseTTFAt(data []byte, base int) (*TTF, error) {
 		return nil, err
 	}
 	f.Cmap = c
+
+	// Colour bitmaps are read when both tables are there and they make
+	// sense; a file with one without the other, or with a table that does
+	// not read, is a font without colour glyphs rather than a font at all.
+	f.cbdt = tables["CBDT"]
+	f.colorStrikes = parseColorStrikes(tables["CBLC"], f.cbdt)
 	return f, nil
 }
 
@@ -171,6 +177,12 @@ type TTF struct {
 
 	Loca, Glyf, Hmtx []byte
 	Cmap             CmapTable
+
+	// cbdt holds the colour bitmaps and colorStrikes the CBLC index reads
+	// into: a picture per glyph instead of an outline, which is what an
+	// emoji font is made of. Both are empty when the file carries neither.
+	cbdt         []byte
+	colorStrikes []colorStrike
 }
 
 // Advance is how far the pen moves after a glyph, in font units.
