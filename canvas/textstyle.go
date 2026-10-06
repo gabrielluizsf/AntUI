@@ -7,6 +7,10 @@ import "github.com/gabrielluizsf/antui/font"
 // italic (each glyph row shifted to lean right) and the extra spacing CSS
 // asks for after every glyph and after every space.
 type TextStyle struct {
+	// Face is the face to draw in when the style is not taking the one the
+	// canvas already holds — a face a font-family named and this program
+	// holds a file for. nil means that face.
+	Face          *Face
 	Scale         int // 0 or 1 draw the face at its own size
 	Bold          bool
 	Italic        bool
@@ -21,15 +25,36 @@ func (o TextStyle) norm() TextStyle {
 	return o
 }
 
+// face is the face this style draws in: its own when it named one, and the
+// one handed in — the canvas's, or the program's — when it did not.
+func (o TextStyle) face(fallback *Face) *Face {
+	if o.Face != nil {
+		return o.Face
+	}
+	return fallback
+}
+
+// Height is how far apart two lines are under this style, in pixels: the
+// height of the face it draws in, enlarged by the style's scale the same way
+// Draw puts the lines down. A style that named no face keeps the height the
+// default face has always had.
+func (o TextStyle) Height() int {
+	o = o.norm()
+	if o.Face == nil {
+		return TextHeight() * o.Scale
+	}
+	return o.Face.Scaled(o.Scale).Height()
+}
+
 // TextWidthStyled is [TextWidth] under a [TextStyle], measured with the
 // program's default face.
 func TextWidthStyled(text string, o TextStyle) int {
-	return faceWidth(DefaultFace(), text, o)
+	return faceWidth(o.face(DefaultFace()), text, o)
 }
 
 // TextWidthStyled is how wide a string is under a style in this canvas's face.
 func (cv *Canvas) TextWidthStyled(text string, o TextStyle) int {
-	return faceWidth(cv.face(), text, o)
+	return faceWidth(o.face(cv.face()), text, o)
 }
 
 // faceWidth sums one glyph at a time so the per-glyph and per-space spacing
@@ -60,7 +85,7 @@ func faceWidth(f *Face, text string, o TextStyle) int {
 // the weight, slant and spacing the stylesheet asked for.
 func (cv *Canvas) DrawStyled(x, y int, text string, c Color, o TextStyle) int {
 	o = o.norm()
-	f := cv.face()
+	f := o.face(cv.face())
 	if f != BuiltinFace() && f.file != nil {
 		sf := f.Scaled(o.Scale)
 		return cv.drawStyledMask(sf, x, y+sf.Ascent(), text, c, o)
@@ -132,8 +157,9 @@ func (cv *Canvas) drawStyledMask(f *Face, x, y int, text string, c Color, o Text
 			penX += f.advance(' ') + float64(o.WordSpacing)
 			continue
 		}
-		m := f.glyph(r)
-		if m.W > 0 {
+		if cg := f.colorGlyph(r); cg != nil {
+			f.blitColor(cv, cg, penX, penY, o)
+		} else if m := f.glyph(r); m.W > 0 {
 			blitMaskStyled(cv, m, int(penX+0.5), int(penY+0.5), c, o)
 		}
 		penX += f.advance(r) + float64(o.LetterSpacing)

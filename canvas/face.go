@@ -30,6 +30,19 @@ type Face struct {
 
 	ascent, descent, height int
 
+	// next is the face handed a rune this one has no shape for — the rest
+	// of a font-family list, then the face the program draws with by
+	// default. It is set when the chain is made and never after, and is
+	// read only by a face that has a file behind it: the bitmap font has no
+	// outlines to fall back from, it is the end of every chain.
+	next *Face
+
+	// colors is the colour picture a rune draws here — nil for the ones
+	// drawn as an outline — read off this file or off a face further down
+	// the chain, and asked for once per rune.
+	colors   map[rune]*font.ColorGlyph
+	hasColor bool
+
 	mu      sync.Mutex
 	glyphs  map[rune]*font.Mask
 	derived map[int]*Face
@@ -111,13 +124,14 @@ func ParseFace(data []byte, pixels float64) (*Face, error) {
 	}
 	scale := f.Scaled(pixels)
 	return &Face{
-		file:    f,
-		size:    pixels,
-		scale:   scale,
-		ascent:  int(float64(f.Ascent)*scale + 0.5),
-		descent: int(-float64(f.Descent)*scale + 0.5),
-		height:  f.LineHeight(pixels),
-		glyphs:  map[rune]*font.Mask{},
+		file:     f,
+		size:     pixels,
+		scale:    scale,
+		ascent:   int(float64(f.Ascent)*scale + 0.5),
+		descent:  int(-float64(f.Descent)*scale + 0.5),
+		height:   f.LineHeight(pixels),
+		hasColor: f.HasColorGlyphs(),
+		glyphs:   map[rune]*font.Mask{},
 	}, nil
 }
 
@@ -184,12 +198,136 @@ func (f *Face) Width(text string) int {
 	return max(widest, int(line+0.5))
 }
 
+// advance is how far one rune moves the pen, in this face's pixels: its own
+// advance when it holds the rune, and the advance of the face in the chain
+// that does when this one does not.
 func (f *Face) advance(r rune) float64 {
+	if f == nil || f.file == nil {
+		return float64(font.TextWidth(string(r))) * float64(f.scaleOf())
+	}
+	if cg := f.colorGlyph(r); cg != nil {
+		return float64(cg.Advance) * f.colorScale(cg)
+	}
 	g := f.file.Cmap.Glyph(r)
+	if g == 0 {
+		if n := f.fallbackFor(r); n != nil {
+			return n.advance(r)
+		}
+	}
 	return float64(f.file.Advance(g)) * f.scale
 }
 
+// colorGlyph is the colour picture drawn for a rune here: this file's own
+// when it has one, the picture on the face the rune falls to when this file
+// has no glyph for the rune at all, and nil when the rune is drawn as an
+// outline — or when no face in the chain carries a picture for it. The answer
+// is kept, so a frame asks once per rune however many times it draws it.
+func (f *Face) colorGlyph(r rune) *font.ColorGlyph {
+	if f == nil || f.file == nil {
+		return nil
+	}
+	f.mu.Lock()
+	cg, seen := f.colors[r]
+	f.mu.Unlock()
+	if seen {
+		return cg
+	}
+	cg = f.findColor(r)
+	f.mu.Lock()
+	if f.colors == nil {
+		f.colors = map[rune]*font.ColorGlyph{}
+	}
+	f.colors[r] = cg
+	f.mu.Unlock()
+	return cg
+}
+
+// findColor is the colour picture for a rune without the cache: this file's
+// own when it holds a glyph for the rune, and otherwise the picture on the
+// first face down the chain that holds one. The rune stops at the first face
+// with a glyph for it, the same as an outline does — the names after that one
+// in a font-family are for the runes none of the ones before them hold.
+func (f *Face) findColor(r rune) *font.ColorGlyph {
+	if gid := f.file.Cmap.Glyph(r); gid != 0 {
+		if f.hasColor {
+			return f.file.ColorGlyph(gid, f.size)
+		}
+		return nil
+	}
+	for i, n := 0, f.next; n != nil && i < 8; i, n = i+1, n.next {
+		if n.file == nil {
+			continue
+		}
+		if gid := n.file.Cmap.Glyph(r); gid != 0 {
+			return n.colorGlyph(r)
+		}
+	}
+	return nil
+}
+
+// colorScale is how much a picture cut at its strike's size is enlarged by to
+// draw at this face's own size.
+func (f *Face) colorScale(cg *font.ColorGlyph) float64 {
+	if cg == nil || cg.PPEM <= 0 {
+		return 1
+	}
+	return f.size / float64(cg.PPEM)
+}
+
+// blitColor draws one colour picture into a canvas with the pen at x and the
+// baseline at y: scaled from the strike it was cut at to the size this face
+// draws at, with its left edge bearingX to the right of the pen and its top
+// bearingY above the baseline. The weight and slant of a style lean and
+// double the picture the same way they do an outline.
+func (f *Face) blitColor(cv *Canvas, cg *font.ColorGlyph, x, y float64, o TextStyle) {
+	k := f.colorScale(cg)
+	bounds := cg.Image.Bounds()
+	srcW, srcH := bounds.Dx(), bounds.Dy()
+	dstW, dstH := max(1, int(float64(srcW)*k+0.5)), max(1, int(float64(srcH)*k+0.5))
+	left := int(math.Round(x + float64(cg.BearingX)*k))
+	top := int(math.Round(y - float64(cg.BearingY)*k))
+	step := max(o.Scale, 1)
+	for row := range dstH {
+		sy := bounds.Min.Y + row*srcH/dstH
+		shift := 0
+		if o.Italic {
+			shift = (dstH - 1 - row) / 4
+		}
+		for col := range dstW {
+			r, g, blue, a := cg.Image.At(bounds.Min.X+col*srcW/dstW, sy).RGBA()
+			if a == 0 {
+				continue
+			}
+			// A decoder hands the channels back already multiplied by the
+			// alpha; the canvas takes them plain.
+			c := RGBA(uint8(r*255/a), uint8(g*255/a), uint8(blue*255/a), uint8(a>>8))
+			px := left + col + shift
+			cv.Pixel(px, top+row, c)
+			if o.Bold {
+				cv.Pixel(px+step, top+row, c)
+			}
+		}
+	}
+}
+
+// fallbackFor is the face of the chain that has a shape for r, past this one,
+// and nil when none of them does. Eight is further down than any chain is
+// built, so one written round in a circle stops rather than running forever.
+func (f *Face) fallbackFor(r rune) *Face {
+	for i, n := 0, f.next; n != nil && i < 8; i, n = i+1, n.next {
+		if n.file != nil && n.file.Cmap.Glyph(r) != 0 {
+			return n
+		}
+	}
+	return nil
+}
+
 func (f *Face) glyph(r rune) *font.Mask {
+	if f.file.Cmap.Glyph(r) == 0 {
+		if n := f.fallbackFor(r); n != nil {
+			return n.glyph(r)
+		}
+	}
 	f.mu.Lock()
 	defer f.mu.Unlock()
 	if m, ok := f.glyphs[r]; ok {
@@ -199,6 +337,32 @@ func (f *Face) glyph(r rune) *font.Mask {
 	m := font.Render(f.file.GlyphContours(g, 0), f.scale)
 	f.glyphs[r] = &m
 	return &m
+}
+
+// WithFallback is this face with next handed every rune this one has no shape
+// for, the way a font-family list hands a character down its names to the face
+// that has it. The result draws differently from what this one draws, so it
+// cannot share the glyph cache; it does share the font file, and the caches of
+// sizes at which either of them is met.
+func (f *Face) WithFallback(next *Face) *Face {
+	if f == nil {
+		return next
+	}
+	if next == nil {
+		return f
+	}
+	return &Face{
+		bitmap:   f.bitmap,
+		file:     f.file,
+		size:     f.size,
+		scale:    f.scale,
+		ascent:   f.ascent,
+		descent:  f.descent,
+		height:   f.height,
+		hasColor: f.hasColor,
+		next:     next,
+		glyphs:   map[rune]*font.Mask{},
+	}
 }
 
 // Draw writes a string into a canvas with the baseline of the first line at
@@ -227,8 +391,9 @@ func (f *Face) Draw(cv *Canvas, x, y int, text string, c Color) int {
 			penX += f.advance(' ')
 			continue
 		}
-		m := f.glyph(r)
-		if m.W > 0 {
+		if cg := f.colorGlyph(r); cg != nil {
+			f.blitColor(cv, cg, penX, float64(penY), TextStyle{})
+		} else if m := f.glyph(r); m.W > 0 {
 			blitMask(cv, m, int(penX+0.5), penY, c)
 		}
 		penX += f.advance(r)
@@ -278,6 +443,9 @@ func (f *Face) Scaled(n int) *Face {
 	if err != nil {
 		return f
 	}
+	if f.next != nil {
+		d.next = f.next.Scaled(n)
+	}
 	f.derived[n] = d
 	return d
 }
@@ -314,6 +482,9 @@ func (f *Face) AtSize(pixels float64) *Face {
 	d, err := ParseFace(f.file.Data, float64(n))
 	if err != nil {
 		return f
+	}
+	if f.next != nil {
+		d.next = f.next.AtSize(float64(n))
 	}
 	f.sized[n] = d
 	return d
