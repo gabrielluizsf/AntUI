@@ -31,7 +31,9 @@ func (win *Window) DisplayScale() (float64, bool) {
 // SystemDark reports the color scheme the system paints its own interface in,
 // and whether the system had an answer to give. It follows the OS while the
 // window runs — a theme change reaches the next frame — and false is a
-// platform with no standard way to ask. prefers-color-scheme then reads the
+// system with nothing to ask: a display server carries no such signal, and
+// where a platform reads one it is reading the desktop's own settings, which
+// a desktop may decline to answer. prefers-color-scheme then reads the
 // condition as unanswered, so the rule stands instead of being guessed at a
 // theme the canvas never learned.
 //
@@ -47,10 +49,10 @@ func (win *Window) SystemDark() (dark, ok bool) {
 	return win.dark, win.darkKnown
 }
 
-// SetSystemDark fixes what [Window.SystemDark] answers, for a platform that
-// cannot ask — an X11 window has no standard signal for it — and for a test
-// that needs a dark system to draw against. What it is given wins over the
-// system for the rest of the window's life, and the next frame draws with it.
+// SetSystemDark fixes what [Window.SystemDark] answers, for a system with
+// nothing to say and for a test that needs a dark one to draw against. What
+// it is given wins over the system for the rest of the window's life, and
+// the next frame draws with it.
 func (win *Window) SetSystemDark(dark bool) {
 	if win == nil {
 		return
