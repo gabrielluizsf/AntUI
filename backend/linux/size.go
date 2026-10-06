@@ -118,7 +118,56 @@ func (x *Driver) SetSize(win backend.Face, width, height int) bool {
 }
 
 // ContentScale is how much the display is scaled by, or 0 when it cannot be
-// known.
+// known: [Driver.DisplayScale] with "the display did not say" left as the
+// zero that arithmetic wants rather than as a bool to carry.
+func (x *Driver) ContentScale() float64 {
+	scale, ok := x.DisplayScale()
+	if !ok {
+		return 0
+	}
+	return scale
+}
+
+// DisplayScale is how much the display is scaled by, and whether it said
+// one. The number is read from the server when the desktop writes it and
+// kept in between: this is asked on every frame of a window that is up, and
+// asking the server for it is a round trip a frame would spend on an answer
+// that changes when the user changes it. [Driver.watchScale] is what makes
+// that change reach here.
+func (x *Driver) DisplayScale() (float64, bool) {
+	if !x.alive {
+		return 0, false
+	}
+	if x.scaleDirty {
+		// Cleared before the read rather than after: the read is a round
+		// trip, and a desktop that rewrites the database while it is in
+		// flight must leave the number dirty for the next frame rather
+		// than have this one put it back.
+		x.scaleDirty = false
+		x.scale, x.scaleKnown = x.askScale()
+	}
+	return x.scale, x.scaleKnown
+}
+
+// watchScale asks the server to say when a property of the root window is
+// written, which is how a desktop announces the display scale it has just
+// changed: Xft.dpi lives in the resource database on the root window, and
+// rewriting that database is the write. The selection is kept per
+// connection, so nothing else on the display is told anything it did not
+// ask for, and only the database's own atom drops the cached number — every
+// other property the window manager writes on the root passes through.
+//
+// A desktop that changed the scale without writing the database would go
+// unnoticed, but the value is read from there, so a change to it has to be
+// said from there too: this is the whole of the signal X11 carries.
+func (x *Driver) watchScale() {
+	if !x.alive || x.root == 0 {
+		return
+	}
+	x.send(xChangeWindowAttributes, 0, le32(x.root, cwEventMask, xPropertyChangeMask))
+}
+
+// askScale is the display's scale, read straight from the server.
 //
 // X11 has no answer to this, which is the honest summary — there is a
 // physical size in the screen record and it is very often a lie, since a
@@ -127,12 +176,9 @@ func (x *Driver) SetSize(win backend.Face, width, height int) bool {
 // resource database, and that is what the user's desktop settings write. So
 // that is read first and the physical size is the fallback, believed only
 // when it lands somewhere a real display could be.
-func (x *Driver) ContentScale() float64 {
-	if !x.alive {
-		return 0
-	}
+func (x *Driver) askScale() (float64, bool) {
 	if dpi := x.xftDPI(); dpi > 0 {
-		return dpi / 96
+		return dpi / 96, true
 	}
 	if x.screenWidth > 0 && x.screenWidthMM > 0 {
 		dpi := float64(x.screenWidth) * 25.4 / float64(x.screenWidthMM)
@@ -141,10 +187,10 @@ func (x *Driver) ContentScale() float64 {
 		// anyone chose, and guessing wrong here makes every window the wrong
 		// size — so an unbelievable answer is no answer.
 		if dpi >= 96 && dpi <= 400 {
-			return dpi / 96
+			return dpi / 96, true
 		}
 	}
-	return 0
+	return 0, false
 }
 
 // xftDPI reads Xft.dpi from the resource database on the root window, which

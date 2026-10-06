@@ -117,6 +117,13 @@ func (x *Driver) open(win backend.Face, title string, width, height int) error {
 
 	x.send(xMapWindow, 0, le32(x.window))
 
+	// The display's scale is read now, so the first frame finds the number
+	// here instead of paying a round trip for it, and watched for after:
+	// the desktop rewrites the resource database when the user changes the
+	// scale, and that write is this end's way of hearing about it.
+	x.watchScale()
+	x.scale, x.scaleKnown = x.askScale()
+
 	if !x.alive {
 		return errors.New("antui: the connection to the X server dropped while opening the window")
 	}

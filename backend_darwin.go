@@ -46,7 +46,7 @@ func (n *darwinNative) setLimits(win *Window, limits Limits) { n.d.SetLimits(lim
 func (n *darwinNative) setSize(win *Window, width, height int) bool {
 	return n.d.SetSize(win, width, height)
 }
-func (n *darwinNative) contentScale() float64 { return n.d.ContentScale() }
+func (n *darwinNative) displayScale() (float64, bool) { return scaleOrNone(n.d.ContentScale()) }
 func (n *darwinNative) systemDark() (bool, bool) {
 	return n.d.SystemDark()
 }

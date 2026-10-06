@@ -71,7 +71,7 @@ func (s *stubBackend) setSize(_ *Window, width, height int) bool {
 	return !s.refuseSize
 }
 
-func (s *stubBackend) contentScale() float64 { return s.scale }
+func (s *stubBackend) displayScale() (float64, bool) { return scaleOrNone(s.scale) }
 
 func (s *stubBackend) systemDark() (bool, bool) { return s.themeDark, s.themeKnown }
 

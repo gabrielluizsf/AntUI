@@ -277,9 +277,11 @@ func (b *androidWindow) displayRefresh() int {
 	return b.refresh
 }
 
-// contentScale is the density over 160, which is the number Android itself
-// multiplies a size in device-independent pixels by.
-func (b *androidWindow) contentScale() float64 { return b.scale }
+// displayScale is the density over 160, which is the number Android itself
+// multiplies a size in device-independent pixels by. Android hands a new one
+// over on a configuration change, so reading it every frame is what makes
+// that reach the window.
+func (b *androidWindow) displayScale() (float64, bool) { return scaleOrNone(b.scale) }
 
 // systemDark is the device's night mode, which Android carries in every
 // configuration it hands the app and so always has an answer to give.

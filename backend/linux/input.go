@@ -343,6 +343,18 @@ func (x *Driver) handleEvent(packet []byte) {
 		// The layout changed under us; the old table would now type the
 		// wrong letters.
 		x.loadKeymap()
+
+	case xPropertyNotify:
+		// The desktop wrote a property on the root window, which is the
+		// only thing here that is not the window's own business: the
+		// resource database being rewritten is a display scale the user
+		// just changed, and the frame that follows reads it again. Every
+		// other property on the root — the window manager writes several —
+		// falls through untouched.
+		if binary.LittleEndian.Uint32(packet[4:]) == x.root &&
+			binary.LittleEndian.Uint32(packet[8:]) == xResourceManager {
+			x.scaleDirty = true
+		}
 	}
 }
 

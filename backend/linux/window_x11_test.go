@@ -241,3 +241,66 @@ func TestReadsTheDisplayScale(t *testing.T) {
 		t.Errorf("the scale is %v, want %v", got, want/96)
 	}
 }
+
+// propertyNotify is the packet the server sends when a property of a window
+// is written: which window it was, and which property.
+func propertyNotify(window, atom uint32) []byte {
+	packet := make([]byte, 32)
+	packet[0] = xPropertyNotify
+	binary.LittleEndian.PutUint32(packet[4:], window)
+	binary.LittleEndian.PutUint32(packet[8:], atom)
+	return packet
+}
+
+// TestOnlyTheResourceDatabaseDropsTheScale is the filter on the root
+// window's property changes: the resource database being rewritten is a
+// display scale the desktop just changed and the number has to be read
+// again, while every other property on the root — and everything on any
+// other window — is the window manager's business and passes through.
+func TestOnlyTheResourceDatabaseDropsTheScale(t *testing.T) {
+	x := &Driver{root: 1, window: 2, win: &testFace{}}
+
+	x.handleEvent(propertyNotify(x.root, xResourceManager))
+	if !x.scaleDirty {
+		t.Error("the resource database was rewritten: the scale was not marked to be read again")
+	}
+	x.scaleDirty = false
+
+	x.handleEvent(propertyNotify(x.root, atomWMName))
+	if x.scaleDirty {
+		t.Error("another property on the root dropped the scale; want only the resource database to")
+	}
+
+	x.handleEvent(propertyNotify(x.window, xResourceManager))
+	if x.scaleDirty {
+		t.Error("a property of our own window dropped the display's scale; want only the root's to")
+	}
+}
+
+// TestTheScaleIsReadAgainAfterADesktopWrite is the other half: the mark the
+// packet left is what makes the next read ask the server, and the read
+// leaves it clean again so the next frame asks nothing.
+func TestTheScaleIsReadAgainAfterADesktopWrite(t *testing.T) {
+	d, _ := openTestWindow(t, "antui scale change")
+
+	if d.scaleDirty {
+		t.Fatal("the scale is marked to be read again after opening read it")
+	}
+	first, firstOK := d.DisplayScale()
+	if d.scaleDirty {
+		t.Fatal("a read from the cache left the scale marked")
+	}
+
+	d.handleEvent(propertyNotify(d.root, xResourceManager))
+	if !d.scaleDirty {
+		t.Fatal("the resource database was rewritten and the scale was not marked")
+	}
+	second, secondOK := d.DisplayScale()
+	if d.scaleDirty {
+		t.Error("the read after a change did not ask the server")
+	}
+	if firstOK != secondOK || first != second {
+		t.Errorf("the scale read again as %v, %v; had it as %v, %v — the database did not change under us",
+			second, secondOK, first, firstOK)
+	}
+}

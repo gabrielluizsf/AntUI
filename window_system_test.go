@@ -60,6 +60,52 @@ func TestDisplayScaleIsTheRawAnswer(t *testing.T) {
 	}
 }
 
+// TestDisplayScaleIsReadEveryFrame is the display's answer on the frame
+// loop: what the display says lands on the frame after it, an override set
+// by SetDisplayScale stands over it, and a display that stops answering does
+// not take back what it said.
+func TestDisplayScaleIsReadEveryFrame(t *testing.T) {
+	win, stub := newTestWindow(t, 64, 64)
+
+	if scale, ok := win.DisplayScale(); scale != 0 || ok {
+		t.Errorf("a display that has not said: DisplayScale = %v, %v; want 0, false", scale, ok)
+	}
+
+	stub.scale = 1.5
+	win.Begin()
+	if scale, ok := win.DisplayScale(); !ok || scale != 1.5 {
+		t.Errorf("after a frame: DisplayScale = %v, %v; want 1.5, true — the frame asks the display", scale, ok)
+	}
+
+	stub.scale = 2
+	win.Begin()
+	if scale, ok := win.DisplayScale(); !ok || scale != 2 {
+		t.Errorf("after the display changed: DisplayScale = %v, %v; want 2, true", scale, ok)
+	}
+
+	// A display that stops saying leaves the number it gave: the scale
+	// belongs to the screen, and a read with no answer is not the screen
+	// taking it back.
+	stub.scale = 0
+	win.Begin()
+	if scale, ok := win.DisplayScale(); !ok || scale != 2 {
+		t.Errorf("after a display that said nothing: DisplayScale = %v, %v; want 2, true", scale, ok)
+	}
+
+	// An override is what a test and a platform with no sensor use, and it
+	// holds however often the frame asks again.
+	win.SetDisplayScale(1.25)
+	stub.scale = 3
+	win.Begin()
+	if scale, ok := win.DisplayScale(); !ok || scale != 1.25 {
+		t.Errorf("an override standing in for the display: DisplayScale = %v, %v; want 1.25, true", scale, ok)
+	}
+	win.Begin()
+	if scale, ok := win.DisplayScale(); !ok || scale != 1.25 {
+		t.Errorf("after another frame: DisplayScale = %v, %v; want 1.25, true — the override holds", scale, ok)
+	}
+}
+
 // TestSystemDarkOnAWindowThatIsNotThere is the nil and closed forms, which a
 // query can reach without an error to show for it.
 func TestSystemDarkOnAWindowThatIsNotThere(t *testing.T) {

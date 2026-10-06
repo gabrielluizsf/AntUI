@@ -36,7 +36,7 @@ func (noWindows) displayRefresh() int                  { return 0 }
 
 func (noWindows) setLimits(*Window, Limits)      {}
 func (noWindows) setSize(*Window, int, int) bool { return false }
-func (noWindows) contentScale() float64          { return 0 }
+func (noWindows) displayScale() (float64, bool)  { return 0, false }
 
 // systemDark has no system to ask. The canvas answers "no answer" rather
 // than a scheme, and prefers-color-scheme keeps its rule.

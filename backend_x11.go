@@ -52,7 +52,7 @@ func (n *x11Native) setLimits(win *Window, limits Limits) { n.d.SetLimits(limits
 func (n *x11Native) setSize(win *Window, width, height int) bool {
 	return n.d.SetSize(win, width, height)
 }
-func (n *x11Native) contentScale() float64 { return n.d.ContentScale() }
+func (n *x11Native) displayScale() (float64, bool) { return n.d.DisplayScale() }
 
 // systemDark answers that the system did not say. X11 has no standard signal
 // for the theme a desktop is drawing in — every toolkit keeps its own — and

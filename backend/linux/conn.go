@@ -15,21 +15,22 @@ import (
 
 // Request opcodes.
 const (
-	xCreateWindow      = 1
-	xDestroyWindow     = 4
-	xMapWindow         = 8
-	xConfigureWindow   = 12
-	xInternAtom        = 16
-	xChangeProperty    = 18
-	xGetProperty       = 20
-	xSetSelectionOwner = 22
-	xConvertSelection  = 24
-	xSendEvent         = 25
-	xCreateGC          = 55
-	xFreeGC            = 60
-	xPutImage          = 72
-	xQueryExtension    = 98
-	xGetKeyboardMap    = 101
+	xCreateWindow           = 1
+	xChangeWindowAttributes = 2
+	xDestroyWindow          = 4
+	xMapWindow              = 8
+	xConfigureWindow        = 12
+	xInternAtom             = 16
+	xChangeProperty         = 18
+	xGetProperty            = 20
+	xSetSelectionOwner      = 22
+	xConvertSelection       = 24
+	xSendEvent              = 25
+	xCreateGC               = 55
+	xFreeGC                 = 60
+	xPutImage               = 72
+	xQueryExtension         = 98
+	xGetKeyboardMap         = 101
 )
 
 // RandR, for the refresh rate. The core protocol has no idea what one is.
@@ -52,6 +53,7 @@ const (
 	xExpose           = 12
 	xMapNotify        = 19
 	xConfigureNotify  = 22
+	xPropertyNotify   = 28
 	xSelectionClear   = 29
 	xSelectionRequest = 30
 	xSelectionNotify  = 31
@@ -62,6 +64,19 @@ const (
 // The events the window asks the server for: key press/release, button
 // press/release, pointer motion, exposure, structure notify and focus change.
 const xEventMask = 0x1 | 0x2 | 0x4 | 0x8 | 0x40 | 0x8000 | 0x20000 | 0x200000
+
+// The one the root window is asked for instead: property change. The window
+// does not want it — it would be told about every hint the window manager
+// wrote back — but the root is where a desktop keeps the resource database
+// and rewrites it when the display's scale changes, and that write is the
+// only signal there is that the number did.
+const xPropertyChangeMask = 1 << 22
+
+// The event-mask bit inside a ChangeWindowAttributes value mask: the same
+// number a window of our own is given as 0x800 when it asks for its events.
+// An event mask is what one connection asks to be told about, and it counts
+// for that connection only.
+const cwEventMask = 0x800
 
 // Predefined atoms the protocol fixes, so they need no InternAtom round trip.
 const (
@@ -125,6 +140,15 @@ type Driver struct {
 	screenWidthMM, screenHeightMM uint16 // what the server claims, often a lie
 	randrOpcode                   byte
 	refreshHz                     int // 0 until asked, -1 when unknown
+
+	// scale is the display's scale, read once and kept: Xft.dpi is a round
+	// trip to the server and a frame is no place to spend one. scaleKnown
+	// says whether the display said, and scaleDirty says the desktop wrote
+	// the resource database since it was read, which is the one thing that
+	// makes the next read ask the server again. See [Driver.DisplayScale].
+	scale      float64
+	scaleKnown bool
+	scaleDirty bool
 
 	minKeycode, maxKeycode, keysymsPerCode byte
 	keysyms                                []uint32

@@ -1,5 +1,15 @@
 package antui
 
+// scaleOrNone is a platform's own scale as the raw answer: a positive
+// number is what the display said, and zero is that it did not — the
+// difference DisplayScale keeps and ContentScale stands a one in for.
+func scaleOrNone(scale float64) (float64, bool) {
+	if scale > 0 {
+		return scale, true
+	}
+	return 0, false
+}
+
 // DisplayScale is how many pixels one point of this window covers — the raw
 // answer the display gave, and false when it gave none. [Window.ContentScale]
 // is the same number with 1 stood in for "did not say", which is what
@@ -7,8 +17,10 @@ package antui
 // difference, because a system that never spoke is one with no resolution to
 // report.
 //
-// The scale is what the system said when the window opened. It is not asked
-// again every frame: on X11 that answer costs a round trip to the server.
+// The scale is read again while the window runs, so a display the user
+// rescales reaches the frame after it; a read that came back with nothing
+// leaves the scale the display had said, since the number belongs to the
+// screen rather than to the frame that asked.
 func (win *Window) DisplayScale() (float64, bool) {
 	if win == nil || win.scale <= 0 {
 		return 0, false
@@ -44,7 +56,8 @@ func (win *Window) SetSystemDark(dark bool) {
 
 // SetDisplayScale fixes what [Window.DisplayScale] answers, for a test that
 // needs a dense display to draw against. Zero takes it back to "the display
-// did not say".
+// did not say". What it is given wins over the display for the rest of the
+// window's life, so the frame stops asking it.
 //
 // It is a statement about the display, not a resize: the window keeps the
 // size it has, and what changes is the number the resolution media feature
@@ -54,5 +67,5 @@ func (win *Window) SetDisplayScale(scale float64) {
 	if win == nil {
 		return
 	}
-	win.scale = scale
+	win.scale, win.scaleForced = scale, true
 }

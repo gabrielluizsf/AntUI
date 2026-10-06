@@ -43,8 +43,11 @@ type platform interface {
 	// setSize asks for a new drawable size, reporting whether the request
 	// could be made rather than whether it was honoured.
 	setSize(win *Window, width, height int) bool
-	// contentScale is pixels per point, or 0 when the system does not say.
-	contentScale() float64
+	// displayScale is the display's scale, and whether it said one: the raw
+	// answer behind Window.DisplayScale, read once at open and again every
+	// frame so a scale the display changed reaches the frame after it. See
+	// window_system.go.
+	displayScale() (float64, bool)
 	// systemDark is the color scheme the system paints its own interface in,
 	// and whether the system said at all — a platform with no way to ask
 	// answers known=false rather than guessing. See window_system.go.
@@ -103,6 +106,10 @@ type Window struct {
 
 	limits Limits  // what the window may be resized to; see window_size.go
 	scale  float64 // pixels per point, 0 until the backend says
+
+	// scaleForced is a SetDisplayScale override standing over what the
+	// display says for the rest of the window's life; see window_system.go.
+	scaleForced bool
 
 	// dark is the color scheme the system paints its own interface in,
 	// darkKnown says whether the platform had an answer to give, and
@@ -215,7 +222,9 @@ func OpenWith(opt Options) (*Window, error) {
 		return nil, err
 	}
 
-	win.scale = win.native.contentScale()
+	if scale, ok := win.native.displayScale(); ok {
+		win.scale = scale
+	}
 	width, height := opt.Width, opt.Height
 	if opt.Points && win.scale > 0 {
 		width, height = scaleTo(width, win.scale), scaleTo(height, win.scale)
@@ -283,13 +292,23 @@ func (win *Window) Begin() bool {
 
 	if win.native != nil {
 		win.native.pump(win)
-		// The system's color scheme is asked every frame rather than
-		// remembered at open: a theme change the platform told us about is
-		// what prefers-color-scheme reads on the frame that follows it. The
-		// display's scale is not asked again — on X11 that would be a round
-		// trip to the server per frame — and is read as window.go set it.
+		// The system's color scheme and the display's scale are both asked
+		// every frame rather than remembered at open: a theme or a scale
+		// the platform told us about is what prefers-color-scheme and the
+		// resolution feature read on the frame that follows it. Neither
+		// costs a round trip — the platform keeps its own answer and hands
+		// it over — and an override set by SetSystemDark or SetDisplayScale
+		// stands over both.
 		if !win.darkForced {
 			win.dark, win.darkKnown = win.native.systemDark()
+		}
+		if !win.scaleForced {
+			// An unanswered read leaves what the display said before: a
+			// scale is a property of the screen, and a read that got no
+			// answer is not the display taking the number back.
+			if scale, ok := win.native.displayScale(); ok {
+				win.scale = scale
+			}
 		}
 	}
 	win.recognize(Now())
