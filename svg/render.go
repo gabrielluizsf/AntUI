@@ -127,7 +127,7 @@ func paintBody(cv *canvas.Canvas, n *Node, m canvas.Matrix, current canvas.Color
 		paintShape(cv, n, m, current, masking, patterning)
 	}
 	if len(n.Runs) > 0 {
-		paintText(cv, n, m, current)
+		paintText(cv, n, m, current, patterning)
 	}
 	if n.Pic != nil {
 		paintPicture(cv, n, m)

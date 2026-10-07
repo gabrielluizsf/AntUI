@@ -254,6 +254,37 @@ type Style struct {
 	// [readFontSize].
 	FontSize float64
 	Anchor   TextAnchor
+	// PreserveSpace is `xml:space="preserve"`: the writing is drawn exactly as
+	// it was written in the file, whitespace runs and line breaks and all,
+	// instead of being squeezed onto one line the way a file wrapped across
+	// lines is normally read. Like the size and the anchor above it, it is
+	// inherited, and `xml:space="default"` on a nearer element takes it off
+	// again.
+	PreserveSpace bool
+	// FontFamily, FontWeight and LetterSpacing are the rest of what says how
+	// the writing is set: the faces it asks for, how heavy it is, and how much
+	// room is left after every letter. All three are inherited like the size
+	// and the anchor above, and all three only mean anything to writing.
+	//
+	// The family is kept the way the CSS side keeps one — the list as it was
+	// written, so its names can be asked for one at a time — and the answer
+	// comes from the canvas chain: a drawing read here is a single file with no
+	// `@font-face` behind it, so no name in any list is one that resolves to a
+	// file of its own, and the writing comes out in the face the program draws
+	// with by default, exactly as CSS draws text whose family the sheet holds
+	// no face for. See [Style.with].
+	FontFamily string
+	// FontWeight is one of the hundreds CSS matches weights on, or zero when
+	// nothing said. `bold` and a number of the scale are what they say;
+	// `bolder` and `lighter` are the step CSS takes from the weight in hand.
+	// Only the heavy end of the scale draws differently — the canvas fakes a
+	// weight a face does not carry by drawing it a second time, and there is
+	// no second pass that takes ink away.
+	FontWeight uint16
+	// LetterSpacing is extra room after every letter, in the drawing's own
+	// units. Zero is `letter-spacing="normal"` and also no letter-spacing at
+	// all, which are the same thing.
+	LetterSpacing float64
 	// A fill or a stroke may be a gradient or a pattern rather than a colour,
 	// and the three never both hold: `fillGradient` is set only when the paint
 	// named a gradient that was in the drawing, `fillPattern` the same for a

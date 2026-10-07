@@ -254,6 +254,25 @@ func (s Style) with(e *element, warn func(string, ...any)) Style {
 			} else if strings.TrimSpace(raw) != "" {
 				warn("the text-anchor %q is not start, middle or end, so the writing stays where the pen is", raw)
 			}
+		case "xml:space":
+			// Only two words mean anything here, and anything else leaves the
+			// inherited answer alone rather than switching the writing off its
+			// own whitespace by accident.
+			switch strings.ToLower(strings.TrimSpace(raw)) {
+			case "preserve":
+				s.PreserveSpace = true
+			case "default":
+				s.PreserveSpace = false
+			}
+		case "font-family":
+			// The list is taken whole, the way CSS takes one: the names stay
+			// as the drawing wrote them, and which of them the canvas answers
+			// to is a question for when the writing is drawn. See [Style].
+			s.FontFamily = strings.TrimSpace(raw)
+		case "font-weight":
+			s.FontWeight = readFontWeight(s.FontWeight, raw, warn)
+		case "letter-spacing":
+			s.LetterSpacing = readLetterSpacing(raw, warn)
 		case "display", "visibility":
 			if strings.EqualFold(strings.TrimSpace(raw), "none") ||
 				strings.EqualFold(strings.TrimSpace(raw), "hidden") {
@@ -348,6 +367,70 @@ func readAnchor(raw string) (TextAnchor, bool) {
 		return AnchorEnd, true
 	}
 	return AnchorStart, false
+}
+
+// readFontWeight reads how heavy the writing is, out of the weight it already
+// has — because `bolder` and `lighter` are not weights of their own, they are
+// the step CSS takes from the one in hand. The steps are not evenly spaced: a
+// family is not cut evenly, and a weight past either end of the scale is the
+// end of it. Anything that is not a weight at all leaves the one in hand alone,
+// since a weight this cannot read is not one to draw at.
+func readFontWeight(was uint16, raw string, warn func(string, ...any)) uint16 {
+	if was == 0 {
+		was = FontWeightNormal
+	}
+	switch strings.ToLower(strings.TrimSpace(raw)) {
+	case "normal":
+		return FontWeightNormal
+	case "bold":
+		return FontWeightBold
+	case "bolder":
+		return bolderWeight[was/100]
+	case "lighter":
+		return lighterWeight[was/100]
+	}
+	if v, err := strconv.Atoi(strings.TrimSpace(raw)); err == nil && v >= 100 && v <= 900 {
+		// A weight on the scale is a weight on the hundreds the words name,
+		// so one written between two of them is the nearer of the two.
+		return uint16(min((v+50)/100, 9) * 100)
+	}
+	if strings.TrimSpace(raw) != "" {
+		warn("the font weight %q is not a weight, so the writing keeps the weight it had", raw)
+	}
+	return was
+}
+
+// FontWeightNormal and FontWeightBold are the two weights the words name, and
+// the heavy end of the scale above which a face is drawn as heavy.
+const (
+	FontWeightNormal = 400
+	FontWeightBold   = 700
+)
+
+// bolderWeight and lighterWeight are the steps the two words take from the
+// weight in hand, indexed by the hundred that weight sits on, from 100 to
+// 900. They are CSS's own table: only four weights take part in it — thin,
+// normal, bold and heavy — so `bolder` on a normal weight is bold rather than
+// a step of a hundred, which is also the only step that draws differently here.
+var (
+	bolderWeight  = [10]uint16{0, 400, 400, 400, 700, 700, 900, 900, 900, 900}
+	lighterWeight = [10]uint16{0, 100, 100, 100, 100, 100, 400, 400, 700, 700}
+)
+
+// readLetterSpacing reads the room left after every letter, in the drawing's
+// own units. `normal` and no letter-spacing at all are the same answer, and so
+// is a spacing this cannot read: the drawing keeps the letters where they were
+// rather than being pulled together by a number that is not one.
+func readLetterSpacing(raw string, warn func(string, ...any)) float64 {
+	s := strings.TrimSpace(raw)
+	if s == "" || strings.EqualFold(s, "normal") {
+		return 0
+	}
+	if v, ok := parseLength(s); ok && v >= 0 {
+		return v
+	}
+	warn("the letter spacing %q is not a length, so the letters keep the room they had", raw)
+	return 0
 }
 
 // parseDeclarations reads the inside of a `style="…"` attribute, which is a list

@@ -106,6 +106,21 @@ func TestRenderWritesAtTheSizeItSays(t *testing.T) {
 	if big.MaxY-big.MinY <= small.MaxY-small.MinY {
 		t.Errorf("font-size 16 wrote %g tall, no taller than font-size 8 at %g", big.MaxY-big.MinY, small.MaxY-small.MinY)
 	}
+	// A size the built-in font does not come in is written at that size
+	// rather than rounded to the nearest one it does: twelve comes out
+	// between the two above, in both the directions a box has.
+	mid := boxOf(t, `<text x="4" y="16" font-size="12">Hi</text>`)
+	if mid.Empty {
+		t.Fatal("font-size 12 wrote nothing")
+	}
+	if h, low, high := mid.MaxY-mid.MinY, small.MaxY-small.MinY, big.MaxY-big.MinY; h <= low || h >= high {
+		t.Errorf("font-size 12 wrote %g tall, want between font-size 8 at %g and font-size 16 at %g",
+			h, low, high)
+	}
+	if w, low, high := mid.MaxX-mid.MinX, small.MaxX-small.MinX, big.MaxX-big.MinX; w <= low || w >= high {
+		t.Errorf("font-size 12 wrote %g across, want between font-size 8 at %g and font-size 16 at %g",
+			w, low, high)
+	}
 	// Sixteen is what a size of nothing says: a drawing that does not name one
 	// is written at the same size as one that names the default.
 	if got := boxOf(t, `<text x="4" y="16">Hi</text>`); got != big {
@@ -379,9 +394,8 @@ func TestParseReadsTheSizeOfTheWriting(t *testing.T) {
 }
 
 // TestParseSaysWhatItCannotDoWithWriting is every sort of writing this package
-// cannot put down: a stroke it does not draw, a gradient or a pattern it cannot
-// fill with, a turn it does not follow, and anything inside the writing that is
-// not writing.
+// cannot put down: a turn there is no way back from, a place or a weight or a
+// room it cannot read, and anything inside the writing that is not writing.
 func TestParseSaysWhatItCannotDoWithWriting(t *testing.T) {
 	const head = `<svg viewBox="0 0 40 20"><defs><linearGradient id="g">` +
 		`<stop offset="0" stop-color="#ff0000"/><stop offset="1" stop-color="#0000ff"/>` +
@@ -390,12 +404,12 @@ func TestParseSaysWhatItCannotDoWithWriting(t *testing.T) {
 	for _, tc := range []struct {
 		name, src, want string
 	}{
-		{"a stroke", head + `<text x="4" y="16" stroke="red">Hi</text></svg>`, "stroke"},
-		{"a gradient", head + `<text x="4" y="16" fill="url(#g)">Hi</text></svg>`, "gradient"},
-		{"a pattern", head + `<text x="4" y="16" fill="url(#p)">Hi</text></svg>`, "pattern"},
-		{"a turn", head + `<g transform="rotate(30)"><text x="4" y="16">Hi</text></g></svg>`, "turned"},
-		{"a place for each letter", head + `<text x="4 9" y="16">Hi</text></svg>`, "each letter"},
+		{"a turn with no way back", head + `<g transform="matrix(1 1 1 1 0 0)"><text x="4" y="16">Hi</text></g></svg>`, "no way back"},
+		{"a move for each letter", head + `<text x="4" y="16" dx="1 2">Hi</text></svg>`, "each letter"},
 		{"a position that is not a number", head + `<text x="nope" y="16">Hi</text></svg>`, "not a number"},
+		{"a list of places with a hole in it", head + `<text x="4 nope 9" y="16">Hi</text></svg>`, "list of numbers"},
+		{"a weight that is not one", head + `<text x="4" y="16" font-weight="heavy">Hi</text></svg>`, "not a weight"},
+		{"a room that is not a length", head + `<text x="4" y="16" letter-spacing="wide">Hi</text></svg>`, "not a length"},
 		{"an anchor that is not one", head + `<text text-anchor="beside">Hi</text></svg>`, "text-anchor"},
 		{"a child that is not writing", head + `<text x="4" y="16">Hi<rect width="1" height="1"/></text></svg>`, "<rect>"},
 	} {
@@ -424,6 +438,189 @@ func TestRenderWritesAnOrphanTspan(t *testing.T) {
 	}
 }
 
+// TestRenderTurnsTheWritingWithTheTransform is what a rotate on the group does
+// to the writing now: the letters go round with it rather than staying where
+// the pen is. The piece stands up out of the pen after a quarter turn back,
+// and the ground it would have covered lying down is left clear.
+func TestRenderTurnsTheWritingWithTheTransform(t *testing.T) {
+	_, cv := painted(t, `<svg viewBox="0 0 40 20">
+		<g transform="rotate(-90 20 16)"><text x="20" y="16" font-size="12" fill="red">Hi</text></g>
+	</svg>`, 40, 20)
+	turned, straight := 0, 0
+	for y := 0; y < 20; y++ {
+		for x := 0; x < 40; x++ {
+			if pixelAt(cv, x, y) != canvas.RGB(255, 0, 0) {
+				continue
+			}
+			// Up and to the left of the pen is where the quarter turn back
+			// puts it; to the right of the pen is where it would lie if the
+			// turn had been left off.
+			if x >= 11 && x <= 20 && y >= 1 && y <= 14 {
+				turned++
+			}
+			if x >= 24 && x <= 33 && y >= 8 && y <= 16 {
+				straight++
+			}
+		}
+	}
+	if turned == 0 {
+		t.Error("the writing did not go round with the turn: nothing was painted where the turn puts it")
+	}
+	if straight != 0 {
+		t.Errorf("%d pixels of it are still lying where the pen is, want none", straight)
+	}
+}
+
+// TestRenderWritesAroundTheWritingIsStroked is `stroke` on writing: the
+// letters are filled as they always were and the stroke is the outline of
+// them, sitting half inside the letters where the fill covers it and half
+// outside where it shows — so a drawing that says nothing about filling gets
+// the outline round the fill rather than the outline instead of it.
+func TestRenderWritesAroundTheWritingIsStroked(t *testing.T) {
+	const src = `<svg viewBox="0 0 40 20">
+		<text x="4" y="16" font-size="8" %s>Hi</text>
+	</svg>`
+	img, plain := painted(t, fmt.Sprintf(src, `fill="#000000"`), 40, 20)
+	_, edged := painted(t, fmt.Sprintf(src, `fill="#000000" stroke="#ff0000"`), 40, 20)
+	_, alone := painted(t, fmt.Sprintf(src, `fill="none" stroke="#ff0000"`), 40, 20)
+	if ws := img.Warnings().String(); ws != "no warnings" {
+		t.Errorf("the drawing said %v, want nothing to say", img.Warnings())
+	}
+	filled, outlined, ring := writtenBox(plain), writtenBox(edged), writtenBox(alone)
+	if filled.Empty || outlined.Empty || ring.Empty {
+		t.Fatalf("one of the three painted nothing: %s, %s, %s", filled, outlined, ring)
+	}
+	// The stroke goes round the letters, so what it comes out in holds what
+	// the fill alone comes out in and reaches further than it.
+	if ring.MinX > filled.MinX || ring.MinY > filled.MinY ||
+		ring.MaxX < filled.MaxX || ring.MaxY < filled.MaxY {
+		t.Errorf("the stroke comes out %s, inside the %s it is supposed to surround", ring, filled)
+	}
+	if ring == filled {
+		t.Errorf("the stroke comes out at the same box as the fill, %s, want more than that", ring)
+	}
+	// With no fill at all the stroke is still drawn: the outline of the
+	// letters rather than the letters, which is what a drawing that turns the
+	// filling off and strokes instead is asking for.
+	red := coloredBox(edged, func(c canvas.Color) bool {
+		return c.R() > 200 && c.G() < 60 && c.B() < 60
+	})
+	if red.Empty {
+		t.Error("the stroke was not painted in the colour the drawing asked for")
+	}
+}
+
+// TestRenderFillsTheWritingWithAGradient is `fill="url(#...)"` on writing: the
+// colour runs across the letters the same way it runs across a shape filled
+// with the gradient, rather than the writing being left out of the picture.
+func TestRenderFillsTheWritingWithAGradient(t *testing.T) {
+	img, cv := painted(t, `<svg viewBox="0 0 40 20">
+		<defs><linearGradient id="g" x1="4" y1="0" x2="20" y2="0" gradientUnits="userSpaceOnUse">
+			<stop offset="0" stop-color="#ff0000"/><stop offset="1" stop-color="#0000ff"/>
+		</linearGradient></defs>
+		<text x="4" y="16" font-size="8" fill="url(#g)">Hi</text>
+	</svg>`, 40, 20)
+	var first, last canvas.Color
+	for x := 0; x < cv.Width; x++ {
+		for y := 0; y < cv.Height; y++ {
+			c := cv.At(x, y)
+			if c.A() == 0 {
+				continue
+			}
+			if first.A() == 0 {
+				first = c
+			}
+			last = c
+		}
+	}
+	if first.A() == 0 {
+		t.Fatal("none of the writing was painted at all")
+	}
+	if ws := img.Warnings().String(); ws != "no warnings" {
+		t.Errorf("the drawing said %v, want nothing to say", img.Warnings())
+	}
+	// The colour runs along the writing the way it runs along a shape filled
+	// with the gradient: what is at the far end of it has taken more of the
+	// colour it ends with than what is at the start has.
+	blue := func(c canvas.Color) int { return int(c.B()) - int(c.R()) }
+	if blue(last) <= blue(first) {
+		t.Errorf("the colour does not run along the writing: the first letter comes out %s and the last %s",
+			first, last)
+	}
+}
+
+// TestRenderFillsTheWritingWithAPattern is `fill="url(#...)"` on writing the
+// same way: the picture the pattern paints is what the letters are filled with.
+func TestRenderFillsTheWritingWithAPattern(t *testing.T) {
+	img, cv := painted(t, `<svg viewBox="0 0 40 20">
+		<defs><pattern id="p" patternUnits="userSpaceOnUse" width="4" height="4">
+			<rect width="4" height="4" fill="#00ff00"/>
+		</pattern></defs>
+		<text x="4" y="16" font-size="8" fill="url(#p)">Hi</text>
+	</svg>`, 40, 20)
+	if ws := img.Warnings().String(); ws != "no warnings" {
+		t.Errorf("the drawing said %v, want nothing to say", img.Warnings())
+	}
+	green := coloredBox(cv, func(c canvas.Color) bool {
+		return c.G() > 200 && c.R() < 60 && c.B() < 60
+	})
+	if green.Empty {
+		t.Error("none of the writing took the colour the pattern paints with")
+	}
+}
+
+// TestRenderKeepsTheWritingAsTheFileWroteIt is `xml:space="preserve"`: the
+// spaces at the front of the writing are writing rather than the layout of the
+// file, so the letters start after them, and the line break in the middle
+// starts a second line below the first instead of being squeezed away.
+func TestRenderKeepsTheWritingAsTheFileWroteIt(t *testing.T) {
+	const kept = `<svg viewBox="0 0 60 40"><text xml:space="preserve" x="4" y="12" font-size="8">  Hi
+  Bye</text></svg>`
+	img, err := Parse(kept)
+	if err != nil {
+		t.Fatalf("parse: %v", err)
+	}
+	node := img.Root.find("text")
+	if node == nil {
+		t.Fatal("the drawing has no writing in it")
+	}
+	if len(node.Runs) != 1 {
+		t.Fatalf("the writing came out in %d pieces, want the one it was written as", len(node.Runs))
+	}
+	if got, want := node.Runs[0].Text, "  Hi\n  Bye"; got != want {
+		t.Errorf("the writing came out %q, want %q: the file's own spaces and line break", got, want)
+	}
+	here := writtenBox(img.Render(60, 40))
+	// The same writing without the attribute: the spaces at the front go, and
+	// the two lines become one.
+	_, plain := painted(t, `<svg viewBox="0 0 60 40"><text x="4" y="12" font-size="8">Hi Bye</text></svg>`, 60, 40)
+	there := writtenBox(plain)
+	if here.MinX <= there.MinX {
+		t.Errorf("the preserved writing starts at %g, want further right than %g for the spaces the file put there", here.MinX, there.MinX)
+	}
+	if here.MaxY <= there.MaxY {
+		t.Errorf("the preserved writing reaches down to %g, want lower than %g for the second line", here.MaxY, there.MaxY)
+	}
+	// The attribute is inherited and `default` takes it off again, the same as
+	// every other word a `<g>` has to say about what is under it.
+	sub := `<g xml:space="preserve"><text x="4" y="12" font-size="8">  Hi</text></g>`
+	sg, err := Parse(`<svg viewBox="0 0 60 40">` + sub + `</svg>`)
+	if err != nil {
+		t.Fatalf("parse: %v", err)
+	}
+	if got := sg.Root.find("text").Runs[0].Text; got != "  Hi" {
+		t.Errorf("the writing under the group came out %q, want the spaces the group asked to keep", got)
+	}
+	off := `<g xml:space="preserve"><text xml:space="default" x="4" y="12" font-size="8">  Hi</text></g>`
+	og, err := Parse(`<svg viewBox="0 0 60 40">` + off + `</svg>`)
+	if err != nil {
+		t.Fatalf("parse: %v", err)
+	}
+	if got := og.Root.find("text").Runs[0].Text; got != "Hi" {
+		t.Errorf("the writing that asked for the default came out %q, want \"Hi\" with the spaces read as layout", got)
+	}
+}
+
 // TestTrimEdgesTakesTheWhitespaceOffTheEndsAndKeepsThePlace is the piece of
 // reading the writing above rests on: what is dropped with the whitespace at
 // the two ends of it, and what of it goes onto the writing that is left.
@@ -434,7 +631,7 @@ func TestTrimEdgesTakesTheWhitespaceOffTheEndsAndKeepsThePlace(t *testing.T) {
 		{Text: " ", HasY: true, Y: 9},
 		{Text: "there"},
 		{Text: "   "},
-	})
+	}, false)
 	if len(runs) != 3 {
 		t.Fatalf("got %d pieces, want three: %+v", len(runs), runs)
 	}
@@ -453,14 +650,251 @@ func TestTrimEdgesTakesTheWhitespaceOffTheEndsAndKeepsThePlace(t *testing.T) {
 	}
 	// A position written on the piece that is already there is not moved by
 	// one that was dropped in front of it: the nearest of them counts.
-	runs = trimEdges([]TextRun{{Text: " "}, {Text: "hello", HasY: true, Y: 4}})
+	runs = trimEdges([]TextRun{{Text: " "}, {Text: "hello", HasY: true, Y: 4}}, false)
 	if len(runs) != 1 || runs[0].Y != 4 {
 		t.Errorf("got %+v, want one piece at y 4", runs)
 	}
 	// Nor is it moved by one dropped in front of it that named a place the
 	// writing after it had named for itself.
-	runs = trimEdges([]TextRun{{Text: " ", HasX: true, X: 2}, {Text: "hello", HasX: true, X: 9}})
+	runs = trimEdges([]TextRun{{Text: " ", HasX: true, X: 2}, {Text: "hello", HasX: true, X: 9}}, false)
 	if len(runs) != 1 || runs[0].X != 9 {
 		t.Errorf("got %+v, want one piece still at x 9", runs)
+	}
+}
+
+// TestRenderWritesAlongTheOutlineTheDrawingNames hangs writing on the `<path>` a
+// `<textPath>` names rather than on a pen. On a straight outline it comes out
+// where the same writing would have at a pen, which is how a test can tell the
+// outline was followed at all rather than a second copy of the writing painted
+// somewhere nearby. On an outline that bulges up, the writing goes up with it.
+func TestRenderWritesAlongTheOutlineTheDrawingNames(t *testing.T) {
+	const straight = `<defs><path id="p" d="M 4 16 L 36 16"/></defs>
+		<text font-size="8"><textPath href="#p">Hi</textPath></text>`
+	along := boxOf(t, straight)
+	atPen := boxOf(t, `<text x="4" y="16" font-size="8">Hi</text>`)
+	if along.Empty {
+		t.Fatal("writing on a straight outline painted nothing")
+	}
+	if along != atPen {
+		t.Errorf("on a straight outline the writing is %v, at a pen it is %v", along, atPen)
+	}
+	if img, err := Parse(`<svg viewBox="0 0 40 20">` + straight + `</svg>`); err != nil {
+		t.Fatalf("parse: %v", err)
+	} else if ws := img.Warnings().String(); ws != "no warnings" {
+		t.Errorf("following the outline said %q", ws)
+	}
+
+	bend := boxOf(t, `<defs><path id="b" d="M 4 16 Q 20 0 36 16"/></defs>
+		<text font-size="8"><textPath href="#b">Hi</textPath></text>`)
+	if bend.Empty {
+		t.Fatal("writing on a bent outline painted nothing")
+	}
+	if bend.MinY >= along.MinY {
+		t.Errorf("writing on an outline that bulges up sits at y=%v..%v, want above the straight outline at y=%v",
+			bend.MinY, bend.MaxY, along.MinY)
+	}
+}
+
+// TestRenderStartsTheWritingWhereTheOutlineSays is `startOffset`: how far along
+// the outline the first letter goes, as a number of units or as a share of how
+// long the outline is at all.
+func TestRenderStartsTheWritingWhereTheOutlineSays(t *testing.T) {
+	const head = `<defs><path id="p" d="M 4 16 L 36 16"/></defs>
+		<text font-size="8"><textPath href="#p"`
+	base := boxOf(t, head+`>Hi</textPath></text>`)
+	mid := boxOf(t, head+` startOffset="50%">Hi</textPath></text>`)
+	far := boxOf(t, head+` startOffset="24">Hi</textPath></text>`)
+	if base.Empty || mid.Empty || far.Empty {
+		t.Fatalf("one of the three painted nothing: %v %v %v", base, mid, far)
+	}
+	// The outline is thirty-two units long, and the canvas is a pixel to the
+	// unit: halfway along it is sixteen on from the start, and a startOffset of
+	// 24 is twenty-four. The same letters are written every time, so only where
+	// they start moves, and it moves by as much as the drawing asked for.
+	if d := mid.MinX - base.MinX; d < 14 || d > 18 {
+		t.Errorf("a startOffset of 50%% starts %v pixels on from the beginning, want about 16", d)
+	}
+	if d := far.MinX - base.MinX; d < 22 || d > 26 {
+		t.Errorf("a startOffset of 24 starts %v pixels on from the beginning, want about 24", d)
+	}
+}
+
+// TestParseSaysWhereItCannotFollowTheOutline is every way a `<textPath>` can
+// name an outline that is not there to write on: nothing at all, something in
+// another drawing, an id this drawing does not have, and a shape that is not a
+// path. In each case there is nowhere to put the writing, and the drawing says
+// so rather than putting it down somewhere it was not asked for.
+func TestParseSaysWhereItCannotFollowTheOutline(t *testing.T) {
+	const head = `<svg viewBox="0 0 40 20">`
+	for _, tc := range []struct {
+		name, src, want string
+	}{
+		{"no href", head + `<text><textPath>Hi</textPath></text></svg>`, "no href"},
+		{"another drawing", head + `<text><textPath href="other.svg#p">Hi</textPath></text></svg>`, "another drawing"},
+		{"an id the drawing does not have", head + `<text><textPath href="#p">Hi</textPath></text></svg>`, "does not have"},
+		{"a shape that is not a path", head + `<defs><rect id="r"/></defs><text><textPath href="#r">Hi</textPath></text></svg>`, "<rect>"},
+		{"an outline with nothing in it", head + `<defs><path id="p"/></defs><text><textPath href="#p">Hi</textPath></text></svg>`, "nothing in it"},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			img, err := Parse(tc.src)
+			if err != nil {
+				t.Fatalf("parse: %v", err)
+			}
+			ws := img.Warnings().String()
+			if !strings.Contains(ws, tc.want) {
+				t.Errorf("the warnings %q do not mention %q", ws, tc.want)
+			}
+			if b := writtenBox(img.Render(40, 20)); !b.Empty {
+				t.Errorf("the writing that had no outline to follow still painted %v", b)
+			}
+		})
+	}
+}
+
+// TestRenderWritesAtThePlaceEachLetterWasGiven is a place for every letter
+// rather than one place for the whole of the piece: `x="4 16 28"` spreads the
+// three letters of the writing ten units apart, and `y="16 8"` puts the second
+// one above the first. Both are wider and higher than the same writing with a
+// single place, because the list is what moved them.
+func TestRenderWritesAtThePlaceEachLetterWasGiven(t *testing.T) {
+	apart := boxOf(t, `<text x="4 16 28" y="16" font-size="8">abc</text>`)
+	together := boxOf(t, `<text x="4" y="16" font-size="8">abc</text>`)
+	if apart.Empty || together.Empty {
+		t.Fatalf("one of the two painted nothing: %s and %s", apart, together)
+	}
+	if apart.MaxX-together.MaxX < 6 {
+		t.Errorf("a place for each letter reaches only to %g where one place for the piece reaches %g",
+			apart.MaxX, together.MaxX)
+	}
+	raised := boxOf(t, `<text x="4" y="16 8" font-size="8">ab</text>`)
+	low := boxOf(t, `<text x="4" y="16" font-size="8">ab</text>`)
+	if raised.Empty || low.Empty {
+		t.Fatalf("one of the two painted nothing: %s and %s", raised, low)
+	}
+	if raised.MinY >= low.MinY {
+		t.Errorf("the second letter of a list of y is at %g, want above the first at %g",
+			raised.MinY, low.MinY)
+	}
+	// A list that runs out leaves the rest of the writing to follow the pen
+	// from the letter before it, which is what a list shorter than the piece
+	// of writing has to mean.
+	short := boxOf(t, `<text x="4 30" y="16" font-size="8">abc</text>`)
+	if short.MaxX < 30 {
+		t.Errorf("the letter past the end of the list stops at %g, want to have followed the pen on", short.MaxX)
+	}
+}
+
+// TestRenderLeavesTheRoomItWasAskedFor is `letter-spacing`: a gap left after
+// every letter, so the same writing laid out wider than it was.
+func TestRenderLeavesTheRoomItWasAskedFor(t *testing.T) {
+	gapped := boxOf(t, `<text x="4" y="16" font-size="8" letter-spacing="4">abc</text>`)
+	plain := boxOf(t, `<text x="4" y="16" font-size="8">abc</text>`)
+	if gapped.Empty || plain.Empty {
+		t.Fatalf("one of the two painted nothing: %s and %s", gapped, plain)
+	}
+	if gapped.MaxX-plain.MaxX < 6 {
+		t.Errorf("a letter-spacing of 4 reaches only to %g where no letter-spacing reaches %g",
+			gapped.MaxX, plain.MaxX)
+	}
+	if gapped.MinX != plain.MinX {
+		t.Errorf("the writing starts at %g with letter-spacing and %g without, want the same pen",
+			gapped.MinX, plain.MinX)
+	}
+}
+
+// TestRenderWritesTheWeightItWasAskedFor is `font-weight`: a weight the face
+// does not have is faked by writing the piece a second time a pixel further
+// on, which is the only way a face can be made heavier than it was cut.
+func TestRenderWritesTheWeightItWasAskedFor(t *testing.T) {
+	_, plain := painted(t, `<svg viewBox="0 0 40 20">
+		<text x="4" y="16" font-size="8">H</text>
+	</svg>`, 40, 20)
+	_, heavyInk := painted(t, `<svg viewBox="0 0 40 20">
+		<text x="4" y="16" font-size="8" font-weight="bold">H</text>
+	</svg>`, 40, 20)
+	light, dark := writtenBox(plain), writtenBox(heavyInk)
+	if light.Empty || dark.Empty {
+		t.Fatalf("one of the two painted nothing: %s and %s", light, dark)
+	}
+	if dark != light {
+		t.Errorf("the weight moves the writing to %s where no weight leaves it at %s, want the same box",
+			dark, light)
+	}
+	// The second pass is a pixel wider than the first, so more of the picture
+	// is painted on even where the box it comes out in is the same.
+	if inked(heavyInk) <= inked(plain) {
+		t.Errorf("the weight paints %d pixels where no weight paints %d, want more",
+			inked(heavyInk), inked(plain))
+	}
+	// A weight below the heavy end is the face's own, and leaves it alone.
+	_, thin := painted(t, `<svg viewBox="0 0 40 20">
+		<text x="4" y="16" font-size="8" font-weight="300">H</text>
+	</svg>`, 40, 20)
+	if got := writtenBox(thin); got != light {
+		t.Errorf("a weight of 300 comes out %s where no weight comes out %s, want the face's own",
+			got, light)
+	}
+}
+
+// inked is how much of the picture anything was painted on, which says what a
+// box cannot: two drawings in the same place are not the same drawing if one
+// of them put more ink down.
+func inked(cv *canvas.Canvas) int {
+	n := 0
+	for y := range cv.Height {
+		for x := range cv.Width {
+			if cv.At(x, y).A() > 0 {
+				n++
+			}
+		}
+	}
+	return n
+}
+
+// TestParseReadsHowTheWritingIsSet is the three values behind the two above:
+// the family a piece asks for, its weight and the room after every letter,
+// read off the element and inherited from the group around it the way the size
+// and the anchor already are.
+func TestParseReadsHowTheWritingIsSet(t *testing.T) {
+	img, err := Parse(`<svg viewBox="0 0 10 10">
+		<g font-family="Inter, sans-serif" font-weight="bolder" letter-spacing="1.5">
+			<text>a</text>
+		</g>
+	</svg>`)
+	if err != nil {
+		t.Fatalf("parse: %v", err)
+	}
+	if ws := img.Warnings().String(); ws != "no warnings" {
+		t.Errorf("reading the writing said %q", ws)
+	}
+	st := img.Root.find("text").Style
+	if st.FontFamily != "Inter, sans-serif" {
+		t.Errorf("the family came out %q, want the list as it was written", st.FontFamily)
+	}
+	// Nothing said a weight before, so `bolder` steps from the normal one —
+	// and CSS's step from a normal weight is a bold one.
+	if st.FontWeight != FontWeightBold {
+		t.Errorf("the weight came out %d, want %d", st.FontWeight, FontWeightBold)
+	}
+	if st.LetterSpacing != 1.5 {
+		t.Errorf("the room after every letter came out %g, want 1.5", st.LetterSpacing)
+	}
+	// A weight of the scale is a weight of the hundreds the words name.
+	img, err = Parse(`<svg viewBox="0 0 10 10"><text font-weight="450">b</text></svg>`)
+	if err != nil {
+		t.Fatalf("parse: %v", err)
+	}
+	if got := img.Root.find("text").Style.FontWeight; got != 500 {
+		t.Errorf("a weight of 450 came out %d, want 500", got)
+	}
+	// And `lighter` steps down from the weight in hand rather than from none.
+	img, err = Parse(`<svg viewBox="0 0 10 10">
+		<g font-weight="700"><text font-weight="lighter">c</text></g>
+	</svg>`)
+	if err != nil {
+		t.Fatalf("parse: %v", err)
+	}
+	if got := img.Root.find("text").Style.FontWeight; got != 400 {
+		t.Errorf("a lighter 700 came out %d, want 400", got)
 	}
 }
