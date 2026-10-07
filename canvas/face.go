@@ -21,12 +21,13 @@ import (
 //
 //	canvas.SetDefaultFace(face)   // every Text, TextWidth and widget
 type Face struct {
-	// built-in, when font is nil; bitmap is how many times over each of its
-	// pixels is drawn, which is the only size a bitmap font has.
-	bitmap int
-	file   *font.TTF
-	size   float64 // pixels per em
-	scale  float64 // font units to pixels
+	// built-in, when font is nil; unit is how many device pixels one cell of
+	// its 8x16 shape comes out at, so the font's own height is one and a size
+	// between its steps is the shape with its cells at that size.
+	unit  float64
+	file  *font.TTF
+	size  float64 // pixels per em
+	scale float64 // font units to pixels
 
 	ascent, descent, height int
 
@@ -53,7 +54,7 @@ type Face struct {
 
 // builtin is the 8x16 bitmap, as a Face.
 var builtin = &Face{
-	bitmap:  1,
+	unit:    1,
 	ascent:  12,
 	descent: FontHeight - 12,
 	height:  FontHeight,
@@ -63,7 +64,7 @@ var builtin = &Face{
 func BuiltinFace() *Face { return builtin }
 
 // BuiltinScaled is the built-in font with each of its pixels drawn n times
-// over, which is the only size a bitmap font has.
+// over, which is a size the bitmap font comes in.
 func BuiltinScaled(n int) *Face {
 	if n <= 1 {
 		return builtin
@@ -75,7 +76,7 @@ func BuiltinScaled(n int) *Face {
 		return f
 	}
 	f := &Face{
-		bitmap:  n,
+		unit:    float64(n),
 		ascent:  builtin.ascent * n,
 		descent: builtin.descent * n,
 		height:  FontHeight * n,
@@ -84,9 +85,42 @@ func BuiltinScaled(n int) *Face {
 	return f
 }
 
+// builtinAt is the built-in font at a size in pixels, made once and kept. The
+// sizes that are a whole multiple of its own height are the faces
+// [BuiltinScaled] already hands out — the same shape drawn n times over — and
+// any other size is that shape with its cells at the size asked for, so twelve
+// pixels of writing come out twelve pixels high rather than being rounded up
+// to the sixteen the shape was cut at.
+func builtinAt(pixels float64) *Face {
+	n := int(math.Round(pixels))
+	if n <= 0 {
+		return builtin
+	}
+	if n >= FontHeight && n%FontHeight == 0 && n/FontHeight <= 16 {
+		return BuiltinScaled(n / FontHeight)
+	}
+	builtinMu.Lock()
+	defer builtinMu.Unlock()
+	if f, ok := builtinSized[n]; ok {
+		return f
+	}
+	unit := float64(n) / float64(FontHeight)
+	f := &Face{
+		unit:    unit,
+		ascent:  int(math.Round(float64(builtin.ascent) * unit)),
+		descent: int(math.Round(float64(builtin.descent) * unit)),
+		height:  n,
+	}
+	builtinSized[n] = f
+	return f
+}
+
 var (
 	builtinMu     sync.Mutex
 	builtinScaled = map[int]*Face{}
+	// builtinSized is the built-in font at sizes asked for outright rather
+	// than as a multiple, keyed by the whole pixel it was made at.
+	builtinSized = map[int]*Face{}
 )
 
 // defaultFace is what Text and TextWidth use when nothing says otherwise.
@@ -170,17 +204,19 @@ func (f *Face) Descent() int {
 // Fixed reports whether every character is the same width.
 func (f *Face) Fixed() bool { return f == nil || f.file == nil }
 
-func (f *Face) scaleOf() int {
-	if f == nil || f.bitmap <= 0 {
+// scaleOf is how many device pixels one cell of the built-in font comes out
+// at: one for the font as it stands, and whatever a size asked for makes it.
+func (f *Face) scaleOf() float64 {
+	if f == nil || f.unit <= 0 {
 		return 1
 	}
-	return f.bitmap
+	return f.unit
 }
 
 // Width is how wide a string is, in pixels, measuring the widest line.
 func (f *Face) Width(text string) int {
 	if f == nil || f.file == nil {
-		return font.TextWidth(text) * f.scaleOf()
+		return int(math.Round(float64(font.TextWidth(text)) * f.scaleOf()))
 	}
 	widest, line := 0, 0.0
 	for _, r := range text {
@@ -203,7 +239,7 @@ func (f *Face) Width(text string) int {
 // that does when this one does not.
 func (f *Face) advance(r rune) float64 {
 	if f == nil || f.file == nil {
-		return float64(font.TextWidth(string(r))) * float64(f.scaleOf())
+		return float64(font.TextWidth(string(r))) * f.scaleOf()
 	}
 	if cg := f.colorGlyph(r); cg != nil {
 		return float64(cg.Advance) * f.colorScale(cg)
@@ -352,7 +388,7 @@ func (f *Face) WithFallback(next *Face) *Face {
 		return f
 	}
 	return &Face{
-		bitmap:   f.bitmap,
+		unit:     f.unit,
 		file:     f.file,
 		size:     f.size,
 		scale:    f.scale,
@@ -429,7 +465,7 @@ func (f *Face) Scaled(n int) *Face {
 		return BuiltinScaled(n)
 	}
 	if f.file == nil {
-		return BuiltinScaled(f.scaleOf() * n)
+		return builtinAt(f.scaleOf() * float64(n) * float64(FontHeight))
 	}
 	f.mu.Lock()
 	defer f.mu.Unlock()
@@ -458,14 +494,15 @@ func (f *Face) Scaled(n int) *Face {
 //
 // The size is rounded to a whole pixel, because a glyph is rasterised once and
 // the cache it is kept in is keyed by the size it was made at. The built-in
-// font has one shape drawn n times over, so its sizes come out in steps of its
-// own height and anything below it asks for the one it has.
+// font is one shape cut at eight by sixteen, so its sizes are not steps any
+// more: the shape is drawn with its cells at whatever size comes out, which is
+// what makes a twelve pixel font twelve pixels high rather than sixteen.
 func (f *Face) AtSize(pixels float64) *Face {
 	if pixels <= 0 {
 		return f
 	}
 	if f == nil || f.file == nil {
-		return BuiltinScaled(max(1, int(math.Round(pixels/float64(FontHeight)))))
+		return builtinAt(pixels)
 	}
 	n := int(math.Round(pixels))
 	if n == int(math.Round(f.size)) {

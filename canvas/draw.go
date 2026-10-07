@@ -1,6 +1,10 @@
 package canvas
 
-import "github.com/gabrielluizsf/antui/font"
+import (
+	"math"
+
+	"github.com/gabrielluizsf/antui/font"
+)
 
 // FontWidth and FontHeight are the cell size of the built-in font, in pixels.
 var (
@@ -580,23 +584,28 @@ func (cv *Canvas) TextScaled(x, y int, text string, c Color, scale int) int {
 		f = f.Scaled(scale)
 		return f.Draw(cv, x, y+f.Ascent(), text, c)
 	}
-	return cv.textBitmap(x, y, text, c, scale)
+	return cv.textBitmap(x, y, text, c, float64(scale))
 }
 
-// textBitmap is the built-in font.
-func (cv *Canvas) textBitmap(x, y int, text string, c Color, scale int) int {
-	scale = max(scale, 1)
-	penX, penY, widest := x, y, 0
+// textBitmap is the built-in font at a size: each cell of its shape is drawn
+// as a square as large as that size says, and the cells that come out no
+// pixels wide at a size smaller than its own are left out rather than pulled
+// open to one, so writing thinner than the shape thins instead of growing.
+func (cv *Canvas) textBitmap(x, y int, text string, c Color, unit float64) int {
+	if unit <= 0 {
+		unit = 1
+	}
+	penX, penY := float64(x), float64(y)
+	widest := 0.0
 
 	for _, r := range text {
 		switch r {
 		case '\n':
-			widest = max(widest, penX-x)
-			penX = x
-			penY += FontHeight * scale
+			widest = max(widest, penX-float64(x))
+			penX, penY = float64(x), penY+float64(FontHeight)*unit
 			continue
 		case '\t':
-			penX += FontWidth * scale * 4
+			penX += float64(FontWidth) * unit * 4
 			continue
 		case '\r':
 			continue
@@ -608,21 +617,31 @@ func (cv *Canvas) textBitmap(x, y int, text string, c Color, scale int) int {
 				if bits == 0 {
 					continue
 				}
+				top := int(math.Round(penY + float64(row)*unit))
+				bottom := int(math.Round(penY + float64(row+1)*unit))
+				if bottom <= top {
+					continue
+				}
 				for col := range FontWidth {
 					if bits&(0x80>>col) == 0 {
 						continue
 					}
-					if scale == 1 {
-						cv.Pixel(penX+col, penY+row, c)
+					left := int(math.Round(penX + float64(col)*unit))
+					right := int(math.Round(penX + float64(col+1)*unit))
+					if right <= left {
+						continue
+					}
+					if right-left == 1 && bottom-top == 1 {
+						cv.Pixel(left, top, c)
 					} else {
-						cv.FillRect(penX+col*scale, penY+row*scale, scale, scale, c)
+						cv.FillRect(left, top, right-left, bottom-top, c)
 					}
 				}
 			}
 		}
-		penX += FontWidth * scale
+		penX += float64(FontWidth) * unit
 	}
-	return max(widest, penX-x)
+	return int(math.Round(max(widest, penX-float64(x))))
 }
 
 // Blit composites another canvas over this one at x, y.
