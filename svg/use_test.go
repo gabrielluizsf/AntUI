@@ -322,3 +322,53 @@ func TestUseDrawsASymbolWithNoViewBox(t *testing.T) {
 		t.Errorf("where it was written is %v, want it clear", got)
 	}
 }
+
+// TestUseFitsASvgLikeASymbol: a drawing named by a use is a viewport of its
+// own, so its viewBox is mapped onto the box the use gave it the same way a
+// symbol's is — the use is what says how big it comes out.
+func TestUseFitsASvgLikeASymbol(t *testing.T) {
+	img, cv := painted(t, `<svg viewBox="0 0 40 40">
+		<defs><svg id="v" viewBox="0 0 10 10"><rect width="10" height="10" fill="red"/></svg></defs>
+		<use href="#v" width="20" height="20"/>
+	</svg>`, 40, 40)
+	if len(img.Warnings()) != 0 {
+		t.Errorf("the drawing said %v, want it happy with the svg", img.Warnings())
+	}
+	if got := pixelAt(cv, 15, 15); got != canvas.RGB(255, 0, 0) {
+		t.Errorf("inside the box the use asked for is %v, want it red: the viewBox was fitted", got)
+	}
+	if got := pixelAt(cv, 25, 25); got.A() != 0 {
+		t.Errorf("outside the box the use asked for is %v, want it clear", got)
+	}
+}
+
+// TestUseTakesTheSizeOfTheSvgItNames is the size of the drawing itself: a use
+// that asks for no box leaves the nested drawing at the width and height it was
+// written with, rather than blowing it up to the whole picture.
+func TestUseTakesTheSizeOfTheSvgItNames(t *testing.T) {
+	_, cv := painted(t, `<svg viewBox="0 0 40 40">
+		<defs><svg id="v" width="10" height="10" viewBox="0 0 10 10"><rect width="10" height="10" fill="red"/></svg></defs>
+		<use href="#v"/>
+	</svg>`, 40, 40)
+	if got := pixelAt(cv, 5, 5); got != canvas.RGB(255, 0, 0) {
+		t.Errorf("inside the size it was written at is %v, want it red", got)
+	}
+	if got := pixelAt(cv, 15, 5); got.A() != 0 {
+		t.Errorf("outside the size it was written at is %v, want it clear", got)
+	}
+}
+
+// TestUseSizeWinsOverTheSizeOfTheSvgItNames: the use asks, so the use decides,
+// and the box the drawing was written with is only what happens when it does not.
+func TestUseSizeWinsOverTheSizeOfTheSvgItNames(t *testing.T) {
+	_, cv := painted(t, `<svg viewBox="0 0 40 40">
+		<defs><svg id="v" width="10" height="10" viewBox="0 0 10 10"><rect width="10" height="10" fill="red"/></svg></defs>
+		<use href="#v" width="30" height="30"/>
+	</svg>`, 40, 40)
+	if got := pixelAt(cv, 25, 25); got != canvas.RGB(255, 0, 0) {
+		t.Errorf("inside the box the use asked for is %v, want it red", got)
+	}
+	if got := pixelAt(cv, 35, 35); got.A() != 0 {
+		t.Errorf("outside the box the use asked for is %v, want it clear", got)
+	}
+}
