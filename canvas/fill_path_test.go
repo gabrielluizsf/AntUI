@@ -1,6 +1,9 @@
 package canvas
 
-import "testing"
+import (
+	"math"
+	"testing"
+)
 
 // The canvas blends over a framebuffer, and a framebuffer has nothing behind it
 // to show through, so a blended pixel always comes back opaque: the coverage of
@@ -185,6 +188,34 @@ func TestFillPathClipsOffCanvas(t *testing.T) {
 	for _, pt := range [][2]int{{0, 0}, {7, 0}, {0, 7}, {7, 7}} {
 		if got := coverageAt(cv, pt[0], pt[1]); got != 255 {
 			t.Errorf("corner (%d,%d) = %d, want 255", pt[0], pt[1], got)
+		}
+	}
+}
+
+func TestFillPathKeepsAnEdgeThatReachesInTheShapeFromOutside(t *testing.T) {
+	// A shape reaching past the side of the canvas: the edges beside it lie
+	// wholly outside the band being filled, but they are the ones that bound
+	// the stretch of line reaching in from out there — leave one out and the
+	// pairs of crossings come out lopsided, the stretch that reaches in never
+	// gets a start, and the fill paints nothing at all. A turn of half a turn
+	// is the shape: rotated, its edges are sloped rather than level, which is
+	// what the crossing test asks for — a level edge is left out anyway.
+	cv := newTestCanvas(t, 40, 40)
+	p := NewPath()
+	p.AddRect(0, 0, 10, 10)
+	p.Transform(Rotate(math.Pi))
+	p.Transform(Translate(5, 17))
+	cv.FillPath(p, RGB(255, 0, 0), FillNonZero)
+
+	// The shape stands at (-5,7)-(5,17) with only its right half on the canvas.
+	for _, pt := range [][2]int{{0, 8}, {3, 15}, {4, 16}} {
+		if got := coverageAt(cv, pt[0], pt[1]); got != 255 {
+			t.Errorf("inside (%d,%d) = %d, want 255", pt[0], pt[1], got)
+		}
+	}
+	for _, pt := range [][2]int{{6, 15}, {4, 6}} {
+		if got := coverageAt(cv, pt[0], pt[1]); got != 0 {
+			t.Errorf("outside (%d,%d) = %d, want 0", pt[0], pt[1], got)
 		}
 	}
 }

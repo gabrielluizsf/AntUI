@@ -77,7 +77,7 @@ func (cv *Canvas) fillCoverageSpan(s span, c Color) {
 // lines down and an exact width across is what makes an edge smooth in both
 // directions rather than stair-stepped in one and smeared in the other.
 func fillCoverage(path *Path, x0, y0, x1, y1 int, rule FillRule) []span {
-	edges := pathEdges(path, x0, y0, x1, y1)
+	edges := pathEdges(path, y0, y1)
 	if len(edges) == 0 {
 		return nil
 	}
@@ -193,7 +193,7 @@ type edge struct {
 // pathEdges turns every subpath into the edges a line can cross: each is a run
 // of points joined back up to its first when closed, and left out when it is a
 // single point, which has no area to cross.
-func pathEdges(path *Path, x0, y0, x1, y1 int) []edge {
+func pathEdges(path *Path, y0, y1 int) []edge {
 	pts, closed := path.Points()
 	edges := make([]edge, 0, len(pts))
 	for i, sub := range pts {
@@ -204,7 +204,7 @@ func pathEdges(path *Path, x0, y0, x1, y1 int) []edge {
 			sub = slices.Concat(sub, sub[:1])
 		}
 		for j := 1; j < len(sub); j++ {
-			if e, ok := makeEdge(sub[j-1], sub[j], x0, y0, x1, y1); ok {
+			if e, ok := makeEdge(sub[j-1], sub[j], y0, y1); ok {
 				edges = append(edges, e)
 			}
 		}
@@ -212,12 +212,21 @@ func pathEdges(path *Path, x0, y0, x1, y1 int) []edge {
 	return edges
 }
 
-// makeEdge is a segment ready to be sampled: clipped to the band being filled,
-// its slope inverted into "how far right for one down", and the way it was
-// heading recorded, which is what tells the nonzero rule which side is inside.
-// A level edge is left out — a line lies along it for a whole row, and that is
-// not a crossing but a tie.
-func makeEdge(a, b Point, x0, y0, x1, y1 int) (edge, bool) {
+// makeEdge is a segment ready to be sampled: clipped to the rows the band is
+// being filled over, its slope inverted into "how far right for one down", and
+// the way it was heading recorded, which is what tells the nonzero rule which
+// side is inside. A level edge is left out — a line lies along it for a whole
+// row, and that is not a crossing but a tie.
+//
+// An edge lying wholly past one side of the band in x is still kept: a stretch
+// of line it bounds may reach into the band from outside it, and without its
+// crossing the pairs come out lopsided — the stretch that reaches in never
+// gets a start, and the fill drops it rather than painting it, which empties
+// the whole shape wherever a shape reaches past its band with a sloped edge.
+// The crossing costs nothing even where the stretch it pairs up lies wholly
+// outside: the coverage of a stretch is clipped to the band where it is added,
+// so a pair that never comes near the band paints no pixel at all.
+func makeEdge(a, b Point, y0, y1 int) (edge, bool) {
 	if a.Y == b.Y {
 		return edge{}, false
 	}
@@ -231,13 +240,5 @@ func makeEdge(a, b Point, x0, y0, x1, y1 int) (edge, bool) {
 	}
 	e := edge{y0: top, y1: bottom, dxdy: (b.X - a.X) / (b.Y - a.Y), dir: dir}
 	e.xAtY0 = a.X + (top-a.Y)*e.dxdy
-	// An edge lying wholly past one side of the band is never crossed by a line
-	// that could land inside it.
-	if e.dxdy > 0 && e.xAtY0+(bottom-top)*e.dxdy < float64(x0) {
-		return edge{}, false
-	}
-	if e.dxdy < 0 && e.xAtY0 > float64(x1) {
-		return edge{}, false
-	}
 	return e, true
 }
