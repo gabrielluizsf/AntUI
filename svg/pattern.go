@@ -104,9 +104,11 @@ type tileKey struct {
 // maxTilePixels is how many pixels one tile may be drawn into. A tile the size
 // of the drawing at the drawing's own scale is ordinary and worth every pixel
 // of it; a tile written in fractions of a box on a shape drawn enormous is not
-// worth running the machine out of memory for, and comes out smaller and
-// blurrier instead — the tiling is still the tiling, and a pattern is a texture
-// rather than the thing itself.
+// worth running the machine out of memory for. What is worth it is what the
+// drawing can reach: such a tile is drawn as the part of it the canvas can ask
+// about, at the scale the pixels are sampled at, and comes out smaller and
+// blurrier only where even that part is over the limit — the tiling is still
+// the tiling, and a pattern is a texture rather than the thing itself.
 const maxTilePixels = 2_000_000
 
 // readPatterns takes every `<pattern>` that named itself, under the id a `fill`
@@ -268,7 +270,7 @@ func (img *Image) readPattern(id string, e *element) {
 // already being drawn further out all answer the same way: there is no shade
 // here, and the shape takes the colour after the `url(...)` if it brought one
 // with it and nothing at all if it did not.
-func patternShade(pt *pattern, n *Node, m canvas.Matrix, current canvas.Color, opacity float64, patterning []*pattern) (func(x, y int) canvas.Color, bool) {
+func patternShade(pt *pattern, n *Node, m canvas.Matrix, width, height int, current canvas.Color, opacity float64, patterning []*pattern) (func(x, y int) canvas.Color, bool) {
 	for _, being := range patterning {
 		if being == pt {
 			// This pattern is already being drawn further up: following it
@@ -304,25 +306,63 @@ func patternShade(pt *pattern, n *Node, m canvas.Matrix, current canvas.Color, o
 	}
 	// How much of the canvas one step of the tile is worth, which is the size
 	// the tile lands at: the drawing's own scale, put through the transform
-	// that moves the pattern, since that transform moves the tile too. What is
-	// more pixels than a tile is worth is a tile drawn smaller rather than a
-	// machine run out of room — see [maxTilePixels].
+	// that moves the pattern, since that transform moves the tile too. A tile
+	// worth more than [maxTilePixels] comes out drawn as the part of it the
+	// canvas can ask about at this same scale, and smaller only where even
+	// that is over the limit.
 	s := scaleOf(toCanvas.Mul(pt.transform))
 	if !(s > 0) || math.IsInf(s, 0) {
 		return nil, false
 	}
-	if area := w * s * h * s; area > maxTilePixels {
-		s *= math.Sqrt(maxTilePixels / area)
+	// Where the picture is drawn into: the whole tile, unless the whole tile
+	// at this scale is dearer than [maxTilePixels] is worth — then the part of
+	// the tile the canvas corners fall in, where even that fits, drawn at the
+	// same scale the pixels are sampled at; and where it does not, the whole
+	// tile at a scale that does, which is what every tile over the limit used
+	// to come out as. A pattern that draws past its own edges (an
+	// overflow=visible one) is tied to the tile's edges rather than to where
+	// the canvas looks, so it always takes the last road.
+	rx, ry, rw, rh := x, y, w, h
+	if w*s*h*s > maxTilePixels {
+		if !pt.visible {
+			// The box the four corners of the canvas fall in, taken back
+			// through the same two maps every point goes through: everything
+			// outside it is never asked about. A side the box runs past the
+			// tile on is the whole of the tile that way — a box straddling
+			// the tile's edge wraps round onto both sides of it.
+			u0, v0, u1, v1 := math.Inf(1), math.Inf(1), math.Inf(-1), math.Inf(-1)
+			for _, c := range [][2]float64{{0, 0}, {float64(width), 0}, {0, float64(height)}, {float64(width), float64(height)}} {
+				ux, uy := inv.Map(c[0], c[1])
+				bx, by := toTile.Map(ux, uy)
+				u0, v0 = min(u0, bx-x), min(v0, by-y)
+				u1, v1 = max(u1, bx-x), max(v1, by-y)
+			}
+			if u0 >= 0 && u1 <= w {
+				rx, rw = x+u0, u1-u0
+			}
+			if v0 >= 0 && v1 <= h {
+				ry, rh = y+v0, v1-v0
+			}
+		}
+		if rw*s*rh*s > maxTilePixels {
+			// Even the part the canvas reaches is over the limit, or the
+			// pattern draws past its own edges: the whole tile smaller.
+			s *= math.Sqrt(maxTilePixels / (w * s * h * s))
+			rx, ry, rw, rh = x, y, w, h
+		}
 	}
-	tile := pt.picture(box, x, y, w, h, s, current, patterning)
+	// The picture is cut to the part above, so a pixel takes its colour from
+	// the tile at the same scale minus how far into the tile the part starts.
+	xoff, yoff := (rx-x)*s, (ry-y)*s
+	tile := pt.picture(box, rx, ry, rw, rh, s, current, patterning)
 	if tile == nil {
 		return nil, false
 	}
 	return func(px, py int) canvas.Color {
 		ux, uy := inv.Map(float64(px)+0.5, float64(py)+0.5)
 		bx, by := toTile.Map(ux, uy)
-		ix := int(modUnit(bx-x, w) * s)
-		iy := int(modUnit(by-y, h) * s)
+		ix := int(modUnit(bx-x, w)*s - xoff)
+		iy := int(modUnit(by-y, h)*s - yoff)
 		if ix < 0 {
 			ix = 0
 		} else if ix >= tile.Width {

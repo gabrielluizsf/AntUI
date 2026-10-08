@@ -282,7 +282,7 @@ func paintShape(cv *canvas.Canvas, n *Node, m canvas.Matrix, current canvas.Colo
 			// all where it brought none.
 			fill := clonePath(n.Path)
 			fill.Transform(m)
-			if shade, ok := patternShade(st.fillPattern, n, m, current, st.Opacity*st.FillOpacity, patterning); ok {
+			if shade, ok := patternShade(st.fillPattern, n, m, cv.Width, cv.Height, current, st.Opacity*st.FillOpacity, patterning); ok {
 				cv.FillPathFunc(fill, st.FillRule, shade)
 			} else if c, ok := st.fillFallbackColour(current); ok {
 				if c := fade(c, st.Opacity*st.FillOpacity); c.A() > 0 {
@@ -356,7 +356,7 @@ func paintStroke(cv *canvas.Canvas, n *Node, m canvas.Matrix, current canvas.Col
 		// same way it runs across the fill — with the colour after the
 		// `url(...)` where the pattern has nothing to paint with.
 		outline := canvas.StrokeOutline(stroke, style)
-		if shade, ok := patternShade(st.strokePattern, n, m, current, st.Opacity*st.StrokeOpacity, patterning); ok {
+		if shade, ok := patternShade(st.strokePattern, n, m, cv.Width, cv.Height, current, st.Opacity*st.StrokeOpacity, patterning); ok {
 			cv.FillPathFunc(outline, canvas.FillNonZero, shade)
 		} else if c, ok := st.strokeFallbackColour(current); ok {
 			if c := fade(c, st.Opacity*st.StrokeOpacity); c.A() > 0 {

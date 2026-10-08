@@ -623,7 +623,7 @@ func paintPiece(cv *canvas.Canvas, n *Node, p *piece, m canvas.Matrix,
 		// tile has no size to it, the transform has no way back — the colour
 		// after the `url(...)` is what the writing falls back on, and nothing
 		// at all where it brought none.
-		if s, ok := patternShade(st.fillPattern, n, m, current,
+		if s, ok := patternShade(st.fillPattern, n, m, cv.Width, cv.Height, current,
 			st.Opacity*st.FillOpacity, patterning); ok {
 			shade = s
 		} else if fb, ok := st.fillFallbackColour(current); ok {

@@ -604,3 +604,74 @@ func TestRenderKeepsOnePictureEvenWhereFourPaintTheDrawingAtOnce(t *testing.T) {
 		t.Errorf("the pattern kept %d pictures after four paints at once, want 1", n)
 	}
 }
+
+func TestRenderKeepsATileSharpWhereOnlyPartOfItIsSampled(t *testing.T) {
+	// The tile here is worth far more pixels than one is worth whole, but the
+	// canvas only ever looks at the corner of it: ten units out of five
+	// hundred each way. Drawing the part the canvas reaches at the scale the
+	// pixels are sampled at keeps the picture's own edge sharp — cutting the
+	// tile down to the pixel budget instead would scale the whole five
+	// hundred down with it, and the edge the drawing puts at ten units would
+	// land a few pixels the soft side of where the canvas asks about it.
+	cv := cut(t, `<svg viewBox="0 0 200 200">
+		<defs>
+			<pattern id="p" patternUnits="userSpaceOnUse" width="500" height="500"
+				patternTransform="scale(5)">
+				<rect width="10" height="10" fill="#ff0000"/>
+			</pattern>
+		</defs>
+		<rect width="200" height="200" fill="url(#p)"/>
+	</svg>`, 200, 200)
+
+	kept(t, cv, 10, 25) // inside the picture
+	kept(t, cv, 49, 25) // the last pixel before the picture's own edge
+	gone(t, cv, 50, 25) // the edge comes out where the picture ends
+	gone(t, cv, 150, 25)
+}
+
+func TestRenderKeepsATileSharpAcrossTheStripTheCanvasLandsOn(t *testing.T) {
+	// The canvas lands across the tile's own edge here, from four hundred and
+	// eighty units in to five hundred and ten: half on one side of the seam,
+	// half on the other, so only the whole width of the tile covers it. The
+	// strip that wide is within the pixel budget, so it is drawn at the scale
+	// the pixels are sampled at and the picture's edge — the first five of
+	// the tile's five hundred — comes out where it was written rather than
+	// scaled down with a tile of which the canvas touches a twentieth.
+	cv := cut(t, `<svg viewBox="0 0 150 150">
+		<defs>
+			<pattern id="p" patternUnits="userSpaceOnUse" x="-480" width="500" height="500"
+				patternTransform="scale(5)">
+				<rect width="5" height="10" fill="#ff0000"/>
+			</pattern>
+		</defs>
+		<rect width="150" height="150" fill="url(#p)"/>
+	</svg>`, 150, 150)
+
+	kept(t, cv, 10, 25)  // inside the picture
+	kept(t, cv, 24, 25)  // the last pixel before the picture's own edge
+	gone(t, cv, 25, 25)  // the edge comes out where the picture ends
+	gone(t, cv, 100, 25) // and nothing beside it
+}
+
+func TestRenderDoesNotCutAnOverflowingTileToWhatTheCanvasReaches(t *testing.T) {
+	// A pattern that draws past its own edges answers to the tile's edges
+	// rather than to where the canvas looks — the copy of what it draws is
+	// worked out over the whole tile, and cutting the picture to the part the
+	// canvas reaches would strand that copy somewhere the tiling never put
+	// one. Over the pixel budget such a tile takes the road every tile used
+	// to take, the whole tile drawn smaller, so the picture past the tile
+	// lands where the tiling says and not in the middle of the strip.
+	cv := cut(t, `<svg viewBox="0 0 200 200">
+		<defs>
+			<pattern id="p" patternUnits="userSpaceOnUse" width="500" height="500"
+				patternTransform="scale(5)" overflow="visible">
+				<rect width="5" height="10" fill="#ff0000"/>
+				<rect x="-5" width="5" height="10" fill="#ff0000"/>
+			</pattern>
+		</defs>
+		<rect width="200" height="200" fill="url(#p)"/>
+	</svg>`, 200, 200)
+
+	kept(t, cv, 10, 25)  // the picture inside the tile
+	gone(t, cv, 175, 25) // the copy past the tile does not land mid-strip
+}
