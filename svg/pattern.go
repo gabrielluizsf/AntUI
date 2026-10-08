@@ -159,12 +159,44 @@ func (img *Image) readPattern(id string, e *element) {
 	}
 	for _, name := range []string{"href", "xlink:href"} {
 		if ref, ok := hashRef(e.attr(name)); ok && ref != "" {
-			warn("the pattern takes what it does not say from #%s, which is not read here, so what it leaves out is not there", ref)
+			// Follow the reference to another pattern, the same way gradients
+			// follow href references. The referenced pattern must be named with an
+			// id and be within this drawing.
+			id := strings.TrimPrefix(ref, "#")
+			if refPattern, ok := img.patterns[id]; ok {
+				// Use the referenced pattern's content and transform,
+				// inheriting its boxUnits and contentBox settings.
+				p.content = refPattern.content
+				p.transform = refPattern.transform
+				p.boxUnits = refPattern.boxUnits
+				p.contentBox = refPattern.contentBox
+				warn("the pattern takes its content from #%s", id)
+			} else {
+				warn("the pattern references #%s, which this drawing does not have, so its content is empty", id)
+			}
 			break
 		}
 	}
 	if e.hasAttr("viewBox") {
-		warn("the pattern has a viewBox, which is not read here, so its picture is drawn where it was written")
+		vbStr := strings.TrimSpace(e.attr("viewBox"))
+		if vb, ok := parseViewBox(vbStr); ok {
+			// viewBox establishes the pattern's coordinate system, overriding
+			// x, y, width, height and patternUnits/patternContentUnits.
+			p.x, p.y, p.w, p.h = vb[0], vb[1], vb[2], vb[3]
+			p.boxUnits = true
+			// patternContentUnits is also ignored per spec when viewBox is given,
+			// but we keep the current behavior for backward compatibility.
+			if e.hasAttr("patternContentUnits") {
+				p.contentBox = strings.EqualFold(
+					strings.TrimSpace(e.attr("patternContentUnits")), "objectboundingbox")
+			}
+			warn("the pattern has a viewBox, which sets the tile coordinates; " +
+				"x, y, width and height attributes are ignored")
+		} else {
+			warn("the pattern has an invalid viewBox %q, so its picture is drawn where it was written", vbStr)
+		}
+	} else if e.hasAttr("viewBox") {
+		// viewBox present but invalid — fall through to warning below
 	}
 	if p.w <= 0 || p.h <= 0 {
 		warn("the pattern tile is %g by %g, which tiles nothing, so the shape is painted without it", p.w, p.h)

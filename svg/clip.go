@@ -190,8 +190,20 @@ func (img *Image) resolveClip(st *Style, warn func(string, ...any)) *clipRegion 
 		warn("the clip-path names #%s, which the drawing does not have, so nothing of what it cuts is drawn", id)
 		return &clipRegion{}
 	case cp.boxUnits:
-		warn("the clipPath is written in objectBoundingBox units, which are not read here, so the element is drawn without it")
-		return nil
+		// The clipPath uses objectBoundingBox units: shapes are written as
+		// fractions of the element's box. We store the flag and defer the
+		// mapping to clipUnder, which runs after the node is built and the
+		// element's box is known. The shapes here are in the coordinates they
+		// were written in (before the element's own transform).
+		shapes := make([]canvas.MaskShape, len(cp.shapes))
+		for i, s := range cp.shapes {
+			p := clonePath(s.Path)
+			// Do NOT apply st.Transform here — the element transform will
+			// be applied by clipUnder after we know the painted box, so the
+			// fractions map consistently onto the element's own bounding box.
+			shapes[i] = canvas.MaskShape{Path: p, Rule: s.Rule}
+		}
+		return &clipRegion{shapes: shapes, boxUnits: true}
 	}
 	shapes := make([]canvas.MaskShape, len(cp.shapes))
 	for i, s := range cp.shapes {
@@ -206,6 +218,47 @@ func (img *Image) resolveClip(st *Style, warn func(string, ...any)) *clipRegion 
 		}
 		shapes[i] = canvas.MaskShape{Path: p, Rule: s.Rule}
 	}
+	return &clipRegion{shapes: shapes, boxUnits: false}
+}
+
+// clipUnder maps a clipRegion with boxUnits onto the element's painted box.
+// If the box cannot be measured, it warns and returns nil (the element is drawn whole).
+func clipUnder(clip *clipRegion, st Style, n *Node, warn func(string, ...any)) *clipRegion {
+	if clip == nil {
+		return nil
+	}
+	if !clip.boxUnits {
+		return clip
+	}
+	box, ok := paintedBox(n)
+	if !ok {
+		warn("the clipPath is written in objectBoundingBox units, which are not read here for this element, so the element is drawn without it")
+		return nil
+	}
+	// Map each shape's fractions onto the element's painted box in parent space.
+	// paintedBox gives the box in parent coordinates (including the element's own transform).
+	// Fractions of the box are: x = box.x + frac.x * box.w, etc.
+	shapes := make([]canvas.MaskShape, len(clip.shapes))
+	for i, s := range clip.shapes {
+		p := clonePath(s.Path)
+		// Transform the shape by translating/scaling to the painted box.
+		// The shape's original coords are in the element's user space; we map
+		// them so that 0→box.x, 1→box.x+box.w, etc. This is equivalent to:
+		// Translate(box.x, box.y).Scale(box.w, box.h).
+		// Use a matrix that scales by the box dimensions and translates by the box origin.
+		minX, minY, maxX, maxY, okBox := s.Path.Bounds()
+		if !okBox {
+			// Fallback: keep the shape as-is (should not happen for valid paths).
+			shapes[i] = canvas.MaskShape{Path: p, Rule: s.Rule}
+			continue
+		}
+		// Scale and translate the path into the painted box.
+		t := canvas.Translate(box[0], box[1])
+		scl := canvas.Scale(box[2]/(maxX-minX), box[3]/(maxY-minY))
+		m := t.Mul(scl)
+		p.Transform(m)
+		shapes[i] = canvas.MaskShape{Path: p, Rule: s.Rule}
+	}
 	return &clipRegion{shapes: shapes}
 }
 
@@ -215,7 +268,10 @@ func (img *Image) resolveClip(st *Style, warn func(string, ...any)) *clipRegion 
 // a clip is not inherited (see the `clip` field of [Node]), and it can be
 // empty, which is a clip that keeps nothing rather than no clip at all.
 type clipRegion struct {
-	shapes []canvas.MaskShape
+	// boxUnits is whether the shapes were written as fractions of the box of
+	// the element being clipped rather than in the drawing's own coordinates.
+	boxUnits bool
+	shapes   []canvas.MaskShape
 }
 
 // measured is the region of a node against the canvas it is being painted on:

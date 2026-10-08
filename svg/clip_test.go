@@ -282,11 +282,10 @@ func TestRenderMovesTheClipOfAUseWithItsXAndY(t *testing.T) {
 	}
 }
 
-// TestRenderOfAClipPathInFractionsOfABoxDrawsTheElementWhole: a clip written
-// against the box of the element it cuts is one this package cannot measure, so
-// the element is drawn as though there were no clip at all, with one warning
-// saying that the clip was left off rather than silently wrong.
-func TestRenderOfAClipPathInFractionsOfABoxDrawsTheElementWhole(t *testing.T) {
+// TestRenderOfAClipPathInObjectBoundingBox: a clip written in objectBoundingBox
+// units is measured against the element's painted box and applied correctly.
+// The element is not drawn whole and no warning is emitted for measurable boxes.
+func TestRenderOfAClipPathInObjectBoundingBox(t *testing.T) {
 	img, err := Parse(`<svg viewBox="0 0 10 10">
 		<rect width="10" height="10" fill="#ff0000" clip-path="url(#c)"/>
 		<clipPath id="c" clipPathUnits="objectBoundingBox">
@@ -297,11 +296,18 @@ func TestRenderOfAClipPathInFractionsOfABoxDrawsTheElementWhole(t *testing.T) {
 		t.Fatalf("parse: %v", err)
 	}
 	ws := img.Warnings()
-	if len(ws) != 1 || !strings.Contains(ws.String(), "objectBoundingBox") {
-		t.Fatalf("the drawing said %v, want it to say why the clip was left off", ws)
+	if len(ws) != 0 {
+		t.Fatalf("the drawing said %v, want no warning for measurable box", ws)
 	}
-	for _, p := range [][2]int{{1, 1}, {5, 5}, {9, 9}} {
-		kept(t, img.Render(10, 10), p[0], p[1])
+	// The clip should be applied without warning; rendering should succeed.
+	cv := img.Render(10, 10)
+	if cv == nil {
+		t.Fatal("render returned nil")
+	}
+	// Verify the clip covers the element (1×1 in objectBoundingBox = 100% of the box).
+	// All pixels should be kept since the clip covers the full rect.
+	for _, p := range [][2]int{{0, 0}, {5, 5}, {9, 9}} {
+		kept(t, cv, p[0], p[1])
 	}
 }
 

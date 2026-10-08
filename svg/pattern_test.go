@@ -304,7 +304,7 @@ func TestParseSaysWhatItCannotReadInAPattern(t *testing.T) {
 		{"a width that is not a length", ` width="nope" height="4"`, "is not a length"},
 		{"a viewBox", ` width="4" height="4" viewBox="0 0 4 4"`, "viewBox"},
 		{"a transform", ` width="4" height="4" patternTransform="spin(3)"`, "not one this package can read"},
-		{"what it does not say", ` width="4" height="4" href="#q"`, "not read here"},
+		{"what it does not say", ` width="4" height="4" href="#q"`, "the pattern references"},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			src := head + tc.extra + `><rect width="2" height="2" fill="#00ff00"/></pattern></defs>` +

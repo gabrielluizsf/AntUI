@@ -67,6 +67,7 @@ func (img *Image) useNode(e *element, st Style, warn func(string, ...any)) *Node
 			kid := img.build(target, st, target.Name == "symbol")
 			img.uses = img.uses[:len(img.uses)-1]
 			n := &Node{Name: "use", Style: st, clip: clip, filters: filters}
+			n.clip = clipUnder(n.clip, st, n, warn)
 			n.Kids = append(n.Kids, kid)
 			n.mask = maskUnder(def, st, n)
 			return n

@@ -557,6 +557,7 @@ func (img *Image) build(e *element, inherited Style, forceKids bool) *Node {
 		// around it, because it means nothing on its own.
 		n := img.textNode(e, st, warn)
 		n.clip = clip
+		n.clip = clipUnder(n.clip, st, n, warn)
 		n.filters = filters
 		n.mask = maskUnder(def, st, n)
 		return n
@@ -570,6 +571,7 @@ func (img *Image) build(e *element, inherited Style, forceKids bool) *Node {
 		// [Image.imageNode].
 		n := img.imageNode(e, st, warn)
 		n.clip = clip
+		n.clip = clipUnder(n.clip, st, n, warn)
 		n.filters = filters
 		n.mask = maskUnder(def, st, n)
 		return n
@@ -644,6 +646,7 @@ func (img *Image) build(e *element, inherited Style, forceKids bool) *Node {
 		n.Kids = append(n.Kids, img.node(k, st))
 	}
 	n.mask = maskUnder(def, st, n)
+	n.clip = clipUnder(n.clip, st, n, warn)
 	return n
 }
 
