@@ -199,9 +199,11 @@ func TestRenderPaintsAPatternAlongAStroke(t *testing.T) {
 // TestRenderDoesNotFollowAPatternThatNamesItself is a pattern whose picture is
 // the pattern again: following that would draw the tile while the tile is being
 // drawn, for ever, so the shape is painted with no picture at all instead — a
-// drawing that comes out empty rather than a program that does not come back.
+// drawing that comes out empty rather than as a program that does not come
+// back — and the drawing says which pattern closed the circle, once, the same
+// way it says which marker would have gone round for ever.
 func TestRenderDoesNotFollowAPatternThatNamesItself(t *testing.T) {
-	_, cv := painted(t, `<svg viewBox="0 0 10 10">
+	img, cv := painted(t, `<svg viewBox="0 0 10 10">
 		<defs>
 			<pattern id="p" patternUnits="userSpaceOnUse" width="4" height="4">
 				<rect width="4" height="4" fill="url(#p)"/>
@@ -210,6 +212,9 @@ func TestRenderDoesNotFollowAPatternThatNamesItself(t *testing.T) {
 		<rect width="10" height="10" fill="url(#p)"/>
 	</svg>`, 10, 10)
 
+	if ws := img.Warnings(); len(ws) != 1 || !strings.Contains(ws.String(), "points back at the pattern") {
+		t.Fatalf("the drawing said %v, want it to say which pattern closes the circle", ws)
+	}
 	nothingPainted(t, cv)
 }
 
@@ -218,7 +223,7 @@ func TestRenderDoesNotFollowAPatternThatNamesItself(t *testing.T) {
 // names itself gets to naming one anyway: the first asks the second, the
 // second asks the first, and the first is already being drawn.
 func TestRenderDoesNotFollowTwoPatternsThatNameEachOther(t *testing.T) {
-	_, cv := painted(t, `<svg viewBox="0 0 10 10">
+	img, cv := painted(t, `<svg viewBox="0 0 10 10">
 		<defs>
 			<pattern id="a" patternUnits="userSpaceOnUse" width="4" height="4">
 				<rect width="4" height="4" fill="url(#b)"/>
@@ -230,6 +235,9 @@ func TestRenderDoesNotFollowTwoPatternsThatNameEachOther(t *testing.T) {
 		<rect width="10" height="10" fill="url(#a)"/>
 	</svg>`, 10, 10)
 
+	if ws := img.Warnings(); len(ws) != 1 || !strings.Contains(ws.String(), "points back at the pattern") {
+		t.Fatalf("the drawing said %v, want it to say which pattern closes the circle", ws)
+	}
 	nothingPainted(t, cv)
 }
 

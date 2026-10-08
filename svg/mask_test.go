@@ -385,7 +385,8 @@ func TestRenderMovesTheMaskOfAUseWithItsXAndY(t *testing.T) {
 // picture while it was already being drawn, for ever. The mask in force
 // further out is the one that counts and the inner one is left off, so the
 // drawing comes out as a picture rather than as a program that does not come
-// back.
+// back — and the drawing says which mask closed the circle, once, the same
+// way it says which marker would have gone round for ever.
 func TestRenderOfAMaskThatNamesItselfStandsStill(t *testing.T) {
 	for _, tc := range []struct {
 		name string
@@ -408,7 +409,15 @@ func TestRenderOfAMaskThatNamesItselfStandsStill(t *testing.T) {
 		</svg>`},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
-			cv := cut(t, tc.src, 10, 10)
+			img, err := Parse(tc.src)
+			if err != nil {
+				t.Fatalf("parse: %v", err)
+			}
+			ws := img.Warnings()
+			if len(ws) != 1 || !strings.Contains(ws.String(), "points back at the mask") {
+				t.Fatalf("the drawing said %v, want it to say which mask closes the circle", ws)
+			}
+			cv := img.Render(10, 10)
 			for _, p := range [][2]int{{1, 1}, {5, 5}, {9, 9}} {
 				kept(t, cv, p[0], p[1])
 			}

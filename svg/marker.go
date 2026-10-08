@@ -256,8 +256,10 @@ func (img *Image) resolveMarkers(st *Style, warn func(string, ...any)) {
 // A circle through a mask or a pattern needs no cutting here: those are already
 // followed with everything that is being followed on the way to them, and the
 // second time round the one that is already being drawn is left off — see
-// [paintMasked] and [patternShade]. What is left over once they have had their
-// say is the markers that point only at markers, which is what this walks.
+// [paintMasked] and [patternShade], and [Image.warnMaskPatternCycles] for
+// saying which reference closes one of those. What is left over once they have
+// had their say is the markers that point only at markers, which is what this
+// walks.
 func (img *Image) cutMarkerCycles() {
 	gray := map[*markerDef]bool{}
 	done := map[*markerDef]bool{}
