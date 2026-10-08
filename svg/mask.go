@@ -44,7 +44,8 @@ type maskDef struct {
 	// contentBoxUnits is whether the content was written in fractions of the
 	// box of the element the mask is put on rather than in the drawing's own
 	// coordinates, which is the second of the two things `maskContentUnits`
-	// may say. It is read as a whole or not at all — see [maskNamed].
+	// may say. The box it is a fraction of is the one the element paints over,
+	// worked out where the element is built. See [maskUnder].
 	contentBoxUnits bool
 }
 
@@ -85,6 +86,12 @@ type masked struct {
 	// [maskUnder].
 	x, y, w, h float64
 	cuts       bool
+	// box is the box of the element this mask was put on, kept for the content
+	// written in fractions of it: [paintMasked] lays that content out over the
+	// box, and the box is measured only once, here. It is the same box the
+	// region above is a fraction of, so the content and the region reach the
+	// same places. See [maskUnder].
+	box [4]float64
 }
 
 // readMasks takes every `<mask>` that named itself, under the id a `mask` may
@@ -254,23 +261,15 @@ func maskTypeIn(e *element, warn func(string, ...any)) canvas.MaskMode {
 //
 // Three things come out of it: nothing at all, where no mask was named or the
 // element asks for `mask="none"`; the mask itself; and [maskNowhere], where
-// the drawing does not have the id that was named, which keeps nothing. A
-// mask whose content is written in fractions of a box this package does not
-// measure is left off altogether with one warning saying so, which draws the
-// element whole: an element drawn whole is one an author can see, and a
-// warning is what tells them it was not masked.
+// the drawing does not have the id that was named, which keeps nothing.
 func (img *Image) maskNamed(ref string, warn func(string, ...any)) *maskDef {
 	if ref == "" {
 		return nil
 	}
 	def := img.masks[ref]
-	switch {
-	case def == nil:
+	if def == nil {
 		warn("the mask names #%s, which the drawing does not have, so nothing of what it masks is drawn", ref)
 		return maskNowhere
-	case def.contentBoxUnits:
-		warn("the mask is written in objectBoundingBox units, which are not read here, so the element is drawn without it")
-		return nil
 	}
 	return def
 }
@@ -285,23 +284,29 @@ func (img *Image) maskNamed(ref string, warn func(string, ...any)) *maskDef {
 // written against this element is written in its coordinates, and a transform
 // on it moves the whole of it. The region of one written in fractions of the
 // box needs no moving, because the box it is a fraction of is the box the
-// element paints at, transform and all.
-func maskUnder(def *maskDef, st Style, n *Node) *masked {
+// element paints at, transform and all — and so is the content of one in
+// fractions of the box, which is laid out over that same box when the mask is
+// painted. Where that box is asked for and there is none to measure — a group
+// with nothing in it that paints anywhere — the element is drawn without the
+// mask with one warning saying so: an element drawn whole is one an author
+// can see, and a warning is what tells them it was not masked.
+func maskUnder(def *maskDef, st Style, n *Node, warn func(string, ...any)) *masked {
 	if def == nil {
 		return nil
 	}
 	m := &masked{def: def}
 	r := def.region
-	switch {
-	case !r.boxUnits:
-		m.x, m.y, m.w, m.h = r.x, r.y, r.w, r.h
-		if st.HasTransform && st.Transform != (canvas.Matrix{}) {
-			m.x, m.y, m.w, m.h = movedBox(m.x, m.y, m.w, m.h, st.Transform)
-		}
-		m.cuts = true
-	default:
-		box, ok := paintedBox(n)
-		if !ok {
+	var box [4]float64
+	if r.boxUnits || def.contentBoxUnits {
+		var ok bool
+		box, ok = paintedBox(n)
+		if def.contentBoxUnits {
+			if !ok || box[2] <= 0 || box[3] <= 0 {
+				warn("the mask is written in objectBoundingBox units against this element, which has no box to measure, so the element is drawn without it")
+				return nil
+			}
+			m.box = box
+		} else if !ok {
 			// A region measured against a box that cannot be measured is not
 			// one to cut with: a mask reaching everywhere is one an author can
 			// see the whole of, and one reaching nowhere is a drawing that
@@ -310,6 +315,15 @@ func maskUnder(def *maskDef, st Style, n *Node) *masked {
 			// is a node with nothing in it that paints at all.
 			return m
 		}
+	}
+	switch {
+	case !r.boxUnits:
+		m.x, m.y, m.w, m.h = r.x, r.y, r.w, r.h
+		if st.HasTransform && st.Transform != (canvas.Matrix{}) {
+			m.x, m.y, m.w, m.h = movedBox(m.x, m.y, m.w, m.h, st.Transform)
+		}
+		m.cuts = true
+	default:
 		m.x, m.y = box[0]+r.x*box[2], box[1]+r.y*box[3]
 		m.w, m.h = r.w*box[2], r.h*box[3]
 		m.cuts = true

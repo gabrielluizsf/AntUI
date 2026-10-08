@@ -69,12 +69,12 @@ func (img *Image) useNode(e *element, st Style, warn func(string, ...any)) *Node
 			n := &Node{Name: "use", Style: st, clip: clip, filters: filters}
 			n.clip = clipUnder(n.clip, st, n, warn)
 			n.Kids = append(n.Kids, kid)
-			n.mask = maskUnder(def, st, n)
+			n.mask = maskUnder(def, st, n, warn)
 			return n
 		}
 	}
 	n := &Node{Name: "use", Style: st, clip: clip, filters: filters}
-	n.mask = maskUnder(def, st, n)
+	n.mask = maskUnder(def, st, n, warn)
 	return n
 }
 

@@ -559,7 +559,7 @@ func (img *Image) build(e *element, inherited Style, forceKids bool) *Node {
 		n.clip = clip
 		n.clip = clipUnder(n.clip, st, n, warn)
 		n.filters = filters
-		n.mask = maskUnder(def, st, n)
+		n.mask = maskUnder(def, st, n, warn)
 		return n
 	}
 	if e.Name == "image" {
@@ -573,7 +573,7 @@ func (img *Image) build(e *element, inherited Style, forceKids bool) *Node {
 		n.clip = clip
 		n.clip = clipUnder(n.clip, st, n, warn)
 		n.filters = filters
-		n.mask = maskUnder(def, st, n)
+		n.mask = maskUnder(def, st, n, warn)
 		return n
 	}
 	n.Path = img.shape(e, st)
@@ -645,7 +645,7 @@ func (img *Image) build(e *element, inherited Style, forceKids bool) *Node {
 	for _, k := range e.Kids {
 		n.Kids = append(n.Kids, img.node(k, st))
 	}
-	n.mask = maskUnder(def, st, n)
+	n.mask = maskUnder(def, st, n, warn)
 	n.clip = clipUnder(n.clip, st, n, warn)
 	return n
 }

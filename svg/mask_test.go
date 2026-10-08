@@ -238,13 +238,74 @@ func TestRenderOfAMaskOfNoneDrawsTheElementWhole(t *testing.T) {
 }
 
 // TestRenderOfAMaskInFractionsOfABoxDrawsTheElementWhole: a mask whose picture
-// is written against the box of the element it is put on is one this package
-// cannot measure — the box is the element's, and the element is what the mask
-// is being worked out about — so the mask is left off altogether with one
-// warning saying that it was, rather than being read against the wrong box.
+// is written against the box of the element it is put on is laid out over
+// that box — the box measured the way a gradient in fractions of it is — and
+// here the picture is white over the whole of it, so what comes out is the
+// element whole, with nothing said about it.
 func TestRenderOfAMaskInFractionsOfABoxDrawsTheElementWhole(t *testing.T) {
-	img, err := Parse(`<svg viewBox="0 0 10 10">
+	cv := cut(t, `<svg viewBox="0 0 10 10">
 		<rect width="10" height="10" fill="#ff0000" mask="url(#m)"/>
+		<mask id="m" maskContentUnits="objectBoundingBox">
+			<rect width="1" height="1" fill="#ffffff"/>
+		</mask>
+	</svg>`, 10, 10)
+
+	for _, p := range [][2]int{{1, 1}, {5, 5}, {9, 9}} {
+		kept(t, cv, p[0], p[1])
+	}
+}
+
+// TestRenderTakesHalfTheElementDownByAMaskInFractionsOfABox: the same picture
+// written against the box of the element in halves of it keeps what the left
+// half covers and takes down what the right half leaves out. The element is
+// asked for once where it stands and once after a transform moved it: the box
+// is the one it paints at either way, so content and region stay over the
+// element together rather than the content being left where it was written.
+func TestRenderTakesHalfTheElementDownByAMaskInFractionsOfABox(t *testing.T) {
+	for _, tc := range []struct {
+		name string
+		tr   string
+		kept [][2]int
+		gone [][2]int
+	}{
+		{
+			name: "where the element stands",
+			kept: [][2]int{{1, 1}, {4, 5}, {4, 8}},
+			gone: [][2]int{{6, 5}, {9, 1}, {9, 9}},
+		},
+		{
+			name: "where a transform moved it",
+			tr:   ` transform="translate(5,0)"`,
+			kept: [][2]int{{6, 1}, {9, 5}, {9, 8}},
+			gone: [][2]int{{12, 5}, {14, 1}, {14, 9}},
+		},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			cv := cut(t, `<svg viewBox="0 0 15 10">
+				<rect width="10" height="10"`+tc.tr+` fill="#ff0000" mask="url(#m)"/>
+				<mask id="m" maskContentUnits="objectBoundingBox">
+					<rect width="0.5" height="1" fill="#ffffff"/>
+				</mask>
+			</svg>`, 15, 10)
+
+			for _, p := range tc.kept {
+				kept(t, cv, p[0], p[1])
+			}
+			for _, p := range tc.gone {
+				gone(t, cv, p[0], p[1])
+			}
+		})
+	}
+}
+
+// TestRenderOfAMaskInFractionsOfABoxOnAnElementWithNoBoxSaysSoAndDrawsWithoutIt:
+// a group with nothing in it that paints has no box to lay fractions of, and
+// a mask that cannot be laid out is left off altogether with one warning
+// saying so — the element drawn whole is the same answer a clip gives where
+// its box cannot be measured.
+func TestRenderOfAMaskInFractionsOfABoxOnAnElementWithNoBoxSaysSoAndDrawsWithoutIt(t *testing.T) {
+	img, err := Parse(`<svg viewBox="0 0 10 10">
+		<g mask="url(#m)"/>
 		<mask id="m" maskContentUnits="objectBoundingBox">
 			<rect width="1" height="1"/>
 		</mask>
@@ -253,11 +314,11 @@ func TestRenderOfAMaskInFractionsOfABoxDrawsTheElementWhole(t *testing.T) {
 		t.Fatalf("parse: %v", err)
 	}
 	ws := img.Warnings()
-	if len(ws) != 1 || !strings.Contains(ws.String(), "objectBoundingBox") {
+	if len(ws) != 1 || !strings.Contains(ws.String(), "no box to measure") {
 		t.Fatalf("the drawing said %v, want it to say why the mask was left off", ws)
 	}
-	for _, p := range [][2]int{{1, 1}, {5, 5}, {9, 9}} {
-		kept(t, img.Render(10, 10), p[0], p[1])
+	if cv := img.Render(10, 10); cv == nil {
+		t.Fatal("the drawing did not paint")
 	}
 }
 
