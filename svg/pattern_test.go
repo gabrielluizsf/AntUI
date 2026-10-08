@@ -2,6 +2,7 @@ package svg
 
 import (
 	"strings"
+	"sync"
 	"testing"
 
 	"github.com/gabrielluizsf/antui/canvas"
@@ -470,4 +471,136 @@ func TestRenderDoesNotFollowAPatternOverflowingFurtherThanAHandfulOfTiles(t *tes
 	kept(t, cv, 3, 1) // the stripe written over the tile
 	gone(t, cv, 0, 1) // every other one, which is what the plain cut leaves out
 	gone(t, cv, 2, 1)
+}
+
+func TestRenderDrawsOnePictureForEveryShapeAskingTheSameOfThePattern(t *testing.T) {
+	// Three shapes of three sizes under one pattern: the tile stands in the
+	// drawing's own coordinates, so the picture in it is one picture for all
+	// three, and it is drawn once and kept rather than drawn again for every
+	// shape that names it.
+	img, cv := painted(t, `<svg viewBox="0 0 24 8">
+		<defs>
+			<pattern id="p" patternUnits="userSpaceOnUse" width="4" height="4">
+				<rect width="4" height="4" fill="#ff0000"/>
+			</pattern>
+		</defs>
+		<rect width="8" height="8" fill="url(#p)"/>
+		<rect x="8" width="6" height="6" fill="url(#p)"/>
+		<rect x="16" width="8" height="5" fill="url(#p)"/>
+	</svg>`, 24, 8)
+
+	kept(t, cv, 2, 2)
+	kept(t, cv, 10, 2)
+	kept(t, cv, 18, 2)
+	pt := img.patterns["p"]
+	if pt.drawn != 1 {
+		t.Errorf("the pattern drew its picture %d times for the three shapes, want 1", pt.drawn)
+	}
+	if n := len(pt.tiles); n != 1 {
+		t.Errorf("the pattern kept %d pictures for the three shapes, want 1", n)
+	}
+}
+
+func TestRenderDrawsThePatternPictureSeparateForEveryBoxItIsWrittenInFractionsOf(t *testing.T) {
+	// The picture here is written in fractions of the box of the shape it
+	// paints, so the box is part of what the picture is drawn from: the two
+	// shapes ask for the same id at the same scale in the same colour and are
+	// still not the same picture — the wider box writes a wider picture — and
+	// one kept picture kept for both would stand out of place in the other.
+	img, cv := painted(t, `<svg viewBox="0 0 24 8">
+		<defs>
+			<pattern id="p" patternUnits="userSpaceOnUse" patternContentUnits="objectBoundingBox"
+				width="4" height="4" overflow="visible">
+				<rect x="-0.5" y="0.25" width="0.25" height="0.5" fill="#ff0000"/>
+			</pattern>
+		</defs>
+		<rect width="8" height="8" fill="url(#p)"/>
+		<rect x="12" width="4" height="8" fill="url(#p)"/>
+	</svg>`, 24, 8)
+
+	// The first box is eight wide, so the picture in it is two units wide and
+	// the copy that lands reaches the tile's first two columns.
+	kept(t, cv, 0, 1)
+	gone(t, cv, 3, 1)
+	// The second is four wide, one unit of picture, and the copy of it that
+	// lands reaches the third column of the tile instead — where the first
+	// shape's picture would have left it clear.
+	kept(t, cv, 14, 1)
+	gone(t, cv, 12, 1)
+	pt := img.patterns["p"]
+	if pt.drawn != 2 {
+		t.Errorf("the pattern drew its picture %d times for the two boxes, want 2", pt.drawn)
+	}
+	if n := len(pt.tiles); n != 2 {
+		t.Errorf("the pattern kept %d pictures for the two boxes, want 2", n)
+	}
+}
+
+func TestRenderDrawsThePatternAgainWhereTheColourGoingIntoItChanged(t *testing.T) {
+	// The colour painted with is carried into the picture — a `currentColor`
+	// written inside the pattern takes the colour of the shape that names it —
+	// so the same tile painted in two colours is two pictures, and asking for
+	// either of them again costs neither.
+	img, _ := painted(t, `<svg viewBox="0 0 8 8">
+		<defs>
+			<pattern id="p" patternUnits="userSpaceOnUse" width="4" height="4">
+				<rect width="4" height="4" fill="currentColor"/>
+			</pattern>
+		</defs>
+		<rect width="8" height="8" fill="url(#p)"/>
+	</svg>`, 8, 8)
+
+	red := img.paint(8, 8, canvas.RGB(255, 0, 0))
+	if c := pixelAt(red, 1, 1); c.R() < 200 || c.B() > 60 {
+		t.Errorf("painted red the pixel is %#08x, want the red the colour asked for", uint32(c))
+	}
+	img.paint(8, 8, canvas.RGB(255, 0, 0))
+	pt := img.patterns["p"]
+	if pt.drawn != 2 {
+		t.Errorf("the pattern drew its picture %d times for the two colours it saw, want 2", pt.drawn)
+	}
+	if n := len(pt.tiles); n != 2 {
+		t.Errorf("the pattern kept %d pictures for the two colours, want 2", n)
+	}
+	blue := img.paint(8, 8, canvas.RGB(0, 0, 255))
+	if c := pixelAt(blue, 1, 1); c.B() < 200 || c.R() > 60 {
+		t.Errorf("painted blue the pixel is %#08x, want the blue the colour asked for", uint32(c))
+	}
+	if pt.drawn != 3 {
+		t.Errorf("the pattern drew its picture %d times after the colour changed, want 3", pt.drawn)
+	}
+	if n := len(pt.tiles); n != 3 {
+		t.Errorf("the pattern kept %d pictures after the colour changed, want 3", n)
+	}
+}
+
+func TestRenderKeepsOnePictureEvenWhereFourPaintTheDrawingAtOnce(t *testing.T) {
+	// Two goroutines may ask for the same drawing at once — the package says
+	// as much — and where none of them finds a picture kept, all four may set
+	// about drawing one. They are not to fight over the keeping of them: one
+	// stands and the rest are let go, so the pattern ends up with one picture
+	// rather than four held for the same thing.
+	img, err := Parse(`<svg viewBox="0 0 8 8">
+		<defs>
+			<pattern id="p" patternUnits="userSpaceOnUse" width="4" height="4">
+				<rect width="4" height="4" fill="#ff0000"/>
+			</pattern>
+		</defs>
+		<rect width="8" height="8" fill="url(#p)"/>
+	</svg>`)
+	if err != nil {
+		t.Fatalf("parse: %v", err)
+	}
+	var wg sync.WaitGroup
+	for i := 0; i < 4; i++ {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			img.paint(8, 8, canvas.RGB(0, 0, 0))
+		}()
+	}
+	wg.Wait()
+	if n := len(img.patterns["p"].tiles); n != 1 {
+		t.Errorf("the pattern kept %d pictures after four paints at once, want 1", n)
+	}
 }

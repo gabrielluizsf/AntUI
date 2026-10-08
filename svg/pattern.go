@@ -2,7 +2,9 @@ package svg
 
 import (
 	"math"
+	"slices"
 	"strings"
+	"sync"
 
 	"github.com/gabrielluizsf/antui/canvas"
 )
@@ -18,8 +20,9 @@ import (
 // pixel of the shape asks that canvas which part of the tile it is over, and
 // the answer wraps round by the size of the tile, so the same picture comes
 // back as many times as the shape is big enough to want it. The tile itself is
-// drawn once per shape rather than once per pixel, which is what keeps a pattern
-// no dearer than a gradient to paint with.
+// drawn once for every shape that asks the same of it rather than once per
+// shape, and once per pixel of neither, which is what keeps a pattern no dearer
+// than a gradient to paint with.
 //
 // Three things say where the tile and its picture are, and each is read the way
 // a gradient's geometry is: `patternUnits` says whether the tile is written in
@@ -58,6 +61,44 @@ type pattern struct {
 	// drawn into the tile from the copies of it that land there. See
 	// [pattern.picture].
 	visible bool
+	// tiles is the picture this pattern already drew, kept for the shapes that
+	// ask the same of it — the same tile at the same place and size, in the
+	// same colour, over the same chain of patterns already being drawn, which
+	// is the whole of what a picture is drawn from. Ten shapes under one
+	// pattern cost one picture rather than ten, and drawn says how many were
+	// drawn rather than found kept, which is what a test reads to know the
+	// keeping holds — a picture reused and a picture drawn again come out the
+	// same on the page. mu guards both because two goroutines may paint the
+	// same drawing at once; the picture is drawn with mu off and only the
+	// finding and the keeping of it are under mu, so a pattern inside a pattern
+	// never waits on the one holding it — and where two draw the same picture
+	// at once, whichever keeps it first stands and the other's is let go rather
+	// than both being held.
+	mu    sync.Mutex
+	tiles []tilePicture
+	drawn int
+}
+
+// tilePicture is one kept picture of a pattern: what it was drawn from, the
+// chain of patterns being drawn when it was — kept because the same tile
+// reached through two different chains may come out differently, a picture
+// naming a pattern that one chain has already open is cut off in that one —
+// and the picture itself, which is only ever read after it was drawn.
+type tilePicture struct {
+	key   tileKey
+	chain []*pattern
+	pic   *canvas.Canvas
+}
+
+// tileKey is everything a pattern's picture is drawn from apart from the
+// chain: the tile where it stands and how big it lands, the colour carried
+// into it, and the box of the shape — but only where the picture is written
+// in fractions of that box, since a picture in the drawing's own coordinates
+// never looks at it and shapes of different sizes share one picture.
+type tileKey struct {
+	box           [4]float64
+	x, y, w, h, s float64
+	current       canvas.Color
 }
 
 // maxTilePixels is how many pixels one tile may be drawn into. A tile the size
@@ -296,16 +337,63 @@ func patternShade(pt *pattern, n *Node, m canvas.Matrix, current canvas.Color, o
 	}, true
 }
 
-// picture is one tile drawn into a canvas of its own, at the size it lands at
-// on the page: the content of the pattern put through the coordinates it was
-// written in. What runs out of the tile is cut by the canvas being exactly the
-// tile — which is what `overflow` on a pattern says unless it says `visible`,
-// and then the picture is painted into the tile from every copy of it whose
-// overflow reaches in, so a picture written wider than its tile lands in the
-// tiles beside it instead of being cut off along the edge. It answers nil
-// where there is nothing to draw it with, which is the same as a picture that
-// keeps nothing.
+// picture is one tile at the size it lands at on the page, drawn into a canvas
+// of its own — and kept, so that the shapes asking the same of the pattern
+// share it rather than every one of them drawing it again. What it is drawn
+// from is the whole of the key it is kept under: the tile where it stands and
+// how big it lands, the colour carried into it, the box of the shape where the
+// picture is written in fractions of that box, and the chain of patterns that
+// was already being drawn — the same tile reached through two chains may come
+// out differently, a picture naming a pattern one chain has open being cut off
+// in that one. It answers nil where there is nothing to draw it with, which is
+// the same as a picture that keeps nothing, and a nil is kept the same as any
+// other.
 func (pt *pattern) picture(box [4]float64, x, y, w, h, s float64, current canvas.Color, patterning []*pattern) *canvas.Canvas {
+	key := tileKey{x: x, y: y, w: w, h: h, s: s, current: current}
+	if pt.contentBox {
+		key.box = box
+	}
+	pt.mu.Lock()
+	for _, t := range pt.tiles {
+		if t.key == key && slices.Equal(t.chain, patterning) {
+			pic := t.pic
+			pt.mu.Unlock()
+			return pic
+		}
+	}
+	pt.drawn++
+	pt.mu.Unlock()
+	pic := pt.drawPicture(box, x, y, w, h, s, current, patterning)
+	pt.keepTile(key, patterning, pic)
+	return pic
+}
+
+// keepTile keeps a picture drawn under this key and chain for whatever asks
+// the same of the pattern later — and where a picture drawn in parallel got
+// there first, lets go of this one so that only one of the two is held. The
+// chain is copied: the slice it comes in belongs to the caller, which goes on
+// appending to it as the drawing goes deeper.
+func (pt *pattern) keepTile(key tileKey, chain []*pattern, pic *canvas.Canvas) {
+	pt.mu.Lock()
+	defer pt.mu.Unlock()
+	for _, t := range pt.tiles {
+		if t.key == key && slices.Equal(t.chain, chain) {
+			return
+		}
+	}
+	pt.tiles = append(pt.tiles, tilePicture{key: key, chain: slices.Clone(chain), pic: pic})
+}
+
+// drawPicture is one tile drawn into a canvas of its own, at the size it lands
+// at on the page: the content of the pattern put through the coordinates it
+// was written in. What runs out of the tile is cut by the canvas being exactly
+// the tile — which is what `overflow` on a pattern says unless it says
+// `visible`, and then the picture is painted into the tile from every copy of
+// it whose overflow reaches in, so a picture written wider than its tile lands
+// in the tiles beside it instead of being cut off along the edge. It answers
+// nil where there is nothing to draw it with, which is the same as a picture
+// that keeps nothing.
+func (pt *pattern) drawPicture(box [4]float64, x, y, w, h, s float64, current canvas.Color, patterning []*pattern) *canvas.Canvas {
 	px, py := int(math.Ceil(w*s)), int(math.Ceil(h*s))
 	if px < 1 {
 		px = 1
