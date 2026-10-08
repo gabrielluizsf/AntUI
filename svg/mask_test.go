@@ -355,6 +355,30 @@ func TestRenderOfAMaskThatNamesItselfStandsStill(t *testing.T) {
 	}
 }
 
+// TestRenderCutsWritingToTheRegionOfAMaskInFractionsOfABox: writing paints
+// with no box of its own until a font is asked, and the box the letters come
+// out in is what the region written against it is a fraction of — so the
+// region cuts the element the same as it cuts a shape, rather than reaching
+// everywhere because there was no box to measure it against. Writing at this
+// size comes out with every edge antialiased, so what is asked of the kept
+// letter is that anything was painted on its stem rather than how much.
+func TestRenderCutsWritingToTheRegionOfAMaskInFractionsOfABox(t *testing.T) {
+	cv := cut(t, `<svg viewBox="0 0 40 20">
+		<text x="4" y="16" font-size="8" fill="#ff0000" mask="url(#m)">hi</text>
+		<mask id="m" x="0" width="0.5">
+			<rect width="40" height="20" fill="#ffffff"/>
+		</mask>
+	</svg>`, 40, 20)
+
+	// The writing runs from 4 across to about 11, and the region keeps the
+	// first half of that box: the `h` stands and the `i`, past the middle,
+	// is taken away.
+	if alphaAt(cv, 4, 15) == 0 {
+		t.Error("at (4,15) the drawing is clear, want the letter at the start of the writing kept")
+	}
+	gone(t, cv, 10, 15)
+}
+
 // TestRenderTakesTheElementDownByAMaskPaintedLikeAPicture: the mask is not a
 // cut of shapes but a picture of its own, so anything that can be drawn can
 // measure — a mask drawn with a gradient fades the element the same way, and

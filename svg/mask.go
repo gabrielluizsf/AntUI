@@ -305,9 +305,9 @@ func maskUnder(def *maskDef, st Style, n *Node) *masked {
 			// A region measured against a box that cannot be measured is not
 			// one to cut with: a mask reaching everywhere is one an author can
 			// see the whole of, and one reaching nowhere is a drawing that
-			// vanished with nothing to say about it. Writing is what paints
-			// with no box of its own here, and where it ends is not known
-			// until a font is asked.
+			// vanished with nothing to say about it. Writing is measured the
+			// same as a shape is now, so what is left with no box of its own
+			// is a node with nothing in it that paints at all.
 			return m
 		}
 		m.x, m.y = box[0]+r.x*box[2], box[1]+r.y*box[3]
@@ -322,8 +322,11 @@ func maskUnder(def *maskDef, st Style, n *Node) *masked {
 // — the shapes carry their transforms already, so this is the box as it lands
 // on the page rather than as it was written. A picture has no transform put
 // into it — the transform meets it while it is painted — so its box is taken
-// through the element's own here for the same result. A node with no shape in
-// it anywhere has no box, and says so rather than answering an empty one.
+// through the element's own here for the same result. Writing has no box of
+// its own until a font is asked, which is what [walkRuns] and [writingBox] do
+// where this walks, and the letters land through the element's transform the
+// same way a picture's box does. A node with nothing in it that paints has no
+// box, and says so rather than answering an empty one.
 func paintedBox(n *Node) ([4]float64, bool) {
 	var minMax [4]float64
 	found := false
@@ -351,6 +354,23 @@ func paintedBox(n *Node) ([4]float64, bool) {
 				x, y, w, h = movedBox(x, y, w, h, n.Style.Transform)
 			}
 			add(x, y, x+w, y+h)
+		}
+		if len(n.Runs) > 0 {
+			pieces := walkRuns(n.Runs, canvas.Identity())
+			// Every run hidden and every run empty leaves no pieces, and a box
+			// of nothing is not one to measure a region against: the same no
+			// box at all as a node with no writing in it.
+			if len(pieces) > 0 {
+				wb := writingBox(pieces)
+				x0, y0, x1, y1 := wb[0], wb[1], wb[2], wb[3]
+				if x1 > x0 || y1 > y0 {
+					if n.Style.HasTransform && n.Style.Transform != (canvas.Matrix{}) {
+						x, y, w, h := movedBox(x0, y0, x1-x0, y1-y0, n.Style.Transform)
+						x0, y0, x1, y1 = x, y, x+w, y+h
+					}
+					add(x0, y0, x1, y1)
+				}
+			}
 		}
 		for _, k := range n.Kids {
 			walk(k)

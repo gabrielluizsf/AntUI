@@ -311,6 +311,33 @@ func TestRenderOfAClipPathInObjectBoundingBox(t *testing.T) {
 	}
 }
 
+// TestRenderMeasuresWritingUnderAClipInFractionsOfABox: the shapes of a
+// clipPath written in objectBoundingBox units are fractions of the box of the
+// element they cut, and the box a piece of writing comes out in is measured
+// the same as any other — so the clip is followed instead of being left off
+// with a warning that there was no box of writing to measure it against. The
+// clip here covers the whole of the box, so what comes out is the writing
+// whole; where the fractions of the box put the cut itself is the cut's own
+// business, under any clip and not only this one.
+func TestRenderMeasuresWritingUnderAClipInFractionsOfABox(t *testing.T) {
+	cv := cut(t, `<svg viewBox="0 0 40 20">
+		<text x="4" y="16" font-size="8" fill="#ff0000" clip-path="url(#c)">hi</text>
+		<clipPath id="c" clipPathUnits="objectBoundingBox">
+			<rect width="1" height="1"/>
+		</clipPath>
+	</svg>`, 40, 20)
+
+	// Writing at this size comes out with every edge antialiased, so what is
+	// asked is that anything was painted rather than how much: both letters
+	// are inside the box the clip covers.
+	if alphaAt(cv, 4, 15) == 0 {
+		t.Error("at (4,15) the drawing is clear, want the letter at the start of the writing kept")
+	}
+	if alphaAt(cv, 10, 15) == 0 {
+		t.Error("at (10,15) the drawing is clear, want the letter past the middle kept")
+	}
+}
+
 // TestRenderOfAClipPathOfNoneDrawsTheElementWhole: `none` is a clip that is
 // not there, which is read as no clip and not as a complaint.
 func TestRenderOfAClipPathOfNoneDrawsTheElementWhole(t *testing.T) {
