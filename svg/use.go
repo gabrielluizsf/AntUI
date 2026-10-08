@@ -49,9 +49,11 @@ func (img *Image) useNode(e *element, st Style, warn func(string, ...any)) *Node
 	// The filter list is spent here too, on the `<use>` itself rather than on
 	// what it points at: the filter is put through the whole picture the
 	// `<use>` makes, and what it names would otherwise run the same list a
-	// second time inside the first.
+	// second time inside the first. A reference in it is followed here, where
+	// the whole drawing is to hand, before what it points at is built.
 	filters := st.filters
 	st.filters = nil
+	filters = img.followFilterRefs(filters, warn)
 	target, id := img.useTarget(e, warn)
 	switch {
 	case st.Hidden:

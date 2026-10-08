@@ -125,11 +125,11 @@ func (s Style) with(e *element, warn func(string, ...any)) Style {
 			}
 		case "filter":
 			// What this element's picture is put through when it is drawn,
-			// read as it is written rather than once the drawing is in hand:
-			// none of the functions needs to know what any id in the file is,
-			// and the ones that are not read are said here. It is not
-			// inherited — see the `filters` field of [Style] and
-			// [applyFilters].
+			// read as it is written: a function is read here, and what is not
+			// one of them is said here. A reference to a `<filter>` keeps the
+			// id it named for only a caller holding the whole drawing to
+			// follow — see [Image.followFilterRefs]. It is not inherited —
+			// see the `filters` field of [Style] and [applyFilters].
 			s.filters = readFilters(raw, warn)
 		case "marker-start", "marker-mid", "marker-end":
 			// The markers drawn at the vertices of this element's shape, which

@@ -53,6 +53,15 @@ type Image struct {
 	// first — sometimes inside another mask.
 	masks map[string]*maskDef
 
+	// filters are the `<filter>` elements the drawing declared, by the id an
+	// element's `filter="url(#name)"` names, read after the ids are all in
+	// place and before anything is built, for the same reason as the rest of
+	// what is pointed at: one may be written after the element that points at
+	// it. What is inside a filter is only what its primitives say — no picture
+	// painted with the rest of the drawing — so nothing else has to be in
+	// place for one to be read. See [Image.readFilterDefs].
+	filters map[string]*filterDef
+
 	// patterns are the patterns the drawing declared, by the id a `fill` or a
 	// `stroke` names, read after the masks and for the same reason once more:
 	// what is inside a pattern paints with everything the drawing has, and a
@@ -383,6 +392,11 @@ func Parse(src string) (*Image, error) {
 	// `clip-path` may name one written after the element it cuts, and building
 	// them is building shapes that may themselves be pointed at.
 	img.readClipPaths(root)
+	// The filters come with them: what is inside a `<filter>` is only what its
+	// primitives say — no picture painted with the rest of the drawing — so
+	// the ids being in place is all one of them needs to be read, and an
+	// element's `filter="url(#name)"` may name one written further down.
+	img.readFilterDefs(root)
 	// The masks come after them, for the same reason taken once more: a mask's
 	// picture may be cut by a clip, filled with a gradient, drawn through a
 	// `<use>` and named from inside another mask, so every id the drawing has
@@ -626,10 +640,13 @@ func (img *Image) build(e *element, inherited Style, forceKids bool) *Node {
 	// The filter list comes off the style here for the same two reasons, and
 	// it goes onto the node as it comes: what the filter is put through is the
 	// whole picture this element makes, so the children must not each find the
-	// same list to run again, and the list itself needs no part of the drawing
-	// to be read — it was already read where it was written.
+	// same list to run again. The functions in it were already read where the
+	// list was written; only a reference still needs the drawing to say what
+	// its id names, which is said here, once — the same way a fill, a clip and
+	// a mask follow their own ids.
 	filters := st.filters
 	st.filters = nil
+	filters = img.followFilterRefs(filters, warn)
 	n := &Node{Name: e.Name, Style: st, clip: clip, filters: filters}
 	if n.Style.Hidden {
 		return n

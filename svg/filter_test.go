@@ -177,15 +177,15 @@ func TestBlurIsMeasuredInTheDrawingsOwnUnits(t *testing.T) {
 // TestParseSaysWhatItCannotReadInTheFilter is every way a filter can ask for
 // something this package does not do: a function that is not one of the ones
 // it can apply, an argument that is not a number, a reference to a `<filter>`
-// element whose insides are not read here, and nothing at all. Each says what
-// is wrong and once, and the drawing still paints what it can of itself.
+// element the drawing does not have, and nothing at all. Each says what is
+// wrong and once, and the drawing still paints what it can of itself.
 func TestParseSaysWhatItCannotReadInTheFilter(t *testing.T) {
 	for _, tc := range []struct{ filter, want string }{
 		{"blur(zzz)", "is not one this package can read"},
 		{"saturate(1)", "is not one this package can read"},
 		{"drop-shadow(0 1px 2px black)", "is not one this package can read"},
 		{"blur(-1)", "is not one this package can read"},
-		{"url(#f)", "is not read here"},
+		{"url(#f)", "which the drawing does not have"},
 		{"", "is not one this package can read"},
 	} {
 		img, err := Parse(`<svg viewBox="0 0 10 10"><rect width="10" height="10" filter="` + tc.filter + `"/></svg>`)
@@ -253,14 +253,14 @@ func TestReadFiltersTakesWhatItCanAndSaysTheRest(t *testing.T) {
 		{"none", nil, 0},
 		{"", nil, 1},
 		{"grayscale", nil, 1},
-		{"grayscale(50%)", []filterOp{{canvas.FilterGrayscale, 0.5}}, 0},
-		{"sepia()", []filterOp{{canvas.FilterSepia, 1}}, 0},
-		{"hue-rotate(0.5turn)", []filterOp{{canvas.FilterHueRotate, 180}}, 0},
-		{"blur(2px)", []filterOp{{canvas.FilterBlur, 2}}, 0},
-		{"blur()", []filterOp{{canvas.FilterBlur, 0}}, 0},
-		{"brightness(200%)", []filterOp{{canvas.FilterBrightness, 2}}, 0},
-		{"url(#f) invert(1)", []filterOp{{canvas.FilterInvert, 1}}, 1},
-		{"drop-shadow(0 1px 2px black) contrast(1)", []filterOp{{canvas.FilterContrast, 1}}, 1},
+		{"grayscale(50%)", []filterOp{{kind: canvas.FilterGrayscale, amount: 0.5}}, 0},
+		{"sepia()", []filterOp{{kind: canvas.FilterSepia, amount: 1}}, 0},
+		{"hue-rotate(0.5turn)", []filterOp{{kind: canvas.FilterHueRotate, amount: 180}}, 0},
+		{"blur(2px)", []filterOp{{kind: canvas.FilterBlur, amount: 2}}, 0},
+		{"blur()", []filterOp{{kind: canvas.FilterBlur, amount: 0}}, 0},
+		{"brightness(200%)", []filterOp{{kind: canvas.FilterBrightness, amount: 2}}, 0},
+		{"url(#f) invert(1)", []filterOp{{ref: "f"}, {kind: canvas.FilterInvert, amount: 1}}, 0},
+		{"drop-shadow(0 1px 2px black) contrast(1)", []filterOp{{kind: canvas.FilterContrast, amount: 1}}, 1},
 	} {
 		var warns int
 		got := readFilters(tc.raw, func(string, ...any) { warns++ })
@@ -276,6 +276,291 @@ func TestReadFiltersTakesWhatItCanAndSaysTheRest(t *testing.T) {
 				t.Errorf("readFilters(%q) gave %v, want %v", tc.raw, got, tc.want)
 				break
 			}
+		}
+	}
+}
+
+// TestFilterReferenceRunsTheFilterElementItNames is the plainest form of the
+// other way a file asks for a filter: the reference follows the `<filter>`
+// element it names, and what is inside one runs where the reference stood.
+// The primitive here takes no input of its own, which means the picture the
+// element drew — so the rectangle comes out moved by the offset, which is
+// only something a filter element could have done.
+func TestFilterReferenceRunsTheFilterElementItNames(t *testing.T) {
+	img, cv := painted(t, `<svg viewBox="0 0 10 10">
+		<filter id="f"><feOffset dx="1"/></filter>
+		<rect width="10" height="10" fill="#ff0000" filter="url(#f)"/>
+	</svg>`, 10, 10)
+
+	if ws := img.Warnings(); len(ws) != 0 {
+		t.Errorf("the drawing said %v, want nothing said for a filter it has", ws)
+	}
+	gone(t, cv, 0, 5)
+	filteredAt(t, cv, 5, 5, 255, 0, 0)
+}
+
+// TestFilterPrimitiveChainKeepsTheNamesItGaveItsResults is a filter of more
+// than one primitive: each leaves its picture under the name it was given,
+// and what follows picks it up by that name. The blue the first floods the
+// whole picture with is the second's second input, and what comes out of the
+// second is the red rectangle where there is one and the blue underneath
+// where there is not.
+func TestFilterPrimitiveChainKeepsTheNamesItGaveItsResults(t *testing.T) {
+	_, cv := painted(t, `<svg viewBox="0 0 15 15">
+		<filter id="f">
+			<feFlood flood-color="#0000ff" result="f"/>
+			<feBlend in="SourceGraphic" in2="f"/>
+		</filter>
+		<rect width="10" height="10" fill="#ff0000" filter="url(#f)"/>
+	</svg>`, 15, 15)
+
+	filteredAt(t, cv, 5, 5, 255, 0, 0)
+	filteredAt(t, cv, 13, 13, 0, 0, 255)
+}
+
+// TestFilterColorMatrixSwapsTheChannelsOfEveryPixel is feColorMatrix with the
+// matrix written out: red's two channels swapped comes out green, which is
+// only true if the matrix ran on the colour of every pixel of the picture
+// rather than on the shape of it.
+func TestFilterColorMatrixSwapsTheChannelsOfEveryPixel(t *testing.T) {
+	_, cv := painted(t, `<svg viewBox="0 0 10 10">
+		<filter id="f">
+			<feColorMatrix type="matrix" values="0 1 0 0 0  1 0 0 0 0  0 0 1 0 0  0 0 0 1 0"/>
+		</filter>
+		<rect width="10" height="10" fill="#ff0000" filter="url(#f)"/>
+	</svg>`, 10, 10)
+
+	filteredAt(t, cv, 5, 5, 0, 255, 0)
+}
+
+// TestFilterCompositeArithmeticAddsItsOwnNumbers is feComposite's arithmetic
+// on itself: every channel of the picture plus half of itself plus the
+// constant, which for full red is red with half of everything else added —
+// the numbers k2 and k4 said to be.
+func TestFilterCompositeArithmeticAddsItsOwnNumbers(t *testing.T) {
+	_, cv := painted(t, `<svg viewBox="0 0 10 10">
+		<filter id="f">
+			<feComposite operator="arithmetic" k2="0.5" k4="0.5"/>
+		</filter>
+		<rect width="10" height="10" fill="#ff0000" filter="url(#f)"/>
+	</svg>`, 10, 10)
+
+	filteredAt(t, cv, 5, 5, 255, 128, 128)
+}
+
+// TestFilterBlendMultiplies is feBlend with its second input named: the grey
+// the first primitive flooded the picture with is what the red rectangle is
+// multiplied against, and where the rectangle stopped the grey is what is
+// left whole underneath.
+func TestFilterBlendMultiplies(t *testing.T) {
+	_, cv := painted(t, `<svg viewBox="0 0 15 15">
+		<filter id="f">
+			<feFlood flood-color="#808080" result="f"/>
+			<feBlend in="SourceGraphic" in2="f" mode="multiply"/>
+		</filter>
+		<rect width="10" height="10" fill="#ff0000" filter="url(#f)"/>
+	</svg>`, 15, 15)
+
+	filteredAt(t, cv, 5, 5, 128, 0, 0)
+	filteredAt(t, cv, 13, 13, 128, 128, 128)
+}
+
+// TestFilterSaysWhatItCannotReadInsideTheFilterElement is one primitive this
+// package has no way to run inside a filter the rest of it can: the one is
+// named in the warning and left out, and what comes after it in the same
+// filter still runs, the same way one unreadable function in the attribute's
+// list does.
+func TestFilterSaysWhatItCannotReadInsideTheFilterElement(t *testing.T) {
+	img, cv := painted(t, `<svg viewBox="0 0 10 10">
+		<filter id="f">
+			<feTurbulence baseFrequency="0.1"/>
+			<feOffset dx="1"/>
+		</filter>
+		<rect width="10" height="10" fill="#ff0000" filter="url(#f)"/>
+	</svg>`, 10, 10)
+
+	ws := img.Warnings()
+	if len(ws) != 1 {
+		t.Fatalf("the drawing said %v, want the turbulence said once", ws)
+	}
+	if !strings.Contains(ws.String(), "feTurbulence") {
+		t.Errorf("the drawing said %v, want it to name the feTurbulence", ws)
+	}
+	gone(t, cv, 0, 5)
+	filteredAt(t, cv, 5, 5, 255, 0, 0)
+}
+
+// TestAPartialFilterListKeepsTheReferenceAndTheFunction is both ways of asking
+// for a filter in one list: the reference and the function beside it run in
+// the order they were written, so the rectangle moves and then goes grey —
+// neither half of the list knows or cares what the other half was written as.
+func TestAPartialFilterListKeepsTheReferenceAndTheFunction(t *testing.T) {
+	img, cv := painted(t, `<svg viewBox="0 0 10 10">
+		<filter id="f"><feOffset dx="1"/></filter>
+		<rect width="10" height="10" fill="#ff0000" filter="url(#f) grayscale(1)"/>
+	</svg>`, 10, 10)
+
+	if ws := img.Warnings(); len(ws) != 0 {
+		t.Errorf("the drawing said %v, want nothing said for a list it can read whole", ws)
+	}
+	gone(t, cv, 0, 5)
+	filteredAt(t, cv, 5, 5, 54, 54, 54)
+}
+
+// TestFilterCompositeOperatorsEachTakeTheirOwnWayOfPuttingTwoPicturesTogether
+// is feComposite's operators over the same two pictures — the red rectangle
+// and the blue the first primitive flooded the whole picture with — where each
+// one answers differently: what it keeps of the source, what it keeps of what
+// was underneath, and what comes out where only one of the two is there.
+func TestFilterCompositeOperatorsEachTakeTheirOwnWayOfPuttingTwoPicturesTogether(t *testing.T) {
+	for _, tc := range []struct {
+		operator string
+		in, out  [3]int // -1 in a channel means nothing is there at all
+	}{
+		{"", [3]int{255, 0, 0}, [3]int{0, 0, 255}},
+		{"in", [3]int{255, 0, 0}, [3]int{-1, -1, -1}},
+		{"out", [3]int{-1, -1, -1}, [3]int{-1, -1, -1}},
+		{"atop", [3]int{255, 0, 0}, [3]int{0, 0, 255}},
+		{"xor", [3]int{-1, -1, -1}, [3]int{0, 0, 255}},
+		{"lighter", [3]int{255, 0, 255}, [3]int{0, 0, 255}},
+	} {
+		img, cv := painted(t, fmt.Sprintf(`<svg viewBox="0 0 15 15">
+			<filter id="f">
+				<feFlood flood-color="#0000ff" result="b"/>
+				<feComposite in="SourceGraphic" in2="b" operator=%q/>
+			</filter>
+			<rect width="10" height="10" fill="#ff0000" filter="url(#f)"/>
+		</svg>`, tc.operator), 15, 15)
+
+		if ws := img.Warnings(); len(ws) != 0 {
+			t.Errorf("operator %q said %v, want nothing said for one it reads", tc.operator, ws)
+		}
+		for _, probe := range []struct {
+			x, y int
+			want [3]int
+		}{{5, 5, tc.in}, {13, 13, tc.out}} {
+			if probe.want[0] < 0 {
+				gone(t, cv, probe.x, probe.y)
+				continue
+			}
+			filteredAt(t, cv, probe.x, probe.y, uint8(probe.want[0]), uint8(probe.want[1]), uint8(probe.want[2]))
+		}
+	}
+}
+
+// TestFilterBlendModesEachTakeTheirOwnWayOfMixingTwoPictures is feBlend's
+// modes over the same two pictures — the orange rectangle and the grey the
+// first primitive flooded the whole picture with — where each mode answers
+// differently, which is only visible on colours the two actually share. The
+// grey outside the rectangle is what every one of them leaves there.
+func TestFilterBlendModesEachTakeTheirOwnWayOfMixingTwoPictures(t *testing.T) {
+	for _, tc := range []struct {
+		mode string
+		in   [3]int
+	}{
+		{"", [3]int{255, 128, 0}},
+		{"multiply", [3]int{128, 64, 0}},
+		{"screen", [3]int{255, 192, 128}},
+		{"darken", [3]int{128, 128, 0}},
+		{"lighten", [3]int{255, 128, 128}},
+	} {
+		img, cv := painted(t, fmt.Sprintf(`<svg viewBox="0 0 15 15">
+			<filter id="f">
+				<feFlood flood-color="#808080" result="b"/>
+				<feBlend in="SourceGraphic" in2="b" mode=%q/>
+			</filter>
+			<rect width="10" height="10" fill="#ff8000" filter="url(#f)"/>
+		</svg>`, tc.mode), 15, 15)
+
+		if ws := img.Warnings(); len(ws) != 0 {
+			t.Errorf("mode %q said %v, want nothing said for one it reads", tc.mode, ws)
+		}
+		filteredAt(t, cv, 5, 5, uint8(tc.in[0]), uint8(tc.in[1]), uint8(tc.in[2]))
+		filteredAt(t, cv, 13, 13, 128, 128, 128)
+	}
+}
+
+// TestFilterColorMatrixShortcutsWriteTheMatrixTheSpecGivesThem is the three
+// kinds of feColorMatrix that are not the matrix itself: each says what it
+// means in its own words and is turned into the twenty numbers the matrix
+// takes, and the answer is the one those numbers give.
+func TestFilterColorMatrixShortcutsWriteTheMatrixTheSpecGivesThem(t *testing.T) {
+	for _, tc := range []struct {
+		prim  string
+		want  [3]uint8
+		wantA uint8
+	}{{
+		`<feColorMatrix type="saturate" values="0"/>`,
+		[3]uint8{54, 54, 54}, 255,
+	}, {
+		`<feColorMatrix type="hueRotate" values="180"/>`,
+		[3]uint8{0, 109, 109}, 255,
+	}, {
+		`<feColorMatrix type="luminanceToAlpha"/>`,
+		[3]uint8{0, 0, 0}, 54,
+	}} {
+		_, cv := painted(t, `<svg viewBox="0 0 10 10">
+			<filter id="f">`+tc.prim+`</filter>
+			<rect width="10" height="10" fill="#ff0000" filter="url(#f)"/>
+		</svg>`, 10, 10)
+
+		c := pixelAt(cv, 5, 5)
+		if !nearByte(c.R(), tc.want[0]) || !nearByte(c.G(), tc.want[1]) ||
+			!nearByte(c.B(), tc.want[2]) || !nearByte(c.A(), tc.wantA) {
+			t.Errorf("%s at (5,5) is %#08x, want (%d,%d,%d) of %d", tc.prim, uint32(c), tc.want[0], tc.want[1], tc.want[2], tc.wantA)
+		}
+	}
+}
+
+// TestFilterTakesTheShapeWithoutTheColourForSourceAlpha is what SourceAlpha
+// names: the picture as only where something is, with the colour taken off —
+// so a matrix that changes nothing leaves the rectangle's shape in black
+// rather than the red that was there.
+func TestFilterTakesTheShapeWithoutTheColourForSourceAlpha(t *testing.T) {
+	_, cv := painted(t, `<svg viewBox="0 0 15 15">
+		<filter id="f">
+			<feColorMatrix in="SourceAlpha" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 1 0"/>
+		</filter>
+		<rect width="10" height="10" fill="#ff0000" filter="url(#f)"/>
+	</svg>`, 15, 15)
+
+	filteredAt(t, cv, 5, 5, 0, 0, 0)
+	gone(t, cv, 13, 13)
+}
+
+// TestParseSaysWhatItCannotReadInAFilterPrimitive is every way a primitive can
+// ask for something this package does not do: a number that is not one, a
+// matrix that is not twenty numbers, a kind that is not one it knows, an
+// input naming nothing the filter has, and the background no filter can see
+// here. Each says what is wrong and once, and the drawing still paints.
+func TestParseSaysWhatItCannotReadInAFilterPrimitive(t *testing.T) {
+	for _, tc := range []struct{ prim, want string }{
+		{`<feGaussianBlur stdDeviation="zzz"/>`, "stdDeviation"},
+		{`<feGaussianBlur stdDeviation="-1"/>`, "negative"},
+		{`<feGaussianBlur stdDeviation="1 2"/>`, "same both ways"},
+		{`<feColorMatrix type="matrix" values="1 2 3"/>`, "twenty numbers"},
+		{`<feColorMatrix type="nonsense"/>`, `"nonsense"`},
+		{`<feOffset dx="zzz"/>`, "feOffset dx"},
+		{`<feOffset in="nope"/>`, "names nothing"},
+		{`<feOffset in="BackgroundImage"/>`, "not where a filter can see"},
+		{`<feFlood flood-color="zzz"/>`, "black is flooded instead"},
+		{`<feFlood flood-opacity="zzz"/>`, "flood-opacity"},
+		{`<feComposite operator="fold"/>`, `"fold"`},
+		{`<feComposite k2="zzz"/>`, "k2"},
+		{`<feBlend mode="peel"/>`, `"peel"`},
+	} {
+		img, err := Parse(`<svg viewBox="0 0 10 10"><filter id="f">` + tc.prim + `</filter><rect width="10" height="10" filter="url(#f)"/></svg>`)
+		if err != nil {
+			t.Fatalf("primitive %s: parse: %v", tc.prim, err)
+		}
+		ws := img.Warnings()
+		if len(ws) != 1 {
+			t.Errorf("primitive %s said %v, want it said once", tc.prim, ws)
+		} else if !strings.Contains(ws.String(), tc.want) {
+			t.Errorf("primitive %s said %v, want it to say %q", tc.prim, ws, tc.want)
+		}
+		if cv := img.Render(10, 10); cv == nil {
+			t.Errorf("primitive %s: the drawing did not paint", tc.prim)
 		}
 	}
 }

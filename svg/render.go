@@ -178,8 +178,10 @@ func paintLayered(cv *canvas.Canvas, n *Node, m canvas.Matrix, current canvas.Co
 		// the group's transform drew is bigger or smaller than the writing
 		// says: a blur written as 1 is 1 of the drawing's units wherever those
 		// units landed on the canvas. The transform is composed the same way
-		// the children were drawn with it.
-		applyFilters(layer, n.filters, scaleOf(m.Mul(n.Style.Transform)))
+		// the children were drawn with it. What comes back may be another
+		// picture than the one that went in, since every filter primitive
+		// leaves a picture of its own behind.
+		layer = applyFilters(layer, n.filters, scaleOf(m.Mul(n.Style.Transform)), current)
 	}
 	if n.clip != nil {
 		layer.MaskShapes(n.clip.measured(m)...)
