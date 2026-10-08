@@ -699,3 +699,46 @@ func TestAMarkerSurvivesAPathThatTurnsBackOnItself(t *testing.T) {
 		t.Errorf("no marker at the vertex with no segment arriving at it: pixel (17,16) = %v", c)
 	}
 }
+
+func TestRenderCutsWhatOverflowsTheRoomOfAMarker(t *testing.T) {
+	// The room the marker asked for is the window its picture is seen through:
+	// what is written outside it is drawn nowhere, which is the `overflow` a
+	// marker stands for unless it says `visible`. The picture here is written
+	// bigger than the room on every side, so the pixels just past the room's
+	// left and right edges are where the cut shows — inside the room the
+	// picture comes out whole, and outside it nothing is left.
+	cv := cut(t, `<svg viewBox="0 0 20 20">
+		<defs>
+			<marker id="m" markerUnits="userSpaceOnUse" markerWidth="4" markerHeight="4" refX="0" refY="0">
+				<rect x="-1" y="-1" width="6" height="6" fill="#ff0000"/>
+			</marker>
+		</defs>
+		<path d="M5 5 H15" stroke="#000" stroke-width="1" marker-end="url(#m)"/>
+	</svg>`, 20, 20)
+
+	kept(t, cv, 16, 7) // under the room, where the picture reaches
+	gone(t, cv, 14, 7) // beside the room's left edge, where the picture runs out
+	gone(t, cv, 19, 7) // and past its right edge
+	gone(t, cv, 13, 7) // outside the picture altogether
+}
+
+func TestRenderDrawsAMarkerWholeWhereItsRoomLetsItOverflow(t *testing.T) {
+	// `overflow: visible` — written as a declaration here, the way a style
+	// says it — turns the cut off: the picture is drawn the whole way it was
+	// written, past the room's edges and all. Where the picture does not
+	// reach there is still nothing to draw, room or no room.
+	cv := cut(t, `<svg viewBox="0 0 20 20">
+		<defs>
+			<marker id="m" markerUnits="userSpaceOnUse" markerWidth="4" markerHeight="4" refX="0" refY="0"
+				style="overflow: visible">
+				<rect x="-1" y="-1" width="6" height="6" fill="#ff0000"/>
+			</marker>
+		</defs>
+		<path d="M5 5 H15" stroke="#000" stroke-width="1" marker-end="url(#m)"/>
+	</svg>`, 20, 20)
+
+	kept(t, cv, 16, 7) // under the room
+	kept(t, cv, 14, 7) // past its left edge, where the picture runs out of it
+	kept(t, cv, 19, 7) // and past its right
+	gone(t, cv, 13, 7) // outside the picture altogether
+}

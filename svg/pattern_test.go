@@ -383,3 +383,91 @@ func TestRenderTakesAPatternFromTheGroupItIsInside(t *testing.T) {
 		clearAt(t, cv, pt[0], pt[1])
 	}
 }
+
+func TestRenderLeavesOutWhatAPatternTileIsWrittenOutside(t *testing.T) {
+	// A pattern tile is the window its picture is seen through: what is
+	// written outside it comes out nowhere, which is the `overflow` a pattern
+	// stands for unless it says `visible`. The picture here sits wholly to the
+	// left of the tile it was written for, so the tile keeps none of it and
+	// the shape it paints is left with nothing to show at all.
+	cv := cut(t, `<svg viewBox="0 0 8 8">
+		<defs>
+			<pattern id="p" patternUnits="userSpaceOnUse" width="4" height="4">
+				<rect x="-2" y="1" width="1.5" height="2" fill="#ff0000"/>
+			</pattern>
+		</defs>
+		<rect width="8" height="8" fill="url(#p)"/>
+	</svg>`, 8, 8)
+
+	nothingPainted(t, cv)
+}
+
+func TestRenderPaintsWhatOverflowsAPatternTileWhereItLands(t *testing.T) {
+	// `overflow="visible"` turns the cut off: the picture written off to the
+	// side of its tile is painted into the tile from the copy of it that
+	// lands there, so what runs out of one tile shows in the one beside it
+	// rather than being lost. Here the whole picture lies outside the tile to
+	// its left, and comes back two units to the right of where it was written,
+	// at every copy of the tile across the shape.
+	cv := cut(t, `<svg viewBox="0 0 8 8">
+		<defs>
+			<pattern id="p" patternUnits="userSpaceOnUse" width="4" height="4" overflow="visible">
+				<rect x="-2" y="1" width="1.5" height="2" fill="#ff0000"/>
+			</pattern>
+		</defs>
+		<rect width="8" height="8" fill="url(#p)"/>
+	</svg>`, 8, 8)
+
+	kept(t, cv, 2, 1) // the copy that landed in the first tile
+	kept(t, cv, 6, 5) // and the same in the tiles beside it
+	gone(t, cv, 0, 1) // where the picture does not reach
+	gone(t, cv, 4, 1) // nor here
+}
+
+func TestRenderPaintsAPatternWrittenInFractionsOfItsBoxPastTheTileToo(t *testing.T) {
+	// The picture in fractions of the box of the shape — the copy it lands
+	// in has to be worked out through that box the same way the picture is
+	// drawn through it, or the copy lands a whole box out of place. Here the
+	// picture is written left of the tile in fractions, comes back inside the
+	// tile, and covers the first two columns of it wherever the shape asks.
+	cv := cut(t, `<svg viewBox="0 0 8 8">
+		<defs>
+			<pattern id="p" patternUnits="userSpaceOnUse" patternContentUnits="objectBoundingBox"
+				width="4" height="4" overflow="visible">
+				<rect x="-0.5" y="0.25" width="0.25" height="0.5" fill="#ff0000"/>
+			</pattern>
+		</defs>
+		<rect width="8" height="8" fill="url(#p)"/>
+	</svg>`, 8, 8)
+
+	kept(t, cv, 0, 1) // the copy that landed at the tile's own edge
+	kept(t, cv, 1, 3) // covering the second column whole
+	gone(t, cv, 2, 1) // and nothing beside it
+}
+
+func TestRenderDoesNotFollowAPatternOverflowingFurtherThanAHandfulOfTiles(t *testing.T) {
+	// A picture reaching past its tile is drawn from the copies of it that
+	// land in the tile — but only a handful of them: a picture spanning more
+	// than about five tiles would be drawn dozens of times over to show a
+	// corner of it, so it takes the plain cut instead and the tile keeps only
+	// what was written inside it. The picture here is written as a stripe in
+	// every fifth unit from far left to far right, and only the stripe written
+	// over the tile survives that.
+	cv := cut(t, `<svg viewBox="0 0 8 8">
+		<defs>
+			<pattern id="p" patternUnits="userSpaceOnUse" width="4" height="4" overflow="visible">
+				<rect x="-12" y="1" width="1" height="2" fill="#ff0000"/>
+				<rect x="-7" y="1" width="1" height="2" fill="#ff0000"/>
+				<rect x="-2" y="1" width="1" height="2" fill="#ff0000"/>
+				<rect x="3" y="1" width="1" height="2" fill="#ff0000"/>
+				<rect x="8" y="1" width="1" height="2" fill="#ff0000"/>
+				<rect x="13" y="1" width="1" height="2" fill="#ff0000"/>
+			</pattern>
+		</defs>
+		<rect width="8" height="8" fill="url(#p)"/>
+	</svg>`, 8, 8)
+
+	kept(t, cv, 3, 1) // the stripe written over the tile
+	gone(t, cv, 0, 1) // every other one, which is what the plain cut leaves out
+	gone(t, cv, 2, 1)
+}

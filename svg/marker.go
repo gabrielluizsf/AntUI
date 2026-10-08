@@ -68,6 +68,11 @@ type markerDef struct {
 	deg          float64
 	auto         bool
 	startReverse bool
+	// visible is `overflow`: whether the picture may run out of the room the
+	// marker asked for. What it does not say — which is what the spec's own
+	// stylesheet says a marker stands for — is that it may not, so the room
+	// cuts what runs past its edge unless `overflow="visible"` is written.
+	visible bool
 }
 
 // markerPlace is where one marker sits on one shape: the marker itself and the
@@ -77,6 +82,13 @@ type markerDef struct {
 type markerPlace struct {
 	def *markerDef
 	at  canvas.Matrix
+	// room is the rectangle of the room the marker asked for, taken back into
+	// the coordinates its picture was written in so that it cuts the picture
+	// where the room's edges land on it. It is nil where `overflow` says the
+	// picture may run out of the room, which draws it whole — and nil where
+	// the fit of a viewBox has no way back, which collapses the picture
+	// anyway rather than cutting it the wrong way.
+	room *clipRegion
 	// prop is the property that asked for this one — "marker-start",
 	// "marker-mid" or "marker-end" — and is only here so that a warning about
 	// a marker going round for ever can say which of the three it was.
@@ -158,6 +170,7 @@ func (img *Image) readMarker(def *markerDef, e *element) {
 	def.h = markerLength(e, "markerHeight", 3, warn)
 	def.strokeUnits = !strings.EqualFold(strings.TrimSpace(e.attr("markerUnits")), "userspaceonuse")
 	def.deg, def.auto, def.startReverse = readOrient(e.attr("orient"), warn)
+	def.visible = overflowIn(e)
 	if def.w <= 0 || def.h <= 0 {
 		warn("the marker is %g by %g, which has no room for anything in it, so nothing is drawn where it is named", def.w, def.h)
 	}
@@ -477,7 +490,21 @@ func markerOn(def *markerDef, st Style, v markerVertex, atStart bool, prop strin
 	if st.HasTransform && st.Transform != (canvas.Matrix{}) {
 		at = st.Transform.Mul(at)
 	}
-	return &markerPlace{def: def, at: at, prop: prop}
+	// The room as a cut, in the coordinates the picture is written in: its
+	// rectangle taken backwards through the fit of the viewBox, so that where
+	// the room's edges land on the picture follow where the picture's own
+	// writing lands. A fit with no way back collapses the picture to nothing
+	// anyway, so it gets no cut rather than the wrong one.
+	var room *clipRegion
+	if !def.visible {
+		if inv, ok := onto.Inverse(); ok {
+			p := canvas.NewPath()
+			p.AddRect(0, 0, w, h)
+			p.Transform(inv)
+			room = &clipRegion{shapes: []canvas.MaskShape{{Path: p, Rule: canvas.FillNonZero}}}
+		}
+	}
+	return &markerPlace{def: def, at: at, room: room, prop: prop}
 }
 
 // paintMarkers draws the markers an element asked for at the vertices of its
@@ -485,16 +512,25 @@ func markerOn(def *markerDef, st Style, v markerVertex, atStart bool, prop strin
 // canvas by the matrix that was worked out where the shape was built, and then
 // by the one that puts the drawing there. The pictures are drawn the same way
 // everything else is — their own fill and stroke, their own groups, their own
-// clip and mask — and the masks and patterns already being drawn on the way to
-// them go with them, so that a marker inside a pattern inside a marker finds
-// the pattern already there rather than drawing it again for ever. A marker the
-// cycle cut left off has no marker to draw and is passed over.
+// clip and mask — and where the room of the marker cuts its picture, the way
+// any element with a clip-path on it is drawn: through a picture of its own,
+// cut to the room, laid down over what was there. The masks and patterns
+// already being drawn on the way to them go with them, so that a marker inside
+// a pattern inside a marker finds the pattern already there rather than drawing
+// it again for ever. A marker the cycle cut left off has no marker to draw and
+// is passed over.
 func paintMarkers(cv *canvas.Canvas, n *Node, m canvas.Matrix, current canvas.Color, masking []*maskDef, patterning []*pattern) {
 	for i := range n.markers {
 		place := &n.markers[i]
 		if place.def == nil || place.def.content == nil {
 			continue
 		}
-		paintNodes(cv, place.def.content, m.Mul(place.at), current, masking, patterning)
+		content := place.def.content
+		if place.room != nil {
+			wrap := &Node{clip: place.room}
+			wrap.Kids = []*Node{content}
+			content = wrap
+		}
+		paintNodes(cv, content, m.Mul(place.at), current, masking, patterning)
 	}
 }
