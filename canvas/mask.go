@@ -60,6 +60,15 @@ func (cv *Canvas) MaskRoundRect(x, y, w, h, rx, ry int) {
 type MaskShape struct {
 	Path *Path
 	Rule FillRule
+	// And is the cuts the shape itself carries: what it keeps has to be under
+	// the shape and under every one of these too, each entry being the union
+	// of one clip of shapes — the clip written inside a `<clipPath>` cutting
+	// the shape it was written on. What any entry covers is inside that entry,
+	// and the shape is kept only where the shape and every entry agree. An
+	// entry with no shapes in it keeps nothing anywhere, so a shape cut by a
+	// reference the drawing could not follow keeps nothing, the same as an
+	// empty `<clipPath>` keeps nothing. Nil is a shape with no cuts at all.
+	And [][]MaskShape
 }
 
 // MaskShapes keeps only what lies under one of the shapes and empties the rest
@@ -73,7 +82,9 @@ type MaskShape struct {
 // them overlapping leave their overlap standing, which is what a clip written
 // as several shapes means. The union of no shapes at all is nothing, so no
 // shapes at all empties the clip region — that is the clip an empty
-// `<clipPath>` is, where nothing of what it cuts is drawn.
+// `<clipPath>` is, where nothing of what it cuts is drawn. A shape that
+// carries cuts of its own (see [MaskShape.And]) has to be under them as well:
+// what its own outline covers and what they cover is where it keeps.
 //
 // What is cut is the alpha alone: the colours stay as they are and only how
 // much of each there is changes, so this is a cut to make on a layer, where
@@ -115,21 +126,85 @@ func (cv *Canvas) MaskShapes(shapes ...MaskShape) {
 		}
 		return
 	}
-	// Every shape measured over the whole band at once. The runs of one shape
-	// come back in row order, so each is walked from where it left off rather
-	// than being searched for again on every row.
+	// Every shape measured over the whole band at once, along with the clips
+	// each one carries and the clips those carry, all the way down. The runs
+	// of one list come back in row order, so each is walked from where it
+	// left off rather than being searched for again on every row.
 	type measured struct {
 		at    int
 		spans []span
+		and   [][]measured
+	}
+	var measure func(s MaskShape) measured
+	measure = func(s MaskShape) measured {
+		w := measured{spans: fillCoverage(s.Path, bx0, by0, bx1, by1, s.Rule)}
+		for _, e := range s.And {
+			entry := make([]measured, 0, len(e))
+			for _, es := range e {
+				if es.Path == nil {
+					continue
+				}
+				entry = append(entry, measure(es))
+			}
+			w.and = append(w.and, entry)
+		}
+		return w
 	}
 	all := make([]measured, 0, len(shapes))
 	for _, s := range shapes {
 		if s.Path == nil {
 			continue
 		}
-		all = append(all, measured{spans: fillCoverage(s.Path, bx0, by0, bx1, by1, s.Rule)})
+		all = append(all, measure(s))
 	}
 	row := make([]float64, bx1-bx0)
+	// A row's worth of working room, kept per depth: a shape, the clip it is
+	// cut by and the clip that one is cut by are never measured into the same
+	// row at once, and the depth they need is as many as the clips cut into
+	// clips along the way — which is never more than the picture is nested.
+	var bufs [][]float64
+	bufAt := func(d int) []float64 {
+		for len(bufs) <= d {
+			bufs = append(bufs, make([]float64, bx1-bx0))
+		}
+		return bufs[d]
+	}
+	// cov is how much of one row of the band one measured shape covers: what
+	// its own outline covers, cut down to what every clip it carries covers
+	// too, one of them at a time. A pixel outside one of them multiplies out
+	// to nothing, which is the cut it is. It hands back the buffer it worked
+	// in at depth d, for the caller to take what it needs of before the next
+	// shape at that depth works in it again.
+	var cov func(w *measured, d, y int) []float64
+	cov = func(w *measured, d, y int) []float64 {
+		dst := bufAt(d)
+		clear(dst)
+		for w.at < len(w.spans) && w.spans[w.at].y == y {
+			s := w.spans[w.at]
+			w.at++
+			for x := s.x0; x < s.x1; x++ {
+				if s.a > dst[x-bx0] {
+					dst[x-bx0] = s.a
+				}
+			}
+		}
+		for j := range w.and {
+			over := bufAt(d + 1)
+			clear(over)
+			for k := range w.and[j] {
+				m := cov(&w.and[j][k], d+2, y)
+				for x := range over {
+					if m[x] > over[x] {
+						over[x] = m[x]
+					}
+				}
+			}
+			for x := range dst {
+				dst[x] *= over[x]
+			}
+		}
+		return dst
+	}
 	for y := cy0; y < cy1; y++ {
 		if y < by0 || y >= by1 {
 			cv.cutRow(y, cx0, cx1, nil)
@@ -137,17 +212,13 @@ func (cv *Canvas) MaskShapes(shapes ...MaskShape) {
 		}
 		clear(row)
 		for i := range all {
-			w := &all[i]
-			for w.at < len(w.spans) && w.spans[w.at].y == y {
-				s := w.spans[w.at]
-				w.at++
-				for x := s.x0; x < s.x1; x++ {
-					// The most of a pixel any one shape covers is how much of
-					// it the union covers: a second shape over the same pixel
-					// adds nothing to what is already inside the clip.
-					if s.a > row[x-bx0] {
-						row[x-bx0] = s.a
-					}
+			m := cov(&all[i], 0, y)
+			for x := range row {
+				// The most of a pixel any one shape covers is how much of
+				// it the union covers: a second shape over the same pixel
+				// adds nothing to what is already inside the clip.
+				if m[x] > row[x] {
+					row[x] = m[x]
 				}
 			}
 		}

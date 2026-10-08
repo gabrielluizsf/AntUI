@@ -369,3 +369,123 @@ func TestRenderOfWritingInAClipPathSaysSoAndKeepsNothing(t *testing.T) {
 		gone(t, img.Render(10, 10), p[0], p[1])
 	}
 }
+
+// TestRenderCutsAShapeOfAClipPathByOneWrittenAfterIt: a `clip-path` written
+// over a shape inside a `<clipPath>` cuts that shape, so what the clipPath
+// keeps is where the shape and the clip it carries cover the same ground. The
+// clip it names is written further down the file than the clipPath pointing
+// at it, which is the order a drawing is usually written in and the reason
+// the shapes cannot be worked out one clipPath at a time as they are read.
+func TestRenderCutsAShapeOfAClipPathByOneWrittenAfterIt(t *testing.T) {
+	cv := cut(t, `<svg viewBox="0 0 10 10">
+		<rect width="10" height="10" fill="#ff0000" clip-path="url(#outer)"/>
+		<clipPath id="outer">
+			<rect x="0" y="0" width="8" height="8" clip-path="url(#inner)"/>
+		</clipPath>
+		<clipPath id="inner">
+			<rect x="2" y="2" width="8" height="8"/>
+		</clipPath>
+	</svg>`, 10, 10)
+
+	// The two rectangles overlap from 2 to 8 on both axes, and only there.
+	for _, p := range [][2]int{{3, 3}, {5, 5}, {7, 5}, {5, 7}} {
+		kept(t, cv, p[0], p[1])
+	}
+	for _, p := range [][2]int{{1, 1}, {9, 5}, {5, 9}, {1, 9}, {9, 9}} {
+		gone(t, cv, p[0], p[1])
+	}
+}
+
+// TestRenderCutsWhatAGroupInsideAClipPathHolds: a `clip-path` written on a
+// group inside a `<clipPath>` cuts every shape the group holds, and the
+// shapes still stand as a union beside each other — each one cut by the
+// group's clip where it stands, rather than the group's clip deciding about
+// the clipPath as a whole.
+func TestRenderCutsWhatAGroupInsideAClipPathHolds(t *testing.T) {
+	cv := cut(t, `<svg viewBox="0 0 10 10">
+		<rect width="10" height="10" fill="#ff0000" clip-path="url(#outer)"/>
+		<clipPath id="outer">
+			<g clip-path="url(#band)">
+				<rect x="0" y="0" width="4" height="10"/>
+				<rect x="6" y="0" width="4" height="10"/>
+			</g>
+		</clipPath>
+		<clipPath id="band">
+			<rect x="0" y="0" width="10" height="5"/>
+		</clipPath>
+	</svg>`, 10, 10)
+
+	// Each rectangle where the band over it reaches: the top of both.
+	for _, p := range [][2]int{{1, 1}, {7, 1}} {
+		kept(t, cv, p[0], p[1])
+	}
+	// Below the band, and between the two rectangles where neither stands.
+	for _, p := range [][2]int{{1, 7}, {7, 7}, {5, 5}} {
+		gone(t, cv, p[0], p[1])
+	}
+}
+
+// TestRenderOfAClipPathThatPointsBackAtItselfStandsStill: the shapes of a
+// clipPath are worked out by following what is written inside it, and a
+// `clip-path` pointing back at the clipPath being worked out is a circle the
+// walk would go round for ever without. The reference is left off with one
+// warning saying which one it was — a clip left off keeps everything, so the
+// shape stands whole inside the clipPath and the drawing comes back rather
+// than not coming back at all.
+func TestRenderOfAClipPathThatPointsBackAtItselfStandsStill(t *testing.T) {
+	img, err := Parse(`<svg viewBox="0 0 10 10">
+		<rect width="10" height="10" fill="#ff0000" clip-path="url(#a)"/>
+		<clipPath id="a">
+			<rect x="0" y="0" width="5" height="10" clip-path="url(#a)"/>
+		</clipPath>
+	</svg>`)
+	if err != nil {
+		t.Fatalf("parse: %v", err)
+	}
+	ws := img.Warnings()
+	if len(ws) != 1 || !strings.Contains(ws.String(), "points back at the <clipPath>") {
+		t.Fatalf("the drawing said %v, want it to say which clip-path closes the circle, once", ws)
+	}
+	cv := img.Render(10, 10)
+	for _, p := range [][2]int{{1, 5}, {4, 5}} {
+		kept(t, cv, p[0], p[1])
+	}
+	for _, p := range [][2]int{{6, 5}, {9, 5}} {
+		gone(t, cv, p[0], p[1])
+	}
+}
+
+// TestRenderOfTwoClipPathsThatPointAtEachOtherMeetInTheMiddle: the same round
+// trip taken in two steps, stopped at the first repeat — the clip that ran
+// into a clipPath already being worked out is left off with one warning, and
+// what comes out is the two clipPaths cut against each other rather than a
+// program that does not come back.
+func TestRenderOfTwoClipPathsThatPointAtEachOtherMeetInTheMiddle(t *testing.T) {
+	img, err := Parse(`<svg viewBox="0 0 10 10">
+		<rect width="10" height="10" fill="#ff0000" clip-path="url(#a)"/>
+		<clipPath id="a">
+			<rect x="0" y="0" width="8" height="10" clip-path="url(#b)"/>
+		</clipPath>
+		<clipPath id="b">
+			<rect x="2" y="0" width="8" height="10" clip-path="url(#a)"/>
+		</clipPath>
+	</svg>`)
+	if err != nil {
+		t.Fatalf("parse: %v", err)
+	}
+	ws := img.Warnings()
+	if len(ws) != 1 || !strings.Contains(ws.String(), "points back at the <clipPath>") {
+		t.Fatalf("the drawing said %v, want it to say which clip-path closes the circle, once", ws)
+	}
+	cv := img.Render(10, 10)
+	// Working out the first, the walk reaches the second; working out the
+	// second, its reference back at the first is the one over the circle, so
+	// it stands as its own rectangle and the first carries its shapes — what
+	// both keep is where the two of them meet, from 2 to 8.
+	for _, p := range [][2]int{{3, 5}, {5, 5}, {7, 5}} {
+		kept(t, cv, p[0], p[1])
+	}
+	for _, p := range [][2]int{{1, 5}, {9, 5}} {
+		gone(t, cv, p[0], p[1])
+	}
+}

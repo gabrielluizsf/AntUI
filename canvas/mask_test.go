@@ -205,6 +205,95 @@ func TestMaskShapesCutsOnlyTheAlphaOfAPixelThatWasNeverDrawn(t *testing.T) {
 	}
 }
 
+// TestMaskShapesKeepsOnlyWhereAShapeAndItsCutsAgree: a shape that carries a
+// cut of its own keeps where its own outline covers and where everything it
+// carries covers too. The cut belongs to that shape alone — the shapes beside
+// it keep where they keep — because it is what was written over one shape of
+// a clipPath and not a decision about the clip as a whole.
+func TestMaskShapesKeepsOnlyWhereAShapeAndItsCutsAgree(t *testing.T) {
+	cv := filledLayer(t, 8, 8)
+	cv.MaskShapes(MaskShape{
+		Path: pathAt(0, 0, 8, 4), Rule: FillNonZero,
+		And: [][]MaskShape{{{Path: pathAt(0, 0, 4, 8), Rule: FillNonZero}}},
+	})
+
+	if got := cv.At(1, 1); got.A() == 0 {
+		t.Error("under the shape and under the cut the picture is gone, want it kept")
+	}
+	for _, at := range [][2]int{{6, 1}, {1, 6}, {6, 6}} {
+		if got := cv.At(at[0], at[1]); got.A() != 0 {
+			t.Errorf("at %v the picture is at alpha %d, want it cut: only one of the two covers it", at, got.A())
+		}
+	}
+}
+
+// TestMaskShapesCountsOneCutAsTheUnionOfItsShapes: the shapes inside one cut
+// are a union like the shapes of the clip itself, so a pixel under either of
+// them is inside that cut — two halves of one clip are the whole of it.
+func TestMaskShapesCountsOneCutAsTheUnionOfItsShapes(t *testing.T) {
+	cv := filledLayer(t, 8, 8)
+	cv.MaskShapes(MaskShape{
+		Path: pathAt(0, 0, 8, 4), Rule: FillNonZero,
+		And: [][]MaskShape{{
+			{Path: pathAt(0, 0, 4, 4), Rule: FillNonZero},
+			{Path: pathAt(4, 0, 4, 4), Rule: FillNonZero},
+		}},
+	})
+
+	for _, at := range [][2]int{{1, 1}, {5, 1}} {
+		if got := cv.At(at[0], at[1]); got.A() == 0 {
+			t.Errorf("at %v the picture is gone, want it kept: either shape of the cut covers it", at)
+		}
+	}
+	for _, at := range [][2]int{{1, 6}, {5, 6}} {
+		if got := cv.At(at[0], at[1]); got.A() != 0 {
+			t.Errorf("at %v the picture is at alpha %d, want it cut: the shape is past the cut", at, got.A())
+		}
+	}
+}
+
+// TestMaskShapesCarriesACutInsideACut: a shape inside a cut may carry a cut
+// of its own, and it keeps where its outline, its own cut and the shape over
+// it all agree — the whole of it taken through every cut along the way.
+func TestMaskShapesCarriesACutInsideACut(t *testing.T) {
+	cv := filledLayer(t, 8, 8)
+	cv.MaskShapes(MaskShape{
+		Path: pathAt(0, 0, 8, 8), Rule: FillNonZero,
+		And: [][]MaskShape{{
+			{
+				Path: pathAt(0, 0, 8, 4), Rule: FillNonZero,
+				And: [][]MaskShape{{{Path: pathAt(0, 0, 4, 8), Rule: FillNonZero}}},
+			},
+		}},
+	})
+
+	if got := cv.At(1, 1); got.A() == 0 {
+		t.Error("under every cut at once the picture is gone, want it kept")
+	}
+	for _, at := range [][2]int{{6, 1}, {1, 6}, {6, 6}} {
+		if got := cv.At(at[0], at[1]); got.A() != 0 {
+			t.Errorf("at %v the picture is at alpha %d, want it cut by one of the cuts along the way", at, got.A())
+		}
+	}
+}
+
+// TestMaskShapesWithACutOfNothingKeepsNothing: an entry with no shapes in it
+// is the union of nothing, which keeps nothing anywhere, so the shape it is
+// written over keeps nothing either. It is what a reference the drawing could
+// not follow leaves behind on a shape of a clipPath.
+func TestMaskShapesWithACutOfNothingKeepsNothing(t *testing.T) {
+	cv := filledLayer(t, 6, 6)
+	cv.MaskShapes(MaskShape{Path: pathAt(0, 0, 6, 6), Rule: FillNonZero, And: [][]MaskShape{{}}})
+
+	for y := range 6 {
+		for x := range 6 {
+			if a := cv.At(x, y).A(); a != 0 {
+				t.Fatalf("pixel (%d,%d) is at alpha %d, want the whole region emptied", x, y, a)
+			}
+		}
+	}
+}
+
 // maskedLayers is a picture cut into three bands — one that keeps everything,
 // one that keeps about half and one that keeps nothing — and the same picture
 // of it returned in both measures, which is what every MaskBy test below wants
