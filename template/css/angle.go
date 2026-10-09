@@ -2,7 +2,6 @@ package css
 
 import (
 	"math"
-	"strconv"
 	"strings"
 )
 
@@ -50,54 +49,4 @@ func ParseAngle(raw string) (Angle, bool) {
 		}
 	}
 	return Angle{}, false
-}
-
-// Time is a duration in milliseconds, the unit the frame loop ticks in. CSS
-// spells seconds and milliseconds; both collapse here so transition and
-// animation durations compare the same way.
-type Time struct {
-	ms float64
-}
-
-// Sec builds a time from seconds.
-func Sec(s float64) Time { return Time{ms: s * 1000} }
-
-// MSec builds a time from milliseconds.
-func MSec(ms float64) Time { return Time{ms: ms} }
-
-// MS returns the duration in milliseconds.
-func (t Time) MS() float64 { return t.ms }
-
-// Sec returns the duration in seconds.
-func (t Time) Sec() float64 { return t.ms / 1000 }
-
-// ParseTime reads a CSS time: 300ms or 1.5s. A unitless number is invalid in
-// CSS, so it reports failure.
-func ParseTime(raw string) (Time, bool) {
-	s := strings.TrimSpace(strings.ToLower(raw))
-	if n, ok := numberSuffix(s, "ms"); ok {
-		return MSec(n), true
-	}
-	if n, ok := numberSuffix(s, "s"); ok {
-		return Sec(n), true
-	}
-	return Time{}, false
-}
-
-// numberSuffix parses the float before a unit suffix. It requires the whole
-// string to be number+suffix, so a "turn" does not leak into "deg" and "s"
-// does not leak out of "ms" (ms is checked first by callers that care).
-func numberSuffix(s, suffix string) (float64, bool) {
-	if !strings.HasSuffix(s, suffix) {
-		return 0, false
-	}
-	body := strings.TrimSpace(strings.TrimSuffix(s, suffix))
-	if body == "" {
-		return 0, false
-	}
-	v, err := strconv.ParseFloat(body, 64)
-	if err != nil || math.IsNaN(v) || math.IsInf(v, 0) {
-		return 0, false
-	}
-	return v, true
 }
