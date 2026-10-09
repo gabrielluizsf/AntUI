@@ -2,8 +2,6 @@ package css
 
 import (
 	"fmt"
-	"strconv"
-	"strings"
 
 	"github.com/gabrielluizsf/antui/canvas"
 )
@@ -33,30 +31,15 @@ func parseRGB(s string) (canvas.Color, error) {
 	if len(slots) != 3 {
 		return 0, fmt.Errorf("css: %q has the wrong channel count", s)
 	}
-	ch := func(f string) (uint8, error) {
-		f = strings.TrimSpace(f)
-		if strings.HasSuffix(f, "%") {
-			v, err := strconv.ParseFloat(strings.TrimSuffix(f, "%"), 64)
-			if err != nil {
-				return 0, err
-			}
-			return clampByte(v * 255 / 100), nil
-		}
-		v, err := strconv.ParseFloat(f, 64)
-		if err != nil {
-			return 0, err
-		}
-		return clampByte(v), nil
-	}
-	r, err := ch(slots[0])
+	r, err := rgbChannel(slots[0])
 	if err != nil {
 		return 0, err
 	}
-	g, err := ch(slots[1])
+	g, err := rgbChannel(slots[1])
 	if err != nil {
 		return 0, err
 	}
-	b, err := ch(slots[2])
+	b, err := rgbChannel(slots[2])
 	if err != nil {
 		return 0, err
 	}

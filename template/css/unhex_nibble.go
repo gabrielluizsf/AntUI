@@ -12,3 +12,16 @@ func unhexNibble(c byte) (byte, bool) {
 	}
 	return 0, false
 }
+
+// hexPair reads two hex digits into one byte.
+func hexPair(a, b byte) (byte, bool) {
+	ha, ok := unhexNibble(a)
+	if !ok {
+		return 0, false
+	}
+	hb, ok := unhexNibble(b)
+	if !ok {
+		return 0, false
+	}
+	return ha<<4 | hb, true
+}
