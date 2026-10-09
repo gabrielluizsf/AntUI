@@ -35,16 +35,9 @@ func parseSelector(text string) (Selector, []string) {
 		case c == ':':
 			s.readPseudo()
 		case c == '[':
-			s.warns = append(s.warns, fmtErrf("ignoring attribute selector in %q", text).Error())
-			s.sel.Unsupported = markUnsupported(s.sel.Unsupported, "attribute")
-			s.i = max(attrEnd(s.t, s.i), s.i+1)
-			s.saw = true
+			s.readAttr()
 		case c == '#':
-			_, n := readName(s.t[s.i+1:])
-			s.warns = append(s.warns, fmtErrf("ignoring id selector in %q", text).Error())
-			s.sel.Unsupported = markUnsupported(s.sel.Unsupported, "id")
-			s.i += 1 + n
-			s.saw = true
+			s.readID()
 		case c == '*':
 			s.sel.All = true
 			s.i++
