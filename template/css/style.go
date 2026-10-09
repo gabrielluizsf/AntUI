@@ -7,63 +7,6 @@ import (
 	"github.com/gabrielluizsf/antui/canvas"
 )
 
-// Position is the CSS positioning scheme. Absolute and fixed boxes are taken
-// out of flow; relative and sticky boxes keep their flow slot and only shift
-// where they are painted.
-const (
-	PositionStatic uint8 = iota
-	PositionAbsolute
-	PositionFixed
-	PositionRelative
-	PositionSticky
-)
-
-// Overflow is the per-axis overflow behaviour of a box.
-const (
-	OverflowVisible uint8 = iota
-	OverflowHidden
-	OverflowScroll
-	OverflowAuto
-	OverflowClip
-)
-
-// Visibility controls whether a box is painted; a hidden box keeps its slot.
-const (
-	VisibilityVisible uint8 = iota
-	VisibilityHidden
-	VisibilityCollapse
-)
-
-// PointerEvents says whether a box takes part in hit testing.
-const (
-	PointerEventsAuto uint8 = iota
-	PointerEventsNone
-)
-
-// Cursor names the pointer shape a box asks for. The engine only models it;
-// painting a real OS cursor is the window's job.
-const (
-	CursorDefault uint8 = iota
-	CursorPointer
-	CursorText
-	CursorWait
-	CursorCrosshair
-	CursorMove
-	CursorNotAllowed
-	CursorGrab
-	CursorGrabbing
-	CursorCell
-)
-
-// Border styles, matching the values stored in Style.BoxStyle.
-const (
-	BorderNone uint8 = iota
-	BorderSolid
-	BorderDashed
-	BorderDotted
-	BorderDouble
-)
-
 // Style is the computed drawing style of one widget after the cascade: which
 // pixels to fill, how thick its border is, how big its text. Zero values fall
 // back to the template's theme — a style does not know the theme, it knows
@@ -984,86 +927,6 @@ func parseBorderStyles(raw string) ([4]uint8, bool) {
 	return out, true
 }
 
-func parsePosition(raw string) (uint8, bool) {
-	switch raw {
-	case "static":
-		return PositionStatic, true
-	case "absolute":
-		return PositionAbsolute, true
-	case "fixed":
-		return PositionFixed, true
-	case "relative":
-		return PositionRelative, true
-	case "sticky":
-		return PositionSticky, true
-	}
-	return 0, false
-}
-
-func parseOverflow(raw string) (uint8, bool) {
-	switch raw {
-	case "visible":
-		return OverflowVisible, true
-	case "hidden":
-		return OverflowHidden, true
-	case "scroll":
-		return OverflowScroll, true
-	case "auto":
-		return OverflowAuto, true
-	case "clip":
-		return OverflowClip, true
-	}
-	return 0, false
-}
-
-func parseVisibility(raw string) (uint8, bool) {
-	switch raw {
-	case "visible":
-		return VisibilityVisible, true
-	case "hidden":
-		return VisibilityHidden, true
-	case "collapse":
-		return VisibilityCollapse, true
-	}
-	return 0, false
-}
-
-func parsePointerEvents(raw string) (uint8, bool) {
-	switch raw {
-	case "auto":
-		return PointerEventsAuto, true
-	case "none":
-		return PointerEventsNone, true
-	}
-	return 0, false
-}
-
-func parseCursor(raw string) (uint8, bool) {
-	switch raw {
-	case "default", "auto":
-		return CursorDefault, true
-	case "pointer":
-		return CursorPointer, true
-	case "text":
-		return CursorText, true
-	case "wait", "progress":
-		return CursorWait, true
-	case "crosshair":
-		return CursorCrosshair, true
-	case "move", "all-scroll":
-		return CursorMove, true
-	case "not-allowed":
-		return CursorNotAllowed, true
-	case "grab":
-		return CursorGrab, true
-	case "grabbing":
-		return CursorGrabbing, true
-	case "cell":
-		return CursorCell, true
-	}
-	return 0, false
-}
-
 // parseZIndex accepts an integer (possibly negative) z-index. auto is the
 // initial value and resets the layer to 0.
 func parseZIndex(raw string) (int, bool) {
@@ -1176,25 +1039,6 @@ func applyBorder(st *Style, set map[string]bool, sides [4]int, raw string, note 
 		set["border-color"] = true
 	}
 	note()
-}
-
-func parseBorderStyle(raw string) (uint8, bool) {
-	switch raw {
-	case "solid":
-		return BorderSolid, true
-	case "dashed":
-		return BorderDashed, true
-	case "dotted":
-		return BorderDotted, true
-	case "double":
-		return BorderDouble, true
-	case "groove", "ridge", "inset", "outset":
-		// Drawn as a solid ring: a flat canvas has no bevel to shade.
-		return BorderSolid, true
-	case "none", "hidden":
-		return BorderNone, true
-	}
-	return 0, false
 }
 
 // parseRadiiList expands one to four non-negative pixel radii into the four
