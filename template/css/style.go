@@ -68,166 +68,19 @@ const (
 // pixels to fill, how thick its border is, how big its text. Zero values fall
 // back to the template's theme — a style does not know the theme, it knows
 // only what the stylesheet said, and the Set map records whether it spoke.
+// The field groups live in their own types (boxStyle, surfaceStyle, …) so
+// each stays a readable size; they are embedded, so every field reads and
+// writes as if it were declared right here.
 type Style struct {
-	// Box model.
-	Width, Height        Length
-	MinWidth, MaxWidth   Length
-	MinHeight, MaxHeight Length
-	Margin               [4]Length // top, right, bottom, left
-	Padding              [4]Length
-	BoxSizing            bool // border-box when true, content-box otherwise
-
-	// Border. BoxStyle[i] is one of the Border* constants.
-	BorderWidth [4]int
-	BoxStyle    [4]uint8
-	BoxColor    [4]canvas.Color
-	Radius      [4]int
-	RadiusY     [4]int // vertical radii; zero means the same as Radius
-
-	// Surface and ink.
-	Background canvas.Color
-	// Background layers, painted above the colour in order. The parallel
-	// lists cycle over the layers, so one background-position value
-	// positions an entire stack of images.
-	BackgroundImages []BackImage
-	BackgroundPos    []BackPos
-	BackgroundSize   []BackSize
-	BackgroundRepeat []BackRepeat
-	BackgroundClip   []uint8
-	BackgroundOrigin []uint8
-	BackgroundAttach []uint8
-	Opacity          float64 // 0..1; 1 when unset
-	Color            canvas.Color
-
-	// Text measured in reference pixels at scale 1. TextAlign 0 left, 1
-	// center, 2 right, 3 justify. The typography group is inherited.
-	FontSize       int // 0 means the theme default
-	TextAlign      uint8
-	FontWeight     uint16  // 0 means normal (400)
-	FontStyle      uint8   // one of the FontStyle* constants
-	FontFamily     string  // the font-family list, lowercased; empty means none was asked for
-	LineHeight     float64 // multiplier of the font size; 0 means normal
-	LetterSpacing  Length
-	WordSpacing    Length
-	TextTransform  uint8 // one of the TextTransform* constants
-	TextDecoration uint8 // bit set of the TextDecoration* constants
-	WhiteSpace     uint8 // one of the WhiteSpace* constants
-	OverflowWrap   uint8 // one of the OverflowWrap* constants
-	TextOverflow   uint8 // one of the TextOverflow* constants
-	VerticalAlign  uint8 // one of the VerticalAlign* constants
-	BaselineShift  Length
-
-	// Layout.
-	Display       uint8 // one of the Display* constants
-	Position      uint8 // one of the Position* constants
-	Top           Length
-	Right         Length
-	Bottom        Length
-	Left          Length
-	ZIndex        int
-	Overflow      [2]uint8 // x, y; one of the Overflow* constants
-	Visibility    uint8    // one of the Visibility* constants
-	PointerEvents uint8    // one of the PointerEvents* constants
-	Cursor        uint8    // one of the Cursor* constants
-
-	// Flexbox container geometry: how a DisplayFlex box lays its children
-	// out along the main axis and across it. RowGap and ColumnGap space the
-	// items and the wrapped lines.
-	FlexDirection  uint8 // one of the FlexDirection* constants
-	FlexWrap       uint8 // one of the FlexWrap* constants
-	JustifyContent uint8 // one of the Justify* constants
-	AlignItems     uint8 // one of the Align* constants
-	AlignContent   uint8 // one of the Content* constants
-	RowGap         Length
-	ColumnGap      Length
-
-	// Flex item geometry: how this box answers its flex container. Order
-	// reorders items; grow and shrink share the free space; basis is the
-	// item's main size before distribution; align-self overrides the
-	// container's align-items.
-	Order      int
-	FlexGrow   float64
-	FlexShrink float64
-	FlexBasis  Length
-	AlignSelf  uint8 // AlignAuto or one of the Align* constants
-
-	GridTemplateColumns GridTemplate
-	GridTemplateRows    GridTemplate
-	GridTemplateAreas   [][]string
-	GridAutoFlow        uint8
-	GridAutoFlowDense   bool
-	GridJustifyContent  uint8
-	JustifyItems        uint8
-	JustifySelf         uint8
-	GridColumn          GridPlacement
-	GridRow             GridPlacement
-
-	// Multi-column geometry: how a block's content is split into columns.
-	// ColumnCount is how many, ColumnWidth how wide each one is when the count
-	// is left to the width, ColumnFill how a declared height is spent. The rule
-	// in the gutter is ColumnRuleWidth, ColumnRuleStyle (the Border* constants)
-	// and ColumnRuleColor. The gutter itself is ColumnGap, the same property
-	// flex and grid read as their gap along the inline axis.
-	ColumnCount     int
-	ColumnWidth     Length
-	ColumnFill      uint8 // one of the ColumnFill* constants
-	ColumnRuleWidth int
-	ColumnRuleStyle uint8
-	ColumnRuleColor canvas.Color
-
-	// BreakInside is whether a box may be cut in the middle where it is laid
-	// out: in a column, in a page or along a line. BreakAuto lets the flow cut
-	// it wherever it runs out of room, BreakAvoid asks for the whole box in
-	// one piece.
-	BreakInside uint8 // one of the Break* constants
-
-	// Float is the side a box is taken out of the flow towards and Clear the
-	// sides a box asks to be pushed past. Both are read, so a stylesheet that
-	// says float: right is heard and not warned about as a misspelling; see
-	// doc.go for why this flow has nothing to float inside.
-	Float uint8 // one of the Float* constants
-	Clear uint8 // one of the Clear* constants
-
-	// Visual effects. OutlineStyle shares the Border* constants.
-	BoxShadow       []Shadow
-	TextShadow      []Shadow
-	OutlineWidth    int
-	OutlineStyle    uint8
-	OutlineColor    canvas.Color
-	OutlineOffset   int
-	Filters         []Filter
-	BackdropFilters []Filter
-
-	// Transform is the transform list, applied around the border box's
-	// TransformOrigin. Nil means none.
-	Transform []TransformFunc
-	// TransformOrigin is the transform pivot: the initial value sits in the
-	// box's centre.
-	TransformOrigin [2]Length
-
-	// Transitions is the finished transition list: which properties animate
-	// toward new computed values, and how, the moment the cascade changes
-	// them. Animations is the finished animation list, the keyframes blocks
-	// the element plays and how. Both are assembled from the parallel
-	// longhand lists below by finishTransitions and finishAnimations at the
-	// end of the cascade; the longhand lists are intermediate and never
-	// meant for the template.
-	Transitions []Transition
-	Animations  []Animation
-
-	TransitionProps []string
-	TransitionDurs  []Time
-	TransitionTims  []Timing
-	TransitionDels  []Time
-	TransitionNone  bool
-
-	AnimationNames []string
-	AnimationDurs  []Time
-	AnimationTims  []Timing
-	AnimationDels  []Time
-	AnimationIters []float64 // math.Inf(+1) means infinite
-	AnimationDirs  []uint8
-	AnimationFills []uint8
+	boxStyle
+	surfaceStyle
+	textStyle
+	layoutStyle
+	flexStyle
+	gridStyle
+	columnStyle
+	effectStyle
+	motionStyle
 
 	// Set records which canonical properties the stylesheet mentioned, so a
 	// template can decide theme fallbacks.
@@ -248,17 +101,6 @@ type Style struct {
 
 // Has reports whether a canonical property was set in the cascade.
 func (s *Style) Has(prop string) bool { return s.Set[prop] }
-
-// BorderOn reports whether any side paints a border.
-func (s *Style) BorderOn() bool {
-	return s.BoxStyle[0] != BorderNone || s.BoxStyle[1] != BorderNone ||
-		s.BoxStyle[2] != BorderNone || s.BoxStyle[3] != BorderNone
-}
-
-// OutOfFlow reports whether the box is positioned outside the normal flow.
-func (s Style) OutOfFlow() bool {
-	return s.Position == PositionAbsolute || s.Position == PositionFixed
-}
 
 // applyDecl folds one declaration into the style, expanding shorthands,
 // resolving var() references and evaluating length formulas (calc/min/max/
