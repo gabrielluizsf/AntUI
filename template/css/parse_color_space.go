@@ -2,8 +2,9 @@ package css
 
 import (
 	"fmt"
-	"github.com/gabrielluizsf/antui/canvas"
 	"strings"
+
+	"github.com/gabrielluizsf/antui/canvas"
 )
 
 // parseColorSpace reads color(space r g b / alpha), mapping the predefined

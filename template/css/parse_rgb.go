@@ -2,9 +2,10 @@ package css
 
 import (
 	"fmt"
-	"github.com/gabrielluizsf/antui/canvas"
 	"strconv"
 	"strings"
+
+	"github.com/gabrielluizsf/antui/canvas"
 )
 
 // parseRGB reads rgb()/rgba() in both the legacy comma form and the modern
