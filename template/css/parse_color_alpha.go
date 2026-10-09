@@ -14,11 +14,11 @@ func parseColorAlpha(f string) (uint8, error) {
 		if err != nil {
 			return 0, err
 		}
-		return uint8(clamp01(v/100)*255 + 0.5), nil
+		return uint8(clamp(v/100)*255 + 0.5), nil
 	}
 	v, err := strconv.ParseFloat(f, 64)
 	if err != nil {
 		return 0, err
 	}
-	return uint8(clamp01(v)*255 + 0.5), nil
+	return uint8(clamp(v)*255 + 0.5), nil
 }

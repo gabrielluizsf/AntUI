@@ -129,7 +129,7 @@ func parseKeyframeOffset(s string) (float64, bool) {
 		if err != nil || math.IsNaN(v) || math.IsInf(v, 0) {
 			return 0, false
 		}
-		return clamp01(v / 100), true
+		return clamp(v / 100), true
 	}
 	return 0, false
 }
