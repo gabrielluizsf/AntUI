@@ -26,6 +26,31 @@ func filteredAt(t *testing.T, cv *canvas.Canvas, x, y int, r, g, b uint8) {
 	}
 }
 
+// TestRenderFiltersBeforeItCutsAndMasks is the order a picture goes through
+// what an element asked for: the filter first, so the blur has done its work
+// before the clip says where any of it is kept; then the clip; then the mask,
+// which says how much of what is left is there. Reading the clip first would
+// let the filter soften the cut it made, which is the one of the three that can
+// be seen — the clip and the mask both take away rather than add, so their
+// order between themselves leaves the same picture.
+func TestRenderFiltersBeforeItCutsAndMasks(t *testing.T) {
+	cv := cut(t, `<svg viewBox="0 0 20 20">
+		<defs>
+			<clipPath id="c"><rect x="8" y="8" width="6" height="6"/></clipPath>
+			<mask id="m"><rect x="8" y="8" width="3" height="6" fill="#ffffff"/></mask>
+		</defs>
+		<rect x="6" y="6" width="8" height="8" fill="#ff0000" filter="blur(1)" clip-path="url(#c)" mask="url(#m)"/>
+	</svg>`, 20, 20)
+
+	// One unit inside the cut, with the mask over it, is solid: had the clip
+	// been read before the blur, the blur would have softened the edge the cut
+	// left and this pixel would be part covered. Past the mask, and out where
+	// only the blur reached, there is nothing.
+	kept(t, cv, 9, 11)
+	gone(t, cv, 12, 11)
+	gone(t, cv, 7, 11)
+}
+
 // TestFilterGreyscalesThePicture is the plainest of the colour filters: red is
 // not a grey, and grayscale(1) says all the way to one — the luminance grey
 // that the matrix in the canvas is built from, which for full red is the red's
@@ -93,6 +118,81 @@ func TestFilterBlursPastTheEdgeOfWhatWasDrawn(t *testing.T) {
 	if a := alphaAt(blurred, 7, 7); a != 255 {
 		t.Errorf("in the middle of the rectangle the drawing is %d out of 255, want the blur to leave it whole", a)
 	}
+}
+
+// TestFilterDropShadowLaysTheSilhouetteBehind is what a drop-shadow is: not a
+// colour put over the picture but a second one under it — the shape of the
+// element in the shadow's colour, moved by the offset. Where only the shadow
+// reaches the shadow's colour is what is there; where only the element reaches
+// the element's own colour is; and past the shadow there is nothing at all.
+func TestFilterDropShadowLaysTheSilhouetteBehind(t *testing.T) {
+	cv := cut(t, `<svg viewBox="0 0 10 10">
+		<rect x="1" y="1" width="4" height="4" fill="#ff0000" filter="drop-shadow(2 0 0 #0000ff)"/>
+	</svg>`, 10, 10)
+
+	filteredAt(t, cv, 2, 3, 255, 0, 0)
+	filteredAt(t, cv, 6, 3, 0, 0, 255)
+	gone(t, cv, 8, 3)
+}
+
+// TestFilterDropShadowBlursTheSilhouetteSoftensIt is the blur of a shadow: a
+// shadow with a radius carries past where the shape it was cast from stopped,
+// the way a blur does, and the same drawing without the shadow is clear there.
+func TestFilterDropShadowBlursTheSilhouetteSoftensIt(t *testing.T) {
+	const drawing = `<svg viewBox="0 0 10 10">
+		<rect x="3" y="3" width="4" height="4" fill="#ff0000"%s/>
+	</svg>`
+	shadowed := cut(t, fmt.Sprintf(drawing, ` filter="drop-shadow(0 0 2 #0000ff)"`), 10, 10)
+	plain := cut(t, fmt.Sprintf(drawing, ""), 10, 10)
+
+	c := pixelAt(shadowed, 2, 5)
+	if c.A() == 0 || c.B() < 128 {
+		t.Errorf("a unit outside the rectangle the shadow is %#08x, want blue carried past the shape", uint32(c))
+	}
+	if a := alphaAt(plain, 2, 5); a != 0 {
+		t.Errorf("without the shadow the drawing outside the rectangle is %d out of 255, want nothing there", a)
+	}
+}
+
+// TestFilterBlursEachAxisAsTheTransformStretchesIt is why a blur needs two
+// radii: a transform that stretches one axis carries the blur with it, so the
+// blur reaches further along that axis than across the other, rather than the
+// same distance both ways as an average of the two would give.
+func TestFilterBlursEachAxisAsTheTransformStretchesIt(t *testing.T) {
+	cv := cut(t, `<svg viewBox="0 0 60 60">
+		<rect x="8" y="29" width="1" height="1" fill="#ff0000" filter="blur(1)" transform="scale(4,1)"/>
+	</svg>`, 60, 60)
+
+	// The square lands at x=32..36, y=29..30. Along x the blur is stretched
+	// four times and reaches five pixels out; along y it is not stretched and
+	// is gone by then.
+	if c := pixelAt(cv, 27, 30); c.A() == 0 {
+		t.Error("five pixels to the left is clear, want the blur carried there by the stretched axis")
+	}
+	if c := pixelAt(cv, 34, 24); c.A() != 0 {
+		t.Errorf("five pixels above is %v, want nothing: the blur is not stretched up the other axis", c)
+	}
+}
+
+// TestFilterDropShadowWithoutAColourTakesTheCurrentColour is the colour CSS
+// gives a shadow it was not told: `currentColor`, which here is the colour the
+// drawing is painted in rather than a black guessed at read time.
+func TestFilterDropShadowWithoutAColourTakesTheCurrentColour(t *testing.T) {
+	img, err := Parse(`<svg viewBox="0 0 10 10">
+		<rect x="1" y="1" width="4" height="4" fill="#ff0000" filter="drop-shadow(2 0 0)"/>
+	</svg>`)
+	if err != nil {
+		t.Fatalf("parse: %v", err)
+	}
+	if ws := img.Warnings(); len(ws) != 0 {
+		t.Fatalf("the drawing said %v, want a shadow it reads whole", ws)
+	}
+	cv := img.RenderWith(10, 10, canvas.RGB(0, 255, 0))
+	if cv == nil {
+		t.Fatal("the drawing did not paint")
+	}
+
+	filteredAt(t, cv, 6, 3, 0, 255, 0)
 }
 
 // TestFilterKeepsTheOrderTheFunctionsWereWrittenIn is what a list means: the
@@ -183,7 +283,8 @@ func TestParseSaysWhatItCannotReadInTheFilter(t *testing.T) {
 	for _, tc := range []struct{ filter, want string }{
 		{"blur(zzz)", "is not one this package can read"},
 		{"saturate(1)", "is not one this package can read"},
-		{"drop-shadow(0 1px 2px black)", "is not one this package can read"},
+		{"drop-shadow(1px zzz)", "is not one this package can read"},
+		{"drop-shadow(1 2 3 4 black)", "is not one this package can read"},
 		{"blur(-1)", "is not one this package can read"},
 		{"url(#f)", "which the drawing does not have"},
 		{"", "is not one this package can read"},
@@ -260,24 +361,37 @@ func TestReadFiltersTakesWhatItCanAndSaysTheRest(t *testing.T) {
 		{"blur()", []filterOp{{kind: canvas.FilterBlur, amount: 0}}, 0},
 		{"brightness(200%)", []filterOp{{kind: canvas.FilterBrightness, amount: 2}}, 0},
 		{"url(#f) invert(1)", []filterOp{{ref: "f"}, {kind: canvas.FilterInvert, amount: 1}}, 0},
-		{"drop-shadow(0 1px 2px black) contrast(1)", []filterOp{{kind: canvas.FilterContrast, amount: 1}}, 1},
+		{"drop-shadow(0 1px 2px black) contrast(1)", []filterOp{
+			{shadow: &dropShadow{dy: 1, blur: 2, colour: canvas.Color(0xFF000000)}},
+			{kind: canvas.FilterContrast, amount: 1},
+		}, 0},
 	} {
 		var warns int
 		got := readFilters(tc.raw, func(string, ...any) { warns++ })
 		if warns != tc.warns {
 			t.Errorf("readFilters(%q) warned %d times, want %d", tc.raw, warns, tc.warns)
 		}
-		if len(got) != len(tc.want) {
+		if !sameOps(got, tc.want) {
 			t.Errorf("readFilters(%q) gave %v, want %v", tc.raw, got, tc.want)
-			continue
-		}
-		for i := range got {
-			if got[i] != tc.want[i] {
-				t.Errorf("readFilters(%q) gave %v, want %v", tc.raw, got, tc.want)
-				break
-			}
 		}
 	}
+}
+
+// sameOps says two filter lists read the same, comparing a step that stands for
+// a shadow by the shadow it holds rather than by the pointer to it.
+func sameOps(got, want []filterOp) bool {
+	if len(got) != len(want) {
+		return false
+	}
+	for i := range got {
+		if got[i] == want[i] {
+			continue
+		}
+		if got[i].shadow == nil || want[i].shadow == nil || *got[i].shadow != *want[i].shadow {
+			return false
+		}
+	}
+	return true
 }
 
 // TestFilterReferenceRunsTheFilterElementItNames is the plainest form of the
@@ -537,7 +651,7 @@ func TestParseSaysWhatItCannotReadInAFilterPrimitive(t *testing.T) {
 	for _, tc := range []struct{ prim, want string }{
 		{`<feGaussianBlur stdDeviation="zzz"/>`, "stdDeviation"},
 		{`<feGaussianBlur stdDeviation="-1"/>`, "negative"},
-		{`<feGaussianBlur stdDeviation="1 2"/>`, "same both ways"},
+		{`<feGaussianBlur stdDeviation="1 -2"/>`, "negative"},
 		{`<feColorMatrix type="matrix" values="1 2 3"/>`, "twenty numbers"},
 		{`<feColorMatrix type="nonsense"/>`, `"nonsense"`},
 		{`<feOffset dx="zzz"/>`, "feOffset dx"},

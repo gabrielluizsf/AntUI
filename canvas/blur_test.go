@@ -99,7 +99,26 @@ func TestBlurKeepsTheEdgesHonest(t *testing.T) {
 	}
 }
 
-// BenchmarkBoxShadow measures one card's shadow, the most expensive thing a
+// TestBlurXYSpreadsOnlyWhereItIsAsked takes a single pixel and blurs it with a
+// radius on one axis and none on the other: what it leaves is a line, not a
+// square, which is the whole of what a per-axis radius is for.
+func TestBlurXYSpreadsOnlyWhereItIsAsked(t *testing.T) {
+	cv, err := NewCanvas(21, 21)
+	if err != nil {
+		t.Fatalf("NewCanvas: %v", err)
+	}
+	const cx, cy = 10, 10
+	cv.Put(cx, cy, RGB(255, 255, 255))
+	cv.BlurXY(0, 0, 21, 21, 0, 2)
+
+	if c := cv.At(cx, cy-3); c.A() == 0 {
+		t.Error("three pixels up is clear, want the blur carried there and not across")
+	}
+	if c := cv.At(cx+3, cy); c.A() != 0 {
+		t.Errorf("three pixels across is %v, want nothing: the radius across is zero", c)
+	}
+}
+
 // frame of an ordinary app draws: a blurred copy of a box the size of a button,
 // laid over the page under it. It is bandwidth, not arithmetic — six passes of
 // four channels of floats over the shadow's own pixels — so the numbers here

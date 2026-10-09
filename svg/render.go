@@ -181,7 +181,7 @@ func paintLayered(cv *canvas.Canvas, n *Node, m canvas.Matrix, current canvas.Co
 		// the children were drawn with it. What comes back may be another
 		// picture than the one that went in, since every filter primitive
 		// leaves a picture of its own behind.
-		layer = applyFilters(layer, n.filters, scaleOf(m.Mul(n.Style.Transform)), current)
+		layer = applyFilters(layer, n.filters, scalesOf(m.Mul(n.Style.Transform)), current)
 	}
 	if n.clip != nil {
 		layer.MaskShapes(n.clip.measured(m)...)
@@ -336,20 +336,12 @@ func paintStroke(cv *canvas.Canvas, n *Node, m canvas.Matrix, current canvas.Col
 	if n.dashed != nil {
 		outline = n.dashed
 	}
-	stroke := clonePath(outline)
-	stroke.Transform(m)
-	style := canvas.StrokeStyle{
-		Width:      st.strokeWidth(m),
-		Cap:        st.Cap,
-		Join:       st.Join,
-		MiterLimit: st.MiterLimit,
-	}
+	band := strokeBand(outline, st, m)
 	if st.strokeGradient != nil {
 		// The stroke is widened into the shape it covers, and that shape is
 		// filled with the gradient, so the colour runs across the stroke the same
 		// way it runs across the fill rather than being one colour of it.
-		outline := canvas.StrokeOutline(stroke, style)
-		cv.FillPathFunc(outline, canvas.FillNonZero, gradientShade(st.strokeGradient, n, m, current, st.Opacity*st.StrokeOpacity))
+		cv.FillPathFunc(band, canvas.FillNonZero, gradientShade(st.strokeGradient, n, m, current, st.Opacity*st.StrokeOpacity))
 		return
 	}
 	if st.strokePattern != nil {
@@ -357,12 +349,11 @@ func paintStroke(cv *canvas.Canvas, n *Node, m canvas.Matrix, current canvas.Col
 		// painted with the pattern, so the picture runs across the stroke the
 		// same way it runs across the fill — with the colour after the
 		// `url(...)` where the pattern has nothing to paint with.
-		outline := canvas.StrokeOutline(stroke, style)
 		if shade, ok := patternShade(st.strokePattern, n, m, cv.Width, cv.Height, current, st.Opacity*st.StrokeOpacity, patterning); ok {
-			cv.FillPathFunc(outline, canvas.FillNonZero, shade)
+			cv.FillPathFunc(band, canvas.FillNonZero, shade)
 		} else if c, ok := st.strokeFallbackColour(current); ok {
 			if c := fade(c, st.Opacity*st.StrokeOpacity); c.A() > 0 {
-				cv.FillPath(outline, c, canvas.FillNonZero)
+				cv.FillPath(band, c, canvas.FillNonZero)
 			}
 		}
 		return
@@ -375,7 +366,45 @@ func paintStroke(cv *canvas.Canvas, n *Node, m canvas.Matrix, current canvas.Col
 	if c.A() == 0 {
 		return
 	}
-	cv.StrokePath(stroke, c, style)
+	cv.FillPath(band, c, canvas.FillNonZero)
+}
+
+// strokeBand widens a path into the band a stroke of it covers, in the
+// coordinates of the canvas. The widening is done in the coordinates the shape
+// was written in, where a stroke is one width all along it, and the transform
+// that moved the shape carries the band back — so a transform that stretches one
+// axis stretches the stroke with it, rather than the width being read off the
+// average of the two and coming out between them.
+//
+// `non-scaling-stroke` is the other reading and the one exception: a width in
+// the pixels the drawing comes out at, with nothing scaled at all, which is why
+// it is widened after the transform with the supersampled width. A transform
+// with no way back cannot be undone to widen in, so the width falls back to the
+// average there rather than to nothing.
+func strokeBand(path *canvas.Path, st Style, m canvas.Matrix) *canvas.Path {
+	style := canvas.StrokeStyle{Width: st.Width, Cap: st.Cap, Join: st.Join, MiterLimit: st.MiterLimit}
+	if st.NonScalingStroke {
+		scaled := clonePath(path)
+		scaled.Transform(m)
+		style.Width = st.Width * supersample
+		return canvas.StrokeOutline(scaled, style)
+	}
+	inv, ok := st.Transform.Inverse()
+	if !ok {
+		scaled := clonePath(path)
+		scaled.Transform(m)
+		style.Width = st.Width * scaleOf(m.Mul(st.Transform))
+		return canvas.StrokeOutline(scaled, style)
+	}
+	local := clonePath(path)
+	local.Transform(inv)
+	band := canvas.StrokeOutline(local, style)
+	if band == nil {
+		return nil
+	}
+	band.Transform(st.Transform)
+	band.Transform(m)
+	return band
 }
 
 // gradientShade is the colour one pixel of a gradient-painted shape takes: the
@@ -465,6 +494,22 @@ func (st Style) strokeFallbackColour(current canvas.Color) (canvas.Color, bool) 
 func scaleOf(m canvas.Matrix) float64 {
 	det := math.Abs(m.A*m.D - m.B*m.C)
 	return math.Sqrt(det)
+}
+
+// scale2 is how far a transform stretches each axis: the length the unit x and
+// the unit y directions come out at. A transform that only turns or moves
+// leaves both at one; one that stretches an axis more than the other says so in
+// the two numbers, which is what a blur or a shadow offset off one axis needs
+// and a single average cannot say.
+type scale2 struct{ x, y float64 }
+
+// scalesOf is [scaleOf] taken one axis at a time: the length of the two unit
+// vectors after the transform. A pure scale(2, 8) comes out two and eight, where
+// the area's square root of four is what a width read off both axes at once
+// would give — see [paintStroke] for one that goes further and follows the
+// path's own coordinates rather than either axis.
+func scalesOf(m canvas.Matrix) scale2 {
+	return scale2{x: math.Hypot(m.A, m.C), y: math.Hypot(m.B, m.D)}
 }
 
 // strokeWidth is how wide the stroke comes out on the canvas: the width the

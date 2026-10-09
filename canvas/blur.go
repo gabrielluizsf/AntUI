@@ -5,7 +5,15 @@ package canvas
 // while it moves so a transparent pixel cannot drag its black into the edges.
 // It works on ARGB32 only.
 func (cv *Canvas) Blur(x, y, w, h, radius int) {
-	if cv.Pixels == nil || radius <= 0 || w <= 0 || h <= 0 {
+	cv.BlurXY(x, y, w, h, radius, radius)
+}
+
+// BlurXY is [Canvas.Blur] with a radius for each way. A picture that a
+// transform stretched more across than down carries its blur stretched with it,
+// and one number cannot say two: radiusX reaches sideways and radiusY up and
+// down, and either may be zero for no blur that way.
+func (cv *Canvas) BlurXY(x, y, w, h, radiusX, radiusY int) {
+	if cv.Pixels == nil || (radiusX <= 0 && radiusY <= 0) || w <= 0 || h <= 0 {
 		return
 	}
 	x0, y0, x1, y1 := cv.filterBounds(x, y, w, h)
@@ -32,9 +40,9 @@ func (cv *Canvas) Blur(x, y, w, h, radius int) {
 		}
 	}
 	for range 3 {
-		back = boxBlur(front, back, rw, rh, radius, true)
+		back = boxBlur(front, back, rw, rh, radiusX, true)
 		front, back = back, front
-		back = boxBlur(front, back, rw, rh, radius, false)
+		back = boxBlur(front, back, rw, rh, radiusY, false)
 		front, back = back, front
 	}
 	buf := front

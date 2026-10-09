@@ -179,8 +179,29 @@ func TestScaleOf(t *testing.T) {
 	}
 }
 
-func TestFitTransform(t *testing.T) {
-	// A viewBox of 24 by 24 drawn onto 48 by 48 is twice as big; onto 100 by 48
+// TestScalesOf is scaleOf read one axis at a time: a transform that stretches
+// one axis more than the other says so in the two numbers, where the area's
+// square root would give the same number for both and lose which way it was.
+func TestScalesOf(t *testing.T) {
+	for name, tc := range map[string]struct {
+		m     canvas.Matrix
+		wantX float64
+		wantY float64
+	}{
+		"none at all":    {canvas.Identity(), 1, 1},
+		"double":         {canvas.Scale(2, 2), 2, 2},
+		"a turn":         {canvas.Rotate(math.Pi / 3), 1, 1},
+		"stretched wide": {canvas.Scale(2, 8), 2, 8},
+		"stretched tall": {canvas.Scale(8, 2), 8, 2},
+	} {
+		got := scalesOf(tc.m)
+		if !nearFloat(got.x, tc.wantX, 0.001) || !nearFloat(got.y, tc.wantY, 0.001) {
+			t.Errorf("%s: scalesOf = %v,%v, want %v,%v", name, got.x, got.y, tc.wantX, tc.wantY)
+		}
+	}
+}
+
+func TestFitTransform(t *testing.T) { // A viewBox of 24 by 24 drawn onto 48 by 48 is twice as big; onto 100 by 48
 	// it is as big as it can be without going outside, and the space left over
 	// is shared out around it.
 	m := fitTransform([4]float64{0, 0, 24, 24}, 48, 48)

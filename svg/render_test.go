@@ -256,6 +256,32 @@ func TestRenderKeepsTheStrokeWidthAsItIsWritten(t *testing.T) {
 	}
 }
 
+func TestRenderStrokesFollowANonUniformScale(t *testing.T) {
+	// A transform that stretches one axis stretches the stroke on it too: a
+	// vertical line scaled twice across is twice as thick, while the same line
+	// left alone is one thick. The width follows the shape rather than an
+	// average of the two axes, which is what `scale(2,1)` would otherwise give.
+	img, err := Parse(`<svg viewBox="0 0 20 20">
+		<line x1="4" y1="0" x2="4" y2="20" stroke="red" stroke-width="2" transform="scale(2,1)"/>
+	</svg>`)
+	if err != nil {
+		t.Fatalf("parse: %v", err)
+	}
+	cv := img.Render(20, 20)
+	// The line is at x=4, taken to x=8, and its width of two is stretched with
+	// it, so across it covers x=6 to x=10 — where reading the width off the
+	// average of the two axes would reach only from x≈6.6 and leave x=6 part
+	// covered instead of solid.
+	for _, x := range []int{6, 7, 8, 9} {
+		if got := pixelAt(cv, x, 10); got != canvas.RGB(255, 0, 0) {
+			t.Errorf("across the stretched stroke at x=%d is %v, want it red", x, got)
+		}
+	}
+	if got := pixelAt(cv, 11, 10); got.A() != 0 {
+		t.Errorf("past the stroke at x=11 is %v, want it clear", got)
+	}
+}
+
 func TestRenderTransformsMoveTheShape(t *testing.T) {
 	// A shape moved to one side is painted on that side, and the stroke on it
 	// keeps the width it was written with.

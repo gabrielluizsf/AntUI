@@ -20,8 +20,8 @@ import (
 // The functions here are the ones the canvas already knows how to apply —
 // grayscale, sepia, invert, brightness, contrast, hue-rotate and blur, the
 // same set a stylesheet's `filter` maps onto — and a `drop-shadow`, which is
-// not one of them and is said out loud and left out of the list rather than
-// taken to mean nothing: what the list can still do, it still does.
+// not a colour but a second picture: the silhouette of the element, offset,
+// blurred and coloured, laid behind the element's own picture.
 //
 // The other way a file asks for a filter is `url(#name)`, a reference to a
 // `<filter>` element written elsewhere in the drawing. The id is kept as it
@@ -46,6 +46,17 @@ type filterOp struct {
 	amount float64
 	ref    string
 	def    *filterDef
+	shadow *dropShadow
+}
+
+// dropShadow is a `drop-shadow(...)`: the offset, the blur radius and the
+// colour the silhouette of the element's picture takes. A colour that was never
+// written is `currentColor`, which is why the flag is kept rather than a colour
+// resolved here — only [applyFilters] is given the colour of the widget.
+type dropShadow struct {
+	dx, dy, blur float64
+	colour       canvas.Color
+	current      bool
 }
 
 // readFilters reads the list a `filter` attribute holds: `none` is no filter
@@ -170,8 +181,53 @@ func readFilter(tok string) (filterOp, bool) {
 			return filterOp{}, false
 		}
 		return filterOp{kind: canvas.FilterBlur, amount: v}, true
+	case "drop-shadow":
+		sh, ok := readDropShadow(args)
+		if !ok {
+			return filterOp{}, false
+		}
+		return filterOp{shadow: sh}, true
 	}
 	return filterOp{}, false
+}
+
+// readDropShadow reads the inside of a `drop-shadow(...)`: two or three lengths
+// — the offset and, when it is there, the blur radius — and, in any position, a
+// colour. Writing no colour leaves it `currentColor`, which is what CSS does,
+// and the colour is only turned into pixels when the element is painted and its
+// colour is known. Anything else is not a shadow this package can read, and the
+// whole function is left out rather than half of it guessed.
+func readDropShadow(args string) (*dropShadow, bool) {
+	sh := &dropShadow{current: true}
+	var lens []float64
+	for _, tk := range filterTokens(args) {
+		if isCurrentColor(tk) {
+			sh.current = true
+			sh.colour = 0
+			continue
+		}
+		if c, ok := parsePaint(tk); ok {
+			sh.current = false
+			sh.colour = c
+			continue
+		}
+		v, ok := parseLength(tk)
+		if !ok {
+			return nil, false
+		}
+		lens = append(lens, v)
+	}
+	if len(lens) < 2 || len(lens) > 3 {
+		return nil, false
+	}
+	sh.dx, sh.dy = lens[0], lens[1]
+	if len(lens) == 3 {
+		if lens[2] < 0 {
+			return nil, false
+		}
+		sh.blur = lens[2]
+	}
+	return sh, true
 }
 
 // filterAmount reads one function's argument: a number or a percentage, where
@@ -217,26 +273,95 @@ func filterAmount(args string) (float64, bool) {
 // into pixels here the same as a stroke's width is: one unit of the drawing is
 // scale pixels of the canvas, and the scale has the element's transform in it
 // because what a `<g transform="scale(2)">` draws is twice as big and its blur
-// has to be too. The rest of the functions are fractions and angles, which a
-// scale does not touch, and the lengths a primitive writes for itself are
-// turned into pixels where the primitive is applied.
+// has to be too. A transform that stretches one axis more than the other makes
+// the two scales different, and a blur reads one per axis so it is stretched
+// with the shape instead of taking an average of the two. The rest of the
+// functions are fractions and angles, which a scale does not touch, and the
+// lengths a primitive writes for itself are turned into pixels where the
+// primitive is applied.
 //
 // The picture may come back as a different one than it went in as, because
 // every primitive leaves a picture of its own behind, so the caller takes
 // what comes out rather than the layer it put in.
-func applyFilters(cv *canvas.Canvas, filters []filterOp, scale float64, current canvas.Color) *canvas.Canvas {
+func applyFilters(cv *canvas.Canvas, filters []filterOp, s scale2, current canvas.Color) *canvas.Canvas {
 	for _, f := range filters {
 		if f.def != nil {
-			cv = applyFilterDef(cv, f.def, scale, current)
+			cv = applyFilterDef(cv, f.def, s, current)
 			continue
 		}
-		amount := f.amount
-		if f.kind == canvas.FilterBlur {
-			amount = f.amount * scale
+		if f.shadow != nil {
+			// A shadow is a picture behind the picture, not a colour put over
+			// it, so it is the one step that lays a second picture down and
+			// hands the pair on to whatever follows.
+			cv = applyDropShadow(cv, f.shadow, s, current)
+			continue
 		}
-		cv.FilterRegion(0, 0, cv.Width, cv.Height, f.kind, amount)
+		if f.kind == canvas.FilterBlur {
+			// A blur is a length, and a length is longer along one axis than
+			// the other when the transform stretches it unevenly, so the two
+			// radii come from the two axes rather than from their average.
+			cv.BlurXY(0, 0, cv.Width, cv.Height, radius(f.amount*s.x), radius(f.amount*s.y))
+			continue
+		}
+		cv.FilterRegion(0, 0, cv.Width, cv.Height, f.kind, f.amount)
 	}
 	return cv
+}
+
+// radius turns a length in pixels into the whole number of pixels a blur asks
+// the canvas for.
+func radius(v float64) int { return int(v + 0.5) }
+
+// applyDropShadow lays the element's silhouette behind its own picture: the
+// shape the picture has, in the shadow's colour, moved by the offset and
+// softened by the blur, and then the picture itself over it. The lengths are in
+// the drawing's own units, so they are turned into pixels the way a blur in the
+// attribute is, with the element's transform in the scale.
+//
+// The silhouette is the picture's alpha with the shadow's colour, which is what
+// makes a `drop-shadow` hug the shape rather than a box the way a `box-shadow`
+// does. The result is a picture of the whole layer, like every other filter
+// step, so what comes out is what the next step — and the clip and the mask
+// after it — are given.
+func applyDropShadow(src *canvas.Canvas, sh *dropShadow, s scale2, current canvas.Color) *canvas.Canvas {
+	if src == nil {
+		return nil
+	}
+	out := blankPicture(src.Width, src.Height)
+	if out == nil {
+		return src
+	}
+	c := sh.colour
+	if sh.current {
+		c = current
+	}
+	if shadow := silhouette(src, c); shadow != nil {
+		shadow.BlurXY(0, 0, shadow.Width, shadow.Height, radius(sh.blur*s.x), radius(sh.blur*s.y))
+		out.BlitOver(int(math.Round(sh.dx*s.x)), int(math.Round(sh.dy*s.y)), shadow)
+	}
+	out.BlitOver(0, 0, src)
+	return out
+}
+
+// silhouette is a picture of only where the one it is given has something, in
+// the colour of a shadow: the alpha is kept and multiplied by the colour's own,
+// and the colour's three channels are what the shape is filled with. That is
+// what a drop-shadow is cast from, and blurring it is what softens the shadow
+// without touching the element over it.
+func silhouette(src *canvas.Canvas, c canvas.Color) *canvas.Canvas {
+	out := pictureOf(src)
+	if out == nil || out.Pixels == nil {
+		return out
+	}
+	rgb := c & 0x00FFFFFF
+	fa := float64(c.A()) / 255
+	for y := 0; y < out.Height; y++ {
+		row := out.Pixels[y*out.Stride : y*out.Stride+out.Width]
+		for x, px := range row {
+			row[x] = rgb | canvas.Color(uint32(float64(px.A())*fa+0.5))<<24
+		}
+	}
+	return out
 }
 
 // A `<filter>` is what an element's picture goes through, written as one
@@ -306,6 +431,7 @@ type filterPrim struct {
 	kind            primKind
 	in, in2, result string
 	stdDev          float64      // feGaussianBlur
+	stdDevY         float64      // feGaussianBlur's second number, if it gave one
 	dx, dy          float64      // feOffset, in the drawing's own units
 	flood           canvas.Color // feFlood, its colour and opacity apart
 	floodOpacity    float64      // feFlood, 1 when none was written
@@ -397,14 +523,17 @@ func readFilterPrim(e *element, warn func(string, ...any)) (filterPrim, bool) {
 				return filterPrim{}, false
 			}
 			p.stdDev = ns[0]
+			p.stdDevY = ns[0]
 			if p.stdDev < 0 {
 				warn("the feGaussianBlur stdDeviation %q is negative, so the primitive is left out", raw)
 				return filterPrim{}, false
 			}
-			if len(ns) > 1 && ns[1] != ns[0] {
-				// ponytail: one radius both ways; a per-axis blur is the
-				// upgrade path when a drawing asks for one.
-				warn("the second number of the feGaussianBlur stdDeviation %q is not read here, so the blur is the same both ways", raw)
+			if len(ns) > 1 {
+				if ns[1] < 0 {
+					warn("the feGaussianBlur stdDeviation %q is negative, so the primitive is left out", raw)
+					return filterPrim{}, false
+				}
+				p.stdDevY = ns[1]
 			}
 		}
 	case "feColorMatrix":
@@ -643,7 +772,7 @@ func (img *Image) followFilterRefs(filters []filterOp, warn func(string, ...any)
 // SourceGraphic, and for anything an earlier primitive left behind — and what
 // it leaves under its own name is what the rest may take. What comes out is a
 // picture of the whole layer, the same as one CSS function's own picture.
-func applyFilterDef(dst *canvas.Canvas, def *filterDef, scale float64, current canvas.Color) *canvas.Canvas {
+func applyFilterDef(dst *canvas.Canvas, def *filterDef, s scale2, current canvas.Color) *canvas.Canvas {
 	if dst == nil || len(def.prims) == 0 {
 		return dst
 	}
@@ -654,7 +783,7 @@ func applyFilterDef(dst *canvas.Canvas, def *filterDef, scale float64, current c
 	for _, p := range def.prims {
 		in := filterInput(p.in, prev, src, &withAlpha, named)
 		in2 := filterInput(p.in2, src, src, &withAlpha, named)
-		out := primPicture(p, in, in2, src, scale, current)
+		out := primPicture(p, in, in2, src, s, current)
 		if out == nil {
 			continue
 		}
@@ -699,15 +828,15 @@ func filterInput(name string, deflt, src *canvas.Canvas, withAlpha **canvas.Canv
 // does not own. The lengths a primitive writes for itself — an offset, a
 // blur's radius — are turned into pixels here, the way a blur's in the
 // attribute is turned in [applyFilters]: one unit of the drawing is scale
-// pixels of the canvas.
-func primPicture(p filterPrim, in, in2, src *canvas.Canvas, scale float64, current canvas.Color) *canvas.Canvas {
+// pixels of the canvas, per axis where the length runs along one.
+func primPicture(p filterPrim, in, in2, src *canvas.Canvas, s scale2, current canvas.Color) *canvas.Canvas {
 	switch p.kind {
 	case primGaussianBlur:
 		out := pictureOf(in)
 		if out == nil {
 			return nil
 		}
-		out.FilterRegion(0, 0, out.Width, out.Height, canvas.FilterBlur, p.stdDev*scale)
+		out.BlurXY(0, 0, out.Width, out.Height, radius(p.stdDev*s.x), radius(p.stdDevY*s.y))
 		return out
 	case primColorMatrix:
 		out := pictureOf(in)
@@ -718,7 +847,7 @@ func primPicture(p filterPrim, in, in2, src *canvas.Canvas, scale float64, curre
 		if out == nil || in == nil {
 			return out
 		}
-		out.BlitOver(int(math.Round(p.dx*scale)), int(math.Round(p.dy*scale)), in)
+		out.BlitOver(int(math.Round(p.dx*s.x)), int(math.Round(p.dy*s.y)), in)
 		return out
 	case primFlood:
 		out := blankPicture(src.Width, src.Height)
