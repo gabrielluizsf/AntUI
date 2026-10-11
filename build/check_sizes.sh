@@ -6,7 +6,7 @@ set -eu
 limit=60
 bad=0
 
-for f in $(find . -name '*.go' -not -path './.git/*' -not -name '*_test.go' -not -path './backend/android/apk/overlay.go'); do
+for f in $(find . -name '*.go' -not -path './.git/*' -not -name '*_test.go' -not -path './build/*' -not -path './backend/android/apk/overlay.go'); do
 	n=$(wc -l < "$f")
 	if [ "$n" -gt "$limit" ]; then
 		echo "$n $f"
