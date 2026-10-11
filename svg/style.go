@@ -1,557 +1,164 @@
 package svg
 
-import (
-	"strconv"
-	"strings"
+import "github.com/gabrielluizsf/antui/canvas"
 
-	"github.com/gabrielluizsf/antui/canvas"
-)
-
-// with reads the attributes written on one element over the style it inherited
-// from the one above, and answers the style its children inherit in turn. Only
-// what the element actually says changes: an attribute that is not there leaves
-// the inherited value alone, which is what lets a `<g fill="red">` colour
-// everything inside it and a single `<rect fill="blue">` be the one blue thing.
-//
-// The warn is called for each attribute that is written but cannot be read, so
-// that a drawing with a number that is not one says so rather than being painted
-// as though it had never asked.
-func (s Style) with(e *element, warn func(string, ...any)) Style {
-	// A presentation attribute is also what a `style="…"` declaration says, and
-	// the declaration wins where both name the same thing.
-	attrs := map[string]string{}
-	for k, v := range e.Attr {
-		if k != "" && k != "style" {
-			attrs[k] = v
-		}
-	}
-	for k, v := range parseDeclarations(e.attr("style")) {
-		attrs[k] = v
-	}
-
-	// pathLength is of the path on the element it is written on, so it does not
-	// travel: a group that declares how long its own shape is says nothing
-	// about the shapes inside, and each of those starts from none of its own.
-	s.pathLength = 0
-
-	// vector-effect does not travel either, and for a plainer reason than the
-	// length: the spec says it is not inherited, so what a `<g>` asks for is
-	// about the `<g>` — which has no outline of its own to compute — and the
-	// shapes inside start from the scaled stroke every drawing gets.
-	s.NonScalingStroke = false
-
-	// dash is the pattern as it was written, and dashOffset where along it the
-	// stroke starts; the two are read together once every other attribute has
-	// been, because the order a map is walked in is not one to depend on.
-	var dash, dashOffset string
-	_, hasDash := attrs["stroke-dasharray"]
-	_, hasOffset := attrs["stroke-dashoffset"]
-
-	for name, raw := range attrs {
-		switch name {
-		case "fill":
-			// A colour to paint with, or a reference to something elsewhere in
-			// the drawing, or nothing at all: `none` says so, and so does a
-			// paint this cannot read at all, which is not a reason to paint the
-			// shape black.
-			switch {
-			case isCurrentColor(raw):
-				s.Fill, s.HasFill, s.FillCurrent = 0, true, true
-				s.fillRef, s.fillFallback, s.hasFillFallback, s.fillFallbackCurrent = "", 0, false, false
-				s.fillGradient, s.fillPattern = nil, nil
-			default:
-				if c, ok := parsePaint(raw); ok {
-					s.Fill, s.HasFill, s.FillCurrent = c, true, false
-					s.fillRef, s.fillFallback, s.hasFillFallback, s.fillFallbackCurrent = "", 0, false, false
-					s.fillGradient, s.fillPattern = nil, nil
-				} else if id, ok := paintRef(raw); ok {
-					// The reference is kept whole: only a caller holding the
-					// whole drawing can say what `#name` is, and the colour
-					// after it is the one painted where the reference turns out
-					// to be nothing. Neither the fill nor its colour is decided
-					// here — see [Image.resolvePaints].
-					s.fillRef, s.fillGradient, s.fillPattern = id, nil, nil
-					s.fillFallback, s.fillFallbackCurrent, s.hasFillFallback = paintFallback(raw)
-					s.Fill, s.HasFill, s.FillCurrent = 0, false, false
-				} else {
-					s.Fill, s.HasFill, s.FillCurrent = 0, false, false
-					s.fillRef, s.fillFallback, s.hasFillFallback, s.fillFallbackCurrent = "", 0, false, false
-					s.fillGradient, s.fillPattern = nil, nil
-				}
-			}
-		case "fill-rule":
-			if strings.EqualFold(strings.TrimSpace(raw), "evenodd") {
-				s.FillRule = canvas.FillEvenOdd
-			} else {
-				s.FillRule = canvas.FillNonZero
-			}
-		case "clip-path":
-			// The shapes that cut this element are elsewhere in the drawing,
-			// the same way a gradient is, so only the id is kept here: only a
-			// caller holding the whole drawing can say what it is. See
-			// [Image.resolveClip].
-			switch id, ok := paintRef(raw); {
-			case strings.EqualFold(strings.TrimSpace(raw), "none"):
-				s.clipRef = ""
-			case ok:
-				s.clipRef = id
-			default:
-				s.clipRef = ""
-				warn("the clip-path %q is not a reference to a <clipPath> this package can follow, so the element is drawn without it", raw)
-			}
-		case "clip-rule":
-			// The rule the shapes of a clipPath are read with, which is
-			// inherited like the rest of the style and means the same thing
-			// here that fill-rule means for a fill.
-			if strings.EqualFold(strings.TrimSpace(raw), "evenodd") {
-				s.ClipRule = canvas.FillEvenOdd
-			} else {
-				s.ClipRule = canvas.FillNonZero
-			}
-		case "mask":
-			// The picture that says how much of this element is there is
-			// elsewhere in the drawing, the same way a clip is, so only the id
-			// is kept here: only a caller holding the whole drawing can say
-			// what it is. It is not inherited — see the `maskRef` field of
-			// [Style] and [Image.maskNamed].
-			switch id, ok := paintRef(raw); {
-			case strings.EqualFold(strings.TrimSpace(raw), "none"):
-				s.maskRef = ""
-			case ok:
-				s.maskRef = id
-			default:
-				s.maskRef = ""
-				warn("the mask %q is not a reference to a <mask> this package can follow, so the element is drawn without it", raw)
-			}
-		case "filter":
-			// What this element's picture is put through when it is drawn,
-			// read as it is written: a function is read here, and what is not
-			// one of them is said here. A reference to a `<filter>` keeps the
-			// id it named for only a caller holding the whole drawing to
-			// follow — see [Image.followFilterRefs]. It is not inherited —
-			// see the `filters` field of [Style] and [applyFilters].
-			s.filters = readFilters(raw, warn)
-		case "marker-start", "marker-mid", "marker-end":
-			// The markers drawn at the vertices of this element's shape, which
-			// unlike the clip, the mask and the filter ARE inherited: a `<g
-			// marker-end>` is what every shape under it marks its own last
-			// vertex with, so the reference is kept for the whole drawing to
-			// follow and what was inherited is dropped as this element writes
-			// one of its own — `none` among them, which is how a shape turns
-			// off the marker its group asked for. The three are read the same
-			// way, and each drops only the one it writes: a shape that says
-			// `marker-start="none"` still carries the marker-mid the group
-			// above it asked for. See [Image.resolveMarkers].
-			ref, def := &s.markerStartRef, &s.markerStart
-			if name == "marker-mid" {
-				ref, def = &s.markerMidRef, &s.markerMid
-			} else if name == "marker-end" {
-				ref, def = &s.markerEndRef, &s.markerEnd
-			}
-			*ref, *def = "", nil
-			switch id, ok := paintRef(raw); {
-			case strings.EqualFold(strings.TrimSpace(raw), "none"):
-			case ok:
-				*ref = id
-			default:
-				warn("the %s %q is not a reference to a <marker> this package can follow, so no marker is drawn at the vertices it names", name, raw)
-			}
-		case "fill-opacity":
-			if v, ok := parseAlpha(raw); ok {
-				s.FillOpacity = v
-			}
-		case "stroke":
-			switch {
-			case isCurrentColor(raw):
-				s.Stroke, s.HasStroke, s.StrokeCurrent = 0, true, true
-				s.strokeRef, s.strokeFallback, s.hasStrokeFallback, s.strokeFallbackCurrent = "", 0, false, false
-				s.strokeGradient, s.strokePattern = nil, nil
-			default:
-				if c, ok := parsePaint(raw); ok {
-					s.Stroke, s.HasStroke, s.StrokeCurrent = c, true, false
-					s.strokeRef, s.strokeFallback, s.hasStrokeFallback, s.strokeFallbackCurrent = "", 0, false, false
-					s.strokeGradient, s.strokePattern = nil, nil
-				} else if id, ok := paintRef(raw); ok {
-					s.strokeRef, s.strokeGradient, s.strokePattern = id, nil, nil
-					s.strokeFallback, s.strokeFallbackCurrent, s.hasStrokeFallback = paintFallback(raw)
-					s.Stroke, s.HasStroke, s.StrokeCurrent = 0, false, false
-				} else {
-					s.Stroke, s.HasStroke, s.StrokeCurrent = 0, false, false
-					s.strokeRef, s.strokeFallback, s.hasStrokeFallback, s.strokeFallbackCurrent = "", 0, false, false
-					s.strokeGradient, s.strokePattern = nil, nil
-				}
-			}
-		case "stroke-width":
-			if v, ok := parseLength(raw); ok {
-				s.Width = v
-			} else if strings.TrimSpace(raw) != "" {
-				warn("the stroke width %q is not a length, so the stroke keeps the width it had", raw)
-			}
-		case "stroke-opacity":
-			if v, ok := parseAlpha(raw); ok {
-				s.StrokeOpacity = v
-			}
-		case "opacity":
-			if v, ok := parseAlpha(raw); ok {
-				s.Opacity = v
-			}
-		case "stroke-linecap":
-			switch strings.ToLower(strings.TrimSpace(raw)) {
-			case "round":
-				s.Cap = canvas.CapRound
-			case "square":
-				s.Cap = canvas.CapSquare
-			default:
-				s.Cap = canvas.CapButt
-			}
-		case "stroke-linejoin":
-			switch strings.ToLower(strings.TrimSpace(raw)) {
-			case "round":
-				s.Join = canvas.JoinRound
-			case "bevel":
-				s.Join = canvas.JoinBevel
-			default:
-				s.Join = canvas.JoinMiter
-			}
-		case "stroke-miterlimit":
-			if v, err := strconv.ParseFloat(strings.TrimSpace(raw), 64); err == nil && v > 0 {
-				s.MiterLimit = v
-			}
-		case "vector-effect":
-			// Whether the stroke is taken through everything that scaled the
-			// shape — which is what SVG does by default — or drawn at the width
-			// it says, in the pixels the drawing comes out at whatever scaled
-			// it. Any other value is a vector effect this package does not do,
-			// and saying so beats quietly painting a stroke nobody asked for.
-			switch strings.ToLower(strings.TrimSpace(raw)) {
-			case "none":
-				s.NonScalingStroke = false
-			case "non-scaling-stroke":
-				s.NonScalingStroke = true
-			default:
-				s.NonScalingStroke = false
-				if strings.TrimSpace(raw) != "" {
-					warn("the vector-effect %q is not none or non-scaling-stroke, so the stroke is scaled the way SVG scales it", raw)
-				}
-			}
-		case "stroke-dasharray":
-			dash = raw
-		case "stroke-dashoffset":
-			// Read together with the pattern below, since it means nothing on its
-			// own and the order the two are found in is not one to depend on.
-			dashOffset = raw
-		case "pathlength":
-			// The length is of the path on this element alone, which is what
-			// taking it off the inherited style above is about. An attribute
-			// name is lowercased as it is read, so `pathLength` is found here
-			// spelled the way every other name in this switch is.
-			s.pathLength = readPathLength(raw, warn)
-		case "font-size":
-			s.FontSize = readFontSize(s.FontSize, raw, warn)
-		case "text-anchor":
-			if a, ok := readAnchor(raw); ok {
-				s.Anchor = a
-			} else if strings.TrimSpace(raw) != "" {
-				warn("the text-anchor %q is not start, middle or end, so the writing stays where the pen is", raw)
-			}
-		case "xml:space":
-			// Only two words mean anything here, and anything else leaves the
-			// inherited answer alone rather than switching the writing off its
-			// own whitespace by accident.
-			switch strings.ToLower(strings.TrimSpace(raw)) {
-			case "preserve":
-				s.PreserveSpace = true
-			case "default":
-				s.PreserveSpace = false
-			}
-		case "font-family":
-			// The list is taken whole, the way CSS takes one: the names stay
-			// as the drawing wrote them, and which of them the canvas answers
-			// to is a question for when the writing is drawn. See [Style].
-			s.FontFamily = strings.TrimSpace(raw)
-		case "font-weight":
-			s.FontWeight = readFontWeight(s.FontWeight, raw, warn)
-		case "letter-spacing":
-			s.LetterSpacing = readLetterSpacing(raw, warn)
-		case "display", "visibility":
-			if strings.EqualFold(strings.TrimSpace(raw), "none") ||
-				strings.EqualFold(strings.TrimSpace(raw), "hidden") {
-				s.Hidden = true
-			}
-		case "transform":
-			m, ok := parseTransform(raw)
-			switch {
-			case ok:
-				if s.HasTransform {
-					// Transforms compose outwards: the one on the child happens
-					// to the shape before the one above it.
-					s.Transform = s.Transform.Mul(m)
-				} else {
-					s.Transform, s.HasTransform = m, true
-				}
-			case strings.TrimSpace(raw) == "":
-			default:
-				warn("the transform %q is not one this package can read, so the shape stays where it is", raw)
-			}
-		}
-	}
-	if hasDash {
-		s.Dash = parseDashArray(dash)
-	}
-	// The offset moves the pattern along the line, and an offset on its own says
-	// nothing, so it is only read where there is a pattern for it to move.
-	if hasOffset && s.Dash != nil {
-		if v, ok := parseLength(dashOffset); ok {
-			s.Dash.Offset = v
-		} else {
-			warn("the dash offset %q is not a length, so the pattern starts where it would have", dashOffset)
-		}
-	}
-	return s
-}
-
-// readFontSize is how tall the writing is: a length in the drawing's own units,
-// a percentage of the size it already has, one of the sizes CSS gives a name
-// to, or a step up or down from the size it already has. Anything else leaves
-// that size alone, since a size this cannot read is not a size to write at.
-func readFontSize(was float64, raw string, warn func(string, ...any)) float64 {
-	if was <= 0 {
-		was = defaultFontSize
-	}
-	s := strings.ToLower(strings.TrimSpace(raw))
-	switch s {
-	case "larger":
-		return was * 1.2
-	case "smaller":
-		return was / 1.2
-	}
-	if named, ok := namedFontSizes[s]; ok {
-		return named
-	}
-	if p, ok := strings.CutSuffix(s, "%"); ok {
-		if v, err := strconv.ParseFloat(strings.TrimSpace(p), 64); err == nil && v > 0 {
-			return was * v / 100
-		}
-		warn("the font size %q is not a percentage, so the writing keeps the size it had", raw)
-		return was
-	}
-	if v, ok := parseLength(s); ok && v > 0 {
-		return v
-	}
-	warn("the font size %q is not a length, so the writing keeps the size it had", raw)
-	return was
-}
-
-// namedFontSizes are the sizes CSS gives a name to, as how many pixels tall the
-// writing is at the size the names step through.
-var namedFontSizes = map[string]float64{
-	"xx-small": 9,
-	"x-small":  10,
-	"small":    13,
-	"medium":   16,
-	"large":    18,
-	"x-large":  24,
-	"xx-large": 32,
-}
-
-// readAnchor reads where along the pen a piece of writing hangs: at it, centred
-// on it, or ending at it. The third of those is what makes a label sit to the
-// left of the point it names rather than to the right.
-func readAnchor(raw string) (TextAnchor, bool) {
-	switch strings.ToLower(strings.TrimSpace(raw)) {
-	case "start":
-		return AnchorStart, true
-	case "middle":
-		return AnchorMiddle, true
-	case "end":
-		return AnchorEnd, true
-	}
-	return AnchorStart, false
-}
-
-// readFontWeight reads how heavy the writing is, out of the weight it already
-// has — because `bolder` and `lighter` are not weights of their own, they are
-// the step CSS takes from the one in hand. The steps are not evenly spaced: a
-// family is not cut evenly, and a weight past either end of the scale is the
-// end of it. Anything that is not a weight at all leaves the one in hand alone,
-// since a weight this cannot read is not one to draw at.
-func readFontWeight(was uint16, raw string, warn func(string, ...any)) uint16 {
-	if was == 0 {
-		was = FontWeightNormal
-	}
-	switch strings.ToLower(strings.TrimSpace(raw)) {
-	case "normal":
-		return FontWeightNormal
-	case "bold":
-		return FontWeightBold
-	case "bolder":
-		return bolderWeight[was/100]
-	case "lighter":
-		return lighterWeight[was/100]
-	}
-	if v, err := strconv.Atoi(strings.TrimSpace(raw)); err == nil && v >= 100 && v <= 900 {
-		// A weight on the scale is a weight on the hundreds the words name,
-		// so one written between two of them is the nearer of the two.
-		return uint16(min((v+50)/100, 9) * 100)
-	}
-	if strings.TrimSpace(raw) != "" {
-		warn("the font weight %q is not a weight, so the writing keeps the weight it had", raw)
-	}
-	return was
-}
-
-// FontWeightNormal and FontWeightBold are the two weights the words name, and
-// the heavy end of the scale above which a face is drawn as heavy.
-const (
-	FontWeightNormal = 400
-	FontWeightBold   = 700
-)
-
-// bolderWeight and lighterWeight are the steps the two words take from the
-// weight in hand, indexed by the hundred that weight sits on, from 100 to
-// 900. They are CSS's own table: only four weights take part in it — thin,
-// normal, bold and heavy — so `bolder` on a normal weight is bold rather than
-// a step of a hundred, which is also the only step that draws differently here.
-var (
-	bolderWeight  = [10]uint16{0, 400, 400, 400, 700, 700, 900, 900, 900, 900}
-	lighterWeight = [10]uint16{0, 100, 100, 100, 100, 100, 400, 400, 700, 700}
-)
-
-// readLetterSpacing reads the room left after every letter, in the drawing's
-// own units. `normal` and no letter-spacing at all are the same answer, and so
-// is a spacing this cannot read: the drawing keeps the letters where they were
-// rather than being pulled together by a number that is not one.
-func readLetterSpacing(raw string, warn func(string, ...any)) float64 {
-	s := strings.TrimSpace(raw)
-	if s == "" || strings.EqualFold(s, "normal") {
-		return 0
-	}
-	if v, ok := parseLength(s); ok && v >= 0 {
-		return v
-	}
-	warn("the letter spacing %q is not a length, so the letters keep the room they had", raw)
-	return 0
-}
-
-// parseDeclarations reads the inside of a `style="…"` attribute, which is a list
-// of `name: value` pairs separated by semicolons. The last one of a name is the
-// one that counts, as in CSS.
-func parseDeclarations(s string) map[string]string {
-	out := map[string]string{}
-	for _, decl := range strings.Split(s, ";") {
-		name, value, ok := strings.Cut(decl, ":")
-		if !ok {
-			continue
-		}
-		name = strings.ToLower(strings.TrimSpace(name))
-		if name == "" {
-			continue
-		}
-		out[name] = strings.TrimSpace(value)
-	}
-	return out
-}
-
-// parseAlpha reads an opacity, which is a number from zero to one, a percentage,
-// or nothing at all, in which case it is one.
-func parseAlpha(s string) (float64, bool) {
-	s = strings.TrimSpace(s)
-	if s == "" {
-		return 0, false
-	}
-	if p, ok := strings.CutSuffix(s, "%"); ok {
-		v, err := strconv.ParseFloat(strings.TrimSpace(p), 64)
-		if err != nil {
-			return 0, false
-		}
-		return clampFloat(v/100, 0, 1), true
-	}
-	v, err := strconv.ParseFloat(s, 64)
-	if err != nil {
-		return 0, false
-	}
-	return clampFloat(v, 0, 1), true
-}
-
-// parseDashArray reads a `stroke-dasharray`, which is a list of lengths and
-// their gaps, or the word `none` for a stroke drawn whole. A list that is not a
-// pattern draws no dashes rather than drawing something arbitrary, which is what
-// a browser does with one it cannot read.
-func parseDashArray(s string) *canvas.Dash {
-	s = strings.TrimSpace(s)
-	if s == "" || strings.EqualFold(s, "none") {
-		return nil
-	}
-	fields := strings.FieldsFunc(s, func(r rune) bool {
-		return r == ',' || r == ' ' || r == '\t' || r == '\n' || r == '\r'
-	})
-	lengths := make([]float64, 0, len(fields))
-	for _, f := range fields {
-		v, ok := parseLength(f)
-		if !ok {
-			return nil
-		}
-		lengths = append(lengths, v)
-	}
-	d, ok := canvas.NewDash(lengths, 0)
-	if !ok {
-		return nil
-	}
-	return &d
-}
-
-// parseLength reads a length, which is a number with an optional unit. The units
-// a drawing may use are the pixels and the unitless numbers of a viewBox, and
-// the absolute ones, which are turned into pixels at ninety-six to the inch, as
-// CSS measures them.
-func parseLength(s string) (float64, bool) {
-	s = strings.TrimSpace(s)
-	if s == "" {
-		return 0, false
-	}
-	for _, unit := range lengthUnits {
-		if body, ok := strings.CutSuffix(s, unit.suffix); ok {
-			v, err := strconv.ParseFloat(body, 64)
-			if err != nil {
-				// It ends in something that only looks like this unit, so the
-				// next one is worth trying before giving up on the number.
-				continue
-			}
-			return v * unit.scale, true
-		}
-	}
-	// No unit at all is a number of the drawing's own units, which is what a
-	// viewBox is written in.
-	v, err := strconv.ParseFloat(s, 64)
-	if err != nil {
-		return 0, false
-	}
-	return v, true
-}
-
-// lengthUnits are the units a length may be written in, as how many pixels one
-// of them is. A unitless number is not in here: it is the drawing's own, and
-// only the caller knows how big that is.
-//
-// The longest unit comes first, because one of them ends in another: `cm` and
-// `mm` share their last letter, and `in` is the tail of nothing else here, but a
-// number is read by the first unit it genuinely ends in rather than the first
-// whose last letter happens to match.
-var lengthUnits = []struct {
-	suffix string
-	scale  float64
-}{
-	{"px", 1},
-	{"pt", 96.0 / 72},
-	{"pc", 16},
-	{"cm", 96 / 2.54},
-	{"mm", 96 / 25.4},
-	{"in", 96},
-	{"q", 96 / 101.6},
-}
-
-// parseNumber reads one plain number, which is what the path data and the point
-// lists are written in.
-func parseNumber(s string) (float64, error) {
-	return strconv.ParseFloat(strings.TrimSpace(s), 64)
+// Style is the painting a node was given: how thick its stroke is, how its ends
+// and corners are treated, how transparent it is, and whether it is drawn at
+// all. It is kept whole on the node so a caller that wants to restyle a drawing
+// can see what the file asked for before deciding what to change.
+type Style struct {
+	Fill      canvas.Color
+	HasFill   bool
+	FillRule  canvas.FillRule
+	Stroke    canvas.Color
+	HasStroke bool
+	// ClipRule is the rule the shapes of a clipPath are read with when this
+	// element is the one they cut — the clip-rule of the clipPath, inherited
+	// down to the shapes inside it the way fill-rule is — and it says which of
+	// the insides of a shape that crosses itself counts.
+	ClipRule canvas.FillRule
+	// FillCurrent and StrokeCurrent say that the paint was the keyword
+	// `currentColor`, so the colour the node was given is not the one it is
+	// drawn in: it takes the colour the painting was asked for. One drawing
+	// written once therefore paints in any colour, which is how a single icon
+	// serves a button in every state without being written again.
+	FillCurrent   bool
+	StrokeCurrent bool
+	Width         float64
+	Cap           canvas.LineCap
+	Join          canvas.LineJoin
+	MiterLimit    float64
+	// NonScalingStroke is `vector-effect="non-scaling-stroke"`: the stroke is
+	// drawn at the width the drawing wrote, in the pixels the drawing comes out
+	// at, rather than taken through the viewBox and the transforms that carry
+	// it there — a hairline that stays a hairline however much the drawing is
+	// zoomed. It is not inherited, as the spec has it, so [Style.with] takes it
+	// off again before reading what the element itself said, the same as it
+	// does for pathLength.
+	NonScalingStroke bool
+	Opacity          float64
+	FillOpacity      float64
+	StrokeOpacity    float64
+	// Dash is the stroke broken into pieces along the path, with every length
+	// of it — the dashes, the gaps and the offset into them — written in the
+	// drawing's own units. On a shape whose element wrote a pathLength it
+	// holds those pieces stretched to the length that was declared, which is
+	// what the shape is cut with; what the shapes around it inherit is the
+	// pattern as it was written, since the length it was stretched against
+	// belongs to this shape alone. The cut itself happens where the shape is
+	// built and not where it is painted — see [Image.build] — so the pattern
+	// reaches the pixels the way everything else the drawing wrote does.
+	Dash         *canvas.Dash
+	Hidden       bool
+	Transform    canvas.Matrix
+	HasTransform bool
+	// FontSize is how tall the writing is, in the drawing's own units, and
+	// Anchor is where along the pen a piece of it hangs. Both only matter to a
+	// `<text>`, but both are inherited like the rest, so a size written on a
+	// `<g>` is the size everything inside it is written at.
+	//
+	// A FontSize of zero is no size written at all rather than no writing: the
+	// reader of the whole drawing decides what that means, which is what lets
+	// a size written once on the root govern every text under it. See
+	// [readFontSize].
+	FontSize float64
+	Anchor   TextAnchor
+	// PreserveSpace is `xml:space="preserve"`: the writing is drawn exactly as
+	// it was written in the file, whitespace runs and line breaks and all,
+	// instead of being squeezed onto one line the way a file wrapped across
+	// lines is normally read. Like the size and the anchor above it, it is
+	// inherited, and `xml:space="default"` on a nearer element takes it off
+	// again.
+	PreserveSpace bool
+	// FontFamily, FontWeight and LetterSpacing are the rest of what says how
+	// the writing is set: the faces it asks for, how heavy it is, and how much
+	// room is left after every letter. All three are inherited like the size
+	// and the anchor above, and all three only mean anything to writing.
+	//
+	// The family is kept the way the CSS side keeps one — the list as it was
+	// written, so its names can be asked for one at a time — and the answer
+	// comes from the canvas chain: a drawing read here is a single file with no
+	// `@font-face` behind it, so no name in any list is one that resolves to a
+	// file of its own, and the writing comes out in the face the program draws
+	// with by default, exactly as CSS draws text whose family the sheet holds
+	// no face for. See [Style.with].
+	FontFamily string
+	// FontWeight is one of the hundreds CSS matches weights on, or zero when
+	// nothing said. `bold` and a number of the scale are what they say;
+	// `bolder` and `lighter` are the step CSS takes from the weight in hand.
+	// Only the heavy end of the scale draws differently — the canvas fakes a
+	// weight a face does not carry by drawing it a second time, and there is
+	// no second pass that takes ink away.
+	FontWeight uint16
+	// LetterSpacing is extra room after every letter, in the drawing's own
+	// units. Zero is `letter-spacing="normal"` and also no letter-spacing at
+	// all, which are the same thing.
+	LetterSpacing float64
+	// A fill or a stroke may be a gradient or a pattern rather than a colour,
+	// and the three never both hold: `fillGradient` is set only when the paint
+	// named a gradient that was in the drawing, `fillPattern` the same for a
+	// pattern, and `fillRef` is the id it named until the drawing has been read
+	// far enough to say what that is. The fallback colour is the one written
+	// after the `url(...)`, which is what the shape is painted with when the
+	// reference is not there at all.
+	fillGradient          *gradient
+	fillPattern           *pattern
+	fillRef               string
+	fillFallback          canvas.Color
+	fillFallbackCurrent   bool
+	hasFillFallback       bool
+	strokeGradient        *gradient
+	strokePattern         *pattern
+	strokeRef             string
+	strokeFallback        canvas.Color
+	strokeFallbackCurrent bool
+	hasStrokeFallback     bool
+	// clipRef is the id a `clip-path="url(#id)"` named, kept the same way a
+	// fill reference is: only the whole drawing can say what it is, and the
+	// clip it turns into is not inherited by the children — they are drawn
+	// into this element's picture first and the picture is cut once. It is
+	// cleared as it is spent, see [Image.resolveClip].
+	clipRef string
+	// maskRef is the id a `mask="url(#id)"` named, kept the same way a clip
+	// reference is, and cleared as early: what it turns into is not inherited
+	// either, so it is taken off the style before the children are built from
+	// it and followed once the whole of this element is there — the region a
+	// mask reaches is measured against everything it paints. See
+	// [Image.maskNamed] and [maskUnder].
+	maskRef string
+	// markerStart, markerMid and markerEnd are the `<marker>`s this element
+	// draws at the first, the in-between and the last vertex of its shape, and
+	// they are inherited, which is what sets them apart from the clip, the
+	// mask and the filter above: a marker is not a cut or a picture laid over
+	// one shape, it is a mark on a vertex, and a `<g marker-end>` is what every
+	// shape under it puts on its own last vertex. So the references turn into
+	// the markers themselves rather than into places on the node, and the
+	// children take them along with the fill. See [Image.resolveMarkers].
+	markerStart *markerDef
+	markerMid   *markerDef
+	markerEnd   *markerDef
+	// markerStartRef, markerMidRef and markerEndRef are those references — the
+	// ids the three `url(#id)`s named — until the whole drawing has been read
+	// far enough to say what they are, and each is cleared as it is spent so
+	// that a group says what it has to say once and not once for every shape
+	// inside it.
+	markerStartRef string
+	markerMidRef   string
+	markerEndRef   string
+	// filters is the list a `filter="blur(1) grayscale(1)"` gave the element,
+	// read where it is written rather than once the whole drawing is in hand:
+	// none of the functions needs to know what any id in the file is, and what
+	// is not read is said at once. It is not inherited either — a `<g filter>`
+	// turns the one picture it makes of its children once — so it comes off
+	// the style before the children are built from it and lives on the node;
+	// see [readFilters] and [applyFilters].
+	filters []filterOp
+	// pathLength is the total length the drawing says the path on this element
+	// has, in the drawing's own units, which is what the stroke of this shape
+	// is measured out against instead of the geometry — see [applyPathLength].
+	// It is not inherited, for the same reason the clip, the mask and the
+	// filter are not: a length declared by a group is a length of the group's
+	// own shape, and a group has none. [Style.with] takes it off again for
+	// every element that does not write one of its own.
+	pathLength float64
 }
