@@ -1,6 +1,9 @@
 package canvas
 
-import "sync/atomic"
-
-// defaultFace is what Text and TextWidth use when nothing says otherwise.
-var defaultFace atomic.Pointer[Face]
+// DefaultFace is what is being used now, and is never nil.
+func DefaultFace() *Face {
+	if f := defaultFace.Load(); f != nil {
+		return f
+	}
+	return builtin
+}

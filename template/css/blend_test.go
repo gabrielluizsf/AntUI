@@ -32,7 +32,7 @@ func TestBlendStylesOnlyListed(t *testing.T) {
 
 // TestBlendOpacity a plain float property moves linearly with the progress.
 func TestBlendOpacity(t *testing.T) {
-	a, b := Style{Opacity: 0.2}, Style{Opacity: 0.8}
+	a, b := Style{surfaceStyle: surfaceStyle{Opacity: 0.2}}, Style{surfaceStyle: surfaceStyle{Opacity: 0.8}}
 	out := BlendStyles(a, b, 0.25, map[string]bool{"opacity": true}, Units{})
 	if math.Abs(out.Opacity-0.35) > 1e-9 {
 		t.Errorf("opacity = %v, want 0.35", out.Opacity)

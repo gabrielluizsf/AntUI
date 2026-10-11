@@ -1,5 +1,7 @@
 package antui
 
+import ()
+
 import "github.com/gabrielluizsf/antui/canvas"
 
 // SetIcon gives the window an icon, at whatever sizes are handed to it.
