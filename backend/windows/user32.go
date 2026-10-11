@@ -1,0 +1,48 @@
+//go:build windows
+
+package windows
+
+import (
+	"syscall"
+)
+
+var (
+	user32 = syscall.NewLazyDLL("user32.dll")
+	gdi32  = syscall.NewLazyDLL("gdi32.dll")
+	kernel = syscall.NewLazyDLL("kernel32.dll")
+
+	procRegisterClassExW     = user32.NewProc("RegisterClassExW")
+	procCreateWindowExW      = user32.NewProc("CreateWindowExW")
+	procDestroyWindow        = user32.NewProc("DestroyWindow")
+	procDefWindowProcW       = user32.NewProc("DefWindowProcW")
+	procShowWindow           = user32.NewProc("ShowWindow")
+	procUpdateWindow         = user32.NewProc("UpdateWindow")
+	procSetForegroundWindow  = user32.NewProc("SetForegroundWindow")
+	procPeekMessageW         = user32.NewProc("PeekMessageW")
+	procTranslateMessage     = user32.NewProc("TranslateMessage")
+	procDispatchMessageW     = user32.NewProc("DispatchMessageW")
+	procSetWindowTextW       = user32.NewProc("SetWindowTextW")
+	procBeginPaint           = user32.NewProc("BeginPaint")
+	procEndPaint             = user32.NewProc("EndPaint")
+	procGetDC                = user32.NewProc("GetDC")
+	procReleaseDC            = user32.NewProc("ReleaseDC")
+	procAdjustWindowRect     = user32.NewProc("AdjustWindowRect")
+	procSetWindowPos         = user32.NewProc("SetWindowPos")
+	procGetWindowLongW       = user32.NewProc("GetWindowLongW")
+	procSetWindowLongW       = user32.NewProc("SetWindowLongW")
+	procSetLayeredWindowAttr = user32.NewProc("SetLayeredWindowAttributes")
+	procMonitorFromWindow    = user32.NewProc("MonitorFromWindow")
+	procGetMonitorInfoW      = user32.NewProc("GetMonitorInfoW")
+	procGetSystemMetrics     = user32.NewProc("GetSystemMetrics")
+	procEnumDisplaySettingsW = user32.NewProc("EnumDisplaySettingsW")
+	procTrackMouseEvent      = user32.NewProc("TrackMouseEvent")
+	procSetCapture           = user32.NewProc("SetCapture")
+	procReleaseCapture       = user32.NewProc("ReleaseCapture")
+	procGetKeyState          = user32.NewProc("GetKeyState")
+	procLoadCursorW          = user32.NewProc("LoadCursorW")
+	procSetProcessDPIAware   = user32.NewProc("SetProcessDPIAware")
+	procGetDpiForWindow      = user32.NewProc("GetDpiForWindow")
+	procStretchDIBits        = gdi32.NewProc("StretchDIBits")
+	procGetDeviceCaps        = gdi32.NewProc("GetDeviceCaps")
+	procGetModuleHandleW     = kernel.NewProc("GetModuleHandleW")
+)
