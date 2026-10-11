@@ -1,20 +1,11 @@
 package template
 
-// Wrapping text into lines honouring white-space and overflow-wrap. The
-// engine measures at the reference scale (canvas.TextWidth), the same ruler
-// textLines uses, so maxRef is the wrap width in reference units.
-
 import (
 	"unicode/utf8"
 
 	"github.com/gabrielluizsf/antui/canvas"
 	"github.com/gabrielluizsf/antui/template/css"
 )
-
-// isSoftSpace reports whether c is a space the white-space handling manages.
-func isSoftSpace(c byte) bool {
-	return c == ' ' || c == '\t' || c == '\r' || c == '\f'
-}
 
 // wrapLines breaks text into visual lines like textLines, but honours the
 // white-space and overflow-wrap semantics the engine models:
@@ -112,21 +103,4 @@ outer:
 		}
 	}
 	return lines
-}
-
-// cutWord clips a word from s to e down to the longest rune prefix whose width
-// fits avail, leaving the rest on the next line.
-func cutWord(text string, s, e, avail int) int {
-	w := 0
-	i := s
-	for i < e {
-		r, sz := utf8.DecodeRuneInString(text[i:])
-		gw := canvas.TextWidth(string(r))
-		if i > s && w+gw > avail {
-			break
-		}
-		w += gw
-		i += sz
-	}
-	return i
 }

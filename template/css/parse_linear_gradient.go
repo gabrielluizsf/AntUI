@@ -1,11 +1,8 @@
 package css
 
 import (
-	"strings"
-)
-
-import (
 	"math"
+	"strings"
 )
 
 // parseLinearGradient reads "45deg, red, blue" or "to top right, red, blue".

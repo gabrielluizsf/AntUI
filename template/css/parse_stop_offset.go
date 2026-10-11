@@ -1,15 +1,9 @@
 package css
 
 import (
-	"strings"
-)
-
-import (
-	"strconv"
-)
-
-import (
 	"fmt"
+	"strconv"
+	"strings"
 )
 
 // parseStopOffset reads one stop position: a percentage or a bare number,

@@ -1,11 +1,8 @@
 package css
 
 import (
-	"strings"
-)
-
-import (
 	"math"
+	"strings"
 )
 
 // parseConicGradient reads "from <angle>? at <position>?, <stops>".

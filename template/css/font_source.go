@@ -2,8 +2,9 @@ package css
 
 import (
 	"fmt"
-	"github.com/gabrielluizsf/antui/canvas"
 	"os"
+
+	"github.com/gabrielluizsf/antui/canvas"
 )
 
 // fontSource walks an @font-face src list the way a browser does: the first

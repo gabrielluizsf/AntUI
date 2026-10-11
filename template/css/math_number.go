@@ -1,15 +1,9 @@
 package css
 
 import (
-	"strings"
-)
-
-import (
-	"strconv"
-)
-
-import (
 	"fmt"
+	"strconv"
+	"strings"
 )
 
 // number reads a numeric literal with an optional unit, converted to

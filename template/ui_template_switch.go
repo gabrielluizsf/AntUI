@@ -1,0 +1,36 @@
+package template
+
+import (
+	"github.com/gabrielluizsf/antui"
+	"github.com/gabrielluizsf/antui/template/event"
+)
+
+// Switch draws a flip toggle: a track with a thumb that slides between off
+// and on. It flips value when clicked and reports whether it flipped.
+func (t *uiTemplate) Switch(win *antui.Window, x, y int, label string, value *bool) event.Event {
+	if value == nil {
+		return event.Nothing
+	}
+	u := Scale(win)
+	trackW := 36 * u
+	trackH := 20 * u
+	w := trackW + 8*u + textWidth(u, label)
+	id := win.WidgetID("template:switch", x, y, trackW, trackH, label)
+	hovered := win.Hovered(x, y, w, trackH)
+	clicked := win.WidgetClick(id, hovered)
+	focused := win.WidgetFocus() == id
+	win.WidgetTabStop(id)
+	if win.WidgetKeyActivate(id) {
+		clicked = true
+	}
+	changed := false
+	if clicked {
+		*value = !*value
+		changed = true
+	}
+	t.style.Switch(win, State{Hovered: hovered, Focused: focused, On: *value}, x, y, label, *value)
+	if changed {
+		return t.fire(event.Event{Component: event.Switch, Kind: event.Toggle})
+	}
+	return event.Nothing
+}

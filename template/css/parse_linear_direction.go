@@ -1,11 +1,8 @@
 package css
 
 import (
-	"strings"
-)
-
-import (
 	"math"
+	"strings"
 )
 
 // parseLinearDirection reads the direction a linear gradient heads toward: an

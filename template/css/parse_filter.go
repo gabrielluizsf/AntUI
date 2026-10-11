@@ -1,8 +1,9 @@
 package css
 
 import (
-	"github.com/gabrielluizsf/antui/canvas"
 	"strings"
+
+	"github.com/gabrielluizsf/antui/canvas"
 )
 
 // parseFilter reads one function such as blur(4px) or drop-shadow(0 2px 3px
