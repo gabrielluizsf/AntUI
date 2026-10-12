@@ -2,9 +2,6 @@ package audio
 
 import (
 	"embed"
-	"fmt"
-	"io/fs"
-	"path"
 
 	"github.com/gabrielluizsf/antui/template/event"
 )
@@ -56,52 +53,4 @@ func (t *Template) On(e event.Event) {
 	case e.Is(event.Select, event.Open):
 		t.Button.Play()
 	}
-}
-
-// Tech is the futuristic sound bank: crisp electronic clicks, from the
-// "scifi" pack of the UI SFX library (CC0). It is the voice of the Cyberpunk
-// look.
-var Tech = loadBank("Tech", "tech", map[string]string{
-	"button":   "press.wav",
-	"checkbox": "toggle-off.wav",
-	"radio":    "select.wav",
-	"text":     "typing.wav",
-})
-
-// Simple is the cartoonish sound bank: bouncy, playful clicks, from the
-// "arcade" pack of the UI SFX library (CC0). It is the voice of the Builtin
-// look.
-var Simple = loadBank("Simple", "simple", map[string]string{
-	"button":   "press.wav",
-	"checkbox": "toggle-off.wav",
-	"radio":    "select.wav",
-	"text":     "typing.wav",
-})
-
-// loadBank decodes one pack's files into a ready bank. The role names line
-// up with the components: button, checkbox, radio, slider, text.
-func loadBank(name, pack string, files map[string]string) *Template {
-	t := &Template{Name: name}
-	load := func(role string, dst **Sound) {
-		fn, ok := files[role]
-		if !ok {
-			panic(fmt.Sprintf("audio: %s has no %s sound", name, role))
-		}
-		data, err := fs.ReadFile(sfxFS, path.Join("sfx", pack, fn))
-		if err != nil {
-			panic(fmt.Sprintf("audio: %s %s: %v", name, role, err))
-		}
-		samples, rate, err := decodeWAV(data)
-		if err != nil {
-			panic(fmt.Sprintf("audio: %s/%s: %v", pack, fn, err))
-		}
-		// The decoder already swings to ninety-two percent; a small trim
-		// keeps several sounds together from clipping the stream.
-		*dst = &Sound{sample: samples, rate: rate, gain: 0.85}
-	}
-	load("button", &t.Button)
-	load("checkbox", &t.Checkbox)
-	load("radio", &t.Radio)
-	load("text", &t.TextInput)
-	return t
 }
