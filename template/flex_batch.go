@@ -16,6 +16,9 @@ type flexBatch struct {
 	originY  int
 	contentW int // content-box width, fixed by the flow
 	contentH int // content-box height, solved by the distribution
+	frameW   int // border plus padding, left and right
+	frameH   int // border plus padding, top and bottom
+	frameTop int // border plus padding above the content
 	items    []flexItem
 	next     int // the item the draw pass is handing back
 }

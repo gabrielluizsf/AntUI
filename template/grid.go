@@ -1,7 +1,5 @@
 package template
 
-import "github.com/gabrielluizsf/antui/template/css"
-
 // Grid lays the widgets its callback draws out as grid items inside one grid
 // container: a block in the flow that widens to the page, styled by the grid
 // role in the stylesheet, and split into tracks per the container's
@@ -49,62 +47,5 @@ func (c *CSS) Grid(draw func(*CSS)) {
 		c.flexNestedGrid(draw)
 		return
 	}
-
-	st := c.style.baseStyle(css.RoleGrid, State{})
-	if st.Display == css.DisplayNone {
-		return
-	}
-	winW, winH := c.win.Width(), c.win.Height()
-	ml := c.style.length(st, st.Margin[3], winW)
-	mr := c.style.length(st, st.Margin[1], winW)
-	mt := c.style.length(st, st.Margin[0], winW)
-	mb := c.style.length(st, st.Margin[2], winW)
-
-	c.cursorY += c.lineH
-	c.lineH = 0
-	c.lineX = 0
-	c.cursorY += max(c.lastMB, mt)
-	y := c.cursorY
-
-	w := max(winW-ml-mr, 0)
-	if st.Has("width") && gridLengthDefinite(st.Width) {
-		w = c.style.length(st, st.Width, winW)
-	}
-	w = c.clampDim(st, w, "width", winW)
-	x := ml + (winW-ml-mr-w)/2
-
-	b := &gridBatch{css: c, st: st}
-	c.setGridBox(b, st, x, y, w, c.gridDeclaredHeight(st), winW)
-	c.grid, c.griding = b, true
-	c.measure = true
-	draw(c)
-	c.measure = false
-	b.solve()
-
-	_, _, top, bottom := c.gridChrome(st, winW)
-	if st.Has("min-height") && gridLengthDefinite(st.MinHeight) {
-		limit := c.clampDim(st, c.style.length(st, st.MinHeight, winH), "height", winH)
-		b.contentH = max(b.contentH, max(limit-top-bottom, 0))
-	}
-	if st.Has("max-height") && gridLengthDefinite(st.MaxHeight) {
-		limit := c.clampDim(st, c.style.length(st, st.MaxHeight, winH), "height", winH)
-		b.contentH = min(b.contentH, max(limit-top-bottom, 0))
-	}
-	h := b.contentH + top + bottom
-	if st.Has("height") && gridLengthDefinite(st.Height) {
-		h = c.style.length(st, st.Height, winH)
-	}
-	h = c.clampDim(st, h, "height", winH)
-	c.setGridBox(b, st, x, y, w, h, winW)
-
-	if c.style.boxOn(st) && visible(st) {
-		c.style.paintBox(c.win, st, x, y, w, h)
-	}
-
-	c.gridWithin(b, draw)
-
-	c.grid = nil
-	c.griding = false
-	c.cursorY = y + h
-	c.lastMB = mb
+	c.gridLayout(draw)
 }
