@@ -3,8 +3,6 @@
 package location
 
 import (
-	"sync"
-
 	"github.com/gabrielluizsf/antui/backend/android/app"
 	"github.com/gabrielluizsf/antui/backend/android/jni"
 )
@@ -31,74 +29,26 @@ func Watch(opt Options, f func(Fix)) (stop func(), err error) {
 		providers = []string{GPS, Network}
 	}
 
-	token, release := app.Listen(func(e *jni.Env, method string, args []jni.Object) {
-		if method != "onLocationChanged" || len(args) == 0 || args[0].IsNil() {
-			return
-		}
-		if fix, err := read(e, args[0]); err == nil {
-			f(fix)
-		}
-	})
+	token, release := app.Listen(watchListener(f))
 
 	var listener jni.Object
-	fail := func(err error) (func(), error) {
-		release()
-		return nil, err
-	}
+	var setupErr error
 	if e := app.RunOnUISync(func() {
-		err = jni.Do(func(e *jni.Env) error {
-			manager, err := app.Service(e, app.ServiceLocation)
+		setupErr = jni.Do(func(e *jni.Env) error {
+			l, err := requestUpdates(e, token, opt, providers)
 			if err != nil {
 				return err
 			}
-			// LocationListener is an interface, so a proxy is enough and no
-			// Java had to be written for it.
-			l, err := app.Proxy(e, token, "android.location.LocationListener")
-			if err != nil {
-				return err
-			}
-			listener = e.Global(l)
-			for _, p := range providers {
-				jp, err := e.String(p)
-				if err != nil {
-					return err
-				}
-				if err := e.InvokeVoid(manager, "requestLocationUpdates",
-					jni.Sig(jni.TVoid, jni.TString, jni.TLong, jni.TFloat,
-						jni.TClass("android/location/LocationListener")),
-					jni.Ref(jp), jni.Long(opt.Interval.Milliseconds()),
-					jni.Float(opt.Distance), jni.Ref(listener)); err != nil {
-					// A provider the device does not have throws rather than
-					// reporting; with both asked for, one is enough.
-					if len(providers) == 1 {
-						return err
-					}
-				}
-			}
+			listener = l
 			return nil
 		})
 	}); e != nil {
-		return fail(e)
+		release()
+		return nil, e
 	}
-	if err != nil {
-		return fail(err)
+	if setupErr != nil {
+		release()
+		return nil, setupErr
 	}
-
-	var once sync.Once
-	return func() {
-		once.Do(func() {
-			app.RunOnUISync(func() {
-				jni.Do(func(e *jni.Env) error {
-					if manager, err := app.Service(e, app.ServiceLocation); err == nil {
-						e.InvokeVoid(manager, "removeUpdates",
-							jni.Sig(jni.TVoid, jni.TClass("android/location/LocationListener")),
-							jni.Ref(listener))
-					}
-					e.DeleteGlobal(listener)
-					return nil
-				})
-			})
-			release()
-		})
-	}, nil
+	return watchStop(listener, release), nil
 }
