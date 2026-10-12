@@ -19,38 +19,18 @@ func (t *uiTemplate) TextArea(win *antui.Window, x, y, w, h int, text *string) e
 		win.WidgetHot(id)
 	}
 
-	justFocused := false
-	if win.MousePressed(antui.MouseLeft) {
-		switch {
-		case hovered:
-			if win.WidgetFocus() != id {
-				win.WidgetFocusSet(id)
-				justFocused = true
-			}
-			// The caret goes where the pointer pointed, even on a re-click
-			// into the field.
-			win.WidgetCursorSet(t.style.TextAreaTextPos(win, State{
-				Hovered: hovered,
-				Focused: win.WidgetFocus() == id,
-			}, x, y, w, h, *text, win.WidgetCursor(), win.MouseX(), win.MouseY()))
-		case win.WidgetFocus() == id:
-			win.WidgetFocusClear(id)
-		}
-	}
+	justFocused := t.textAreaPress(win, id, x, y, w, h, *text, hovered)
 	focused := win.WidgetFocus() == id
 	win.WidgetTabStop(id)
 
 	changed := false
 	if focused {
 		u := Scale(win)
-		maxRef := max(w/(8*u), 12)
-		changed = t.editTextArea(win, text, maxRef)
+		changed = t.editTextArea(win, text, max(w/(8*u), 12))
 	}
 
-	t.style.TextArea(win, State{
-		Hovered: hovered,
-		Focused: focused,
-	}, x, y, w, h, *text, win.WidgetCursor(), focused && win.WidgetCaret())
+	t.style.TextArea(win, State{Hovered: hovered, Focused: focused},
+		x, y, w, h, *text, win.WidgetCursor(), focused && win.WidgetCaret())
 
 	switch {
 	case justFocused:

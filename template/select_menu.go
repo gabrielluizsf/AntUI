@@ -1,0 +1,40 @@
+package template
+
+import "github.com/gabrielluizsf/antui"
+
+// selectMenu draws the open menu, one clickable row per option, and reports
+// whether one was picked.
+func (t *uiTemplate) selectMenu(win *antui.Window, x, y, w, h int, index *int, options []string, focused bool) bool {
+	type optionDraw struct {
+		x, y  int
+		label string
+		sel   bool
+		state State
+	}
+	draws := make([]optionDraw, 0, len(options))
+	picked := false
+	for i, opt := range options {
+		oy := y + h*(i+1)
+		oid := win.WidgetID("template:option", x, oy, w, h, opt)
+		oh := win.Hovered(x, oy, w, h)
+		sel := i == *index
+		if win.WidgetClick(oid, oh) && !picked {
+			*index = i
+			t.selectOpen = 0
+			picked = true
+		}
+		st := State{Hovered: oh, Focused: focused, On: sel}
+		if !picked && focused && t.selectCursor == i {
+			st.Hovered = true
+		}
+		draws = append(draws, optionDraw{x: x, y: oy, label: opt, sel: sel, state: st})
+	}
+	// The menu is drawn dead last, above every widget the flow painted under
+	// it, so an open menu never hides behind fields below.
+	win.WidgetFrontmost(func() {
+		for _, d := range draws {
+			t.style.SelectOption(win, d.state, d.x, d.y, w, h, d.label, d.sel)
+		}
+	})
+	return picked
+}
