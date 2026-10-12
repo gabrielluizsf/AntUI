@@ -1,21 +1,11 @@
 package apk
 
 import (
-	"bytes"
-	"encoding/xml"
 	"fmt"
 	"strings"
 
 	"github.com/gabrielluizsf/antui/backend/android/shim"
 )
-
-// configChanges is what the activity says it handles itself. Without it,
-// Android destroys and recreates the activity on every rotation, keyboard
-// change and theme switch — which for a native app means tearing the surface
-// down and building it back up, losing everything the app had in memory.
-// A NativeActivity is expected to cope, so it says so.
-const configChanges = "orientation|screenSize|smallestScreenSize|screenLayout|" +
-	"keyboard|keyboardHidden|navigation|uiMode|density|fontScale|locale|layoutDirection"
 
 // Manifest is the AndroidManifest.xml for this app, as text. aapt2 turns it
 // into the binary form an APK holds; writing that form directly is a
@@ -145,34 +135,4 @@ func (c *Config) Manifest() string {
 	b.WriteString("  </application>\n")
 	b.WriteString("</manifest>\n")
 	return b.String()
-}
-
-// ActivityClass is the activity the manifest names: the shim when there is
-// one, and the platform's own NativeActivity when there is not.
-func (c *Config) ActivityClass() string {
-	// nil is the default and the default is on, which is what [Config.check]
-	// fills in. Answering "NativeActivity" for nil here made this disagree
-	// with the manifest that check produces, so a caller who asked before
-	// building — anything that installs and then starts the app — started an
-	// activity the package does not declare.
-	if c.Shim == nil || *c.Shim {
-		return shim.Activity
-	}
-	return "android.app.NativeActivity"
-}
-
-// attr writes an XML attribute value, quotes and all, with everything
-// escaped. It goes through encoding/xml rather than a handful of Replaces so
-// that a label with an apostrophe or a permission from a config file cannot
-// produce a manifest that is not XML.
-func attr(s string) string {
-	var buf bytes.Buffer
-	buf.WriteByte('"')
-	if err := xml.EscapeText(&buf, []byte(s)); err != nil {
-		// EscapeText only fails if the writer does, and a bytes.Buffer does
-		// not.
-		panic(err)
-	}
-	buf.WriteByte('"')
-	return buf.String()
 }

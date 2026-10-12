@@ -1,15 +1,5 @@
 package apk
 
-// What the store needs that no build produces.
-//
-// [Build] and [Bundle] make the file. The file is perhaps a third of what a
-// release is: the rest is a listing, a set of declarations, and a review,
-// none of which anything here can make and all of which stop an app going
-// out. They are written down here rather than in a wiki because a wiki goes
-// stale silently and a constant in the tool people run does not.
-//
-// [Checklist] is the text; "antuiapk publish" prints it.
-
 // Checklist is what a human has to do that no build can.
 const Checklist = `Before the first release
 
