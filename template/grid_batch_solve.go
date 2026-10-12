@@ -1,7 +1,5 @@
 package template
 
-import "github.com/gabrielluizsf/antui/template/css"
-
 // solve lays every item out: it resolves both axes, places each item on them,
 // then hands the axes their space and turns the placements into boxes.
 func (b *gridBatch) solve() {
@@ -31,73 +29,8 @@ func (b *gridBatch) solve() {
 	areas := b.gridAreas()
 	occupied := make(map[[2]int]bool, len(b.items)*2)
 
-	for i := range b.items {
-		it := &b.items[i]
-		it.w, it.h = it.nw, it.nh
-		if area, ok := areas[it.gridAreaName()]; ok {
-			it.colStart, it.colEnd = area.col+columnShift, area.col+area.colSpan+columnShift
-			it.rowStart, it.rowEnd = area.row+rowShift, area.row+area.rowSpan+rowShift
-			it.colDefinite, it.rowDefinite = true, true
-			ensureGridTracks(&columns, it.colEnd)
-			ensureGridTracks(&rows, it.rowEnd)
-			if !it.out {
-				b.occupy(occupied, it)
-			}
-			continue
-		}
-		it.colStart, it.colEnd, it.colDefinite = gridAxisPlacement(columnAxis, it.column)
-		it.colStart += columnShift
-		it.colEnd += columnShift
-		it.rowStart, it.rowEnd, it.rowDefinite = gridAxisPlacement(rowAxis, it.row)
-		it.rowStart += rowShift
-		it.rowEnd += rowShift
-		if it.out || !(it.colDefinite && it.rowDefinite) {
-			continue
-		}
-		ensureGridTracks(&columns, it.colEnd)
-		ensureGridTracks(&rows, it.rowEnd)
-		b.occupy(occupied, it)
-	}
-
-	order := b.gridOrder()
-	rowCursor, colCursor := 0, 0
-	place := func(index int) {
-		it := &b.items[index]
-		if !it.out && !(it.colDefinite && it.rowDefinite) {
-			b.placeAutomatic(it, &columns, &rows, occupied, &rowCursor, &colCursor)
-		}
-	}
-	// The items locked to a line come first, in the order they were added, and
-	// everything else follows in that same order: an item with a definite column
-	// and an automatic one shares the pass, so it takes the cursor where the
-	// items before it left it instead of jumping ahead of them.
-	if b.st.GridAutoFlow == css.GridAutoFlowRow {
-		for _, index := range order {
-			it := &b.items[index]
-			if !it.out && it.rowDefinite && !it.colDefinite {
-				place(index)
-			}
-		}
-		for _, index := range order {
-			it := &b.items[index]
-			if !it.out && !(it.rowDefinite && !it.colDefinite) {
-				place(index)
-			}
-		}
-	} else {
-		for _, index := range order {
-			it := &b.items[index]
-			if !it.out && it.colDefinite && !it.rowDefinite {
-				place(index)
-			}
-		}
-		for _, index := range order {
-			it := &b.items[index]
-			if !it.out && !(it.colDefinite && !it.rowDefinite) {
-				place(index)
-			}
-		}
-	}
+	b.gridPlaceFixed(areas, columnAxis, rowAxis, columnShift, rowShift, &columns, &rows, occupied)
+	b.gridAutoPlace(&columns, &rows, occupied)
 
 	rowGapTotal := max(len(rows)-1, 0) * b.rowGap
 	colGapTotal := max(len(columns)-1, 0) * b.colGap
