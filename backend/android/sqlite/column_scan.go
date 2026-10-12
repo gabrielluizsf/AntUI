@@ -41,13 +41,7 @@ func (c column) scan(kind int32, dest any) error {
 		*d = v
 		return err
 	case *bool:
-		if kind == typeNull {
-			*d = false
-			return nil
-		}
-		v, err := c.whole()
-		*d = v != 0
-		return err
+		return c.scanBool(kind, d)
 	case *[]byte:
 		if kind == typeNull {
 			*d = nil
