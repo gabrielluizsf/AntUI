@@ -7,7 +7,6 @@ import (
 	"sync"
 
 	"github.com/gabrielluizsf/antui/backend/android/app"
-	"github.com/gabrielluizsf/antui/backend/android/jni"
 )
 
 // Ask puts the platform's prompt on screen and waits.
@@ -38,21 +37,7 @@ func Ask(title, subtitle, cancel string) error {
 	var once sync.Once
 	finish := func(err error) { once.Do(func() { done <- err }) }
 
-	token, release := app.Listen(func(e *jni.Env, method string, args []jni.Object) {
-		switch method {
-		case "onAuthenticationSucceeded":
-			finish(nil)
-		case "onAuthenticationFailed":
-			// Not an answer: a finger the sensor did not recognise. The
-			// prompt is still up.
-		case "onAuthenticationError":
-			finish(promptError(e, args))
-		case "onClick":
-			// The negative button, which arrives here as well as through an
-			// error on most versions.
-			finish(ErrRefused)
-		}
-	})
+	token, release := app.Listen(askListener(finish))
 	defer release()
 
 	if e := app.RunOnUISync(func() { err = authenticate(token, title, subtitle, cancel) }); e != nil {

@@ -9,30 +9,12 @@ import (
 
 func authenticate(token int64, title, subtitle, cancel string) error {
 	return jni.Do(func(e *jni.Env) error {
-		builder, err := e.Make("android/hardware/biometrics/BiometricPrompt$Builder",
-			jni.Sig(jni.TVoid, jni.TContext), jni.Ref(app.Context()))
+		builder, err := newPromptBuilder(e, title, subtitle)
 		if err != nil {
 			return err
 		}
 		bt := jni.TClass("android/hardware/biometrics/BiometricPrompt$Builder")
 		cs := jni.TClass("java/lang/CharSequence")
-		text := func(method, value string) error {
-			if value == "" {
-				return nil
-			}
-			js, err := e.String(value)
-			if err != nil {
-				return err
-			}
-			_, err = e.Invoke(builder, method, jni.Sig(bt, cs), jni.Ref(js))
-			return err
-		}
-		if err := text("setTitle", title); err != nil {
-			return err
-		}
-		if err := text("setSubtitle", subtitle); err != nil {
-			return err
-		}
 
 		// The executor the platform runs its callbacks on. The main one will
 		// do: everything it calls hands straight over to a channel.
@@ -61,7 +43,6 @@ func authenticate(token int64, title, subtitle, cancel string) error {
 		if err != nil {
 			return err
 		}
-
 		signal, err := e.Make("android/os/CancellationSignal", jni.Sig(jni.TVoid))
 		if err != nil {
 			return err

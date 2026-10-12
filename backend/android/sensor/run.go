@@ -5,7 +5,6 @@ package sensor
 import (
 	"errors"
 	"runtime"
-	"time"
 
 	"github.com/gabrielluizsf/antui/backend/android/ndk"
 )
@@ -33,49 +32,10 @@ func (s *Stream) run(m *ndk.SensorManager, chosen []ndk.Sensor, opt Options, rea
 
 	rate := int(opt.Rate.Microseconds())
 	latency := opt.Latency.Microseconds()
-	for _, sn := range chosen {
-		// Batching first, and the plain path when the platform is too old
-		// for it or the caller asked for none.
-		if latency > 0 {
-			if err := queue.Register(sn, rate, latency); err == nil {
-				continue
-			}
-		}
-		if err := queue.Enable(sn); err != nil {
-			ready <- err
-			return
-		}
-		if rate > 0 {
-			if err := queue.SetRate(sn, rate); err != nil {
-				ready <- err
-				return
-			}
-		}
+	if err := registerAll(queue, chosen, rate, latency); err != nil {
+		ready <- err
+		return
 	}
 	ready <- nil
-
-	buf := make([]ndk.SensorEvent, 32)
-	for {
-		select {
-		case <-s.stop:
-			return
-		default:
-		}
-		// A timeout rather than a wait, so that a Close that races with the
-		// poll is noticed even if the wake is missed.
-		looper.Poll(250)
-		for {
-			n := queue.Read(buf)
-			if n == 0 {
-				break
-			}
-			for _, e := range buf[:n] {
-				s.deliver(Reading{
-					Kind: Kind(e.Type),
-					At:   time.Duration(e.At),
-					V:    e.V,
-				})
-			}
-		}
-	}
+	pollLoop(s, looper, queue)
 }
