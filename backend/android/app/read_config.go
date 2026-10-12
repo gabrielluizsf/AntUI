@@ -33,21 +33,8 @@ func readConfig(act *C.ANativeActivity) Config {
 		SDK:             int(C.AConfiguration_getSdkVersion(cfg)),
 	}
 
-	// The platform has two ways of saying it does not know the density, and
-	// both are large numbers rather than zero, so they would be believed.
-	d := int(C.AConfiguration_getDensity(cfg))
-	if d != C.ACONFIGURATION_DENSITY_ANY && d != C.ACONFIGURATION_DENSITY_NONE && d > 0 {
-		out.Density = d
-	}
-
-	switch C.AConfiguration_getOrientation(cfg) {
-	case C.ACONFIGURATION_ORIENTATION_PORT:
-		out.Orientation = Portrait
-	case C.ACONFIGURATION_ORIENTATION_LAND:
-		out.Orientation = Landscape
-	case C.ACONFIGURATION_ORIENTATION_SQUARE:
-		out.Orientation = Square
-	}
+	applyDensity(cfg, &out)
+	applyOrientation(cfg, &out)
 
 	out.Night = C.AConfiguration_getUiModeNight(cfg) == C.ACONFIGURATION_UI_MODE_NIGHT_YES
 	out.RightToLeft = C.AConfiguration_getLayoutDirection(cfg) == C.ACONFIGURATION_LAYOUTDIR_RTL
@@ -56,18 +43,7 @@ func readConfig(act *C.ANativeActivity) Config {
 	// symbol by hand for a device class this library does not target, so it
 	// is left out rather than half-done.
 
-	k := C.AConfiguration_getKeyboard(cfg)
-	out.HasKeyboard = k != C.ACONFIGURATION_KEYBOARD_ANY && k != C.ACONFIGURATION_KEYBOARD_NOKEYS
-	t := C.AConfiguration_getTouchscreen(cfg)
-	out.HasTouchscreen = t != C.ACONFIGURATION_TOUCHSCREEN_ANY && t != C.ACONFIGURATION_TOUCHSCREEN_NOTOUCH
-
-	// The language and country are written into two chars each and are not
-	// terminated, so they cannot be read as C strings. An unset one comes
-	// back as two zero bytes.
-	var lang, country [2]C.char
-	C.AConfiguration_getLanguage(cfg, &lang[0])
-	C.AConfiguration_getCountry(cfg, &country[0])
-	out.Language = twoLetters(lang)
-	out.Country = twoLetters(country)
+	applyInput(cfg, &out)
+	applyLocale(cfg, &out)
 	return out
 }

@@ -14,7 +14,6 @@ import (
 	"runtime"
 	"unsafe"
 
-	"github.com/gabrielluizsf/antui/backend/android/jni"
 	"github.com/gabrielluizsf/antui/backend/android/ndk"
 )
 
@@ -37,38 +36,14 @@ func ANativeActivity_onCreate(act *C.ANativeActivity, savedState unsafe.Pointer,
 		return
 	}
 
-	a := &App{
-		// A little buffering, so a burst of configuration changes does not
-		// block the UI thread on an app that is mid-frame.
-		msgs: make(chan message, 16),
-		dead: make(chan struct{}),
-		info: Info{
-			InternalData: C.GoString(act.internalDataPath),
-			ExternalData: C.GoString(act.externalDataPath),
-			OBB:          C.GoString(act.obbPath),
-			SDK:          int(act.sdkVersion),
-		},
-		config: readConfig(act),
-		assets: unsafe.Pointer(act.assetManager),
-		state:  Created,
-		saved:  copyState(savedState, savedStateSize),
-	}
+	a := buildApp(act, savedState, savedStateSize)
 
 	stateMu.Lock()
 	theApp, activity = a, act
 	stateMu.Unlock()
 
-	// The bridge to Java, before anything else can want it. This runs on the
-	// UI thread, which is the only place the activity reference handed over
-	// by the platform is valid — the first thing Init does is make it
-	// global, and everything else in the library reaches Java through that.
-	if err := jni.Init(unsafe.Pointer(act.vm), uintptr(act.clazz)); err != nil {
+	if err := initBridge(act, a); err != nil {
 		ndk.Errorf("no bridge to Java: %v", err)
-	} else {
-		registerShim()
-		// Before the app's goroutine starts, so that the first thing it does
-		// can already make a temporary file.
-		setupPaths(a)
 	}
 
 	C.antui_set_callbacks(act)

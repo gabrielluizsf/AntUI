@@ -36,25 +36,7 @@ func registerShim() {
 			// need it report ErrNoShim.
 			return nil
 		}
-		return e.RegisterNatives(cls, []jni.Native{
-			{
-				Name: "nativeOnPermissionResult",
-				Sig: jni.Sig(jni.TVoid, jni.TInt,
-					jni.TArray(jni.TString), jni.TArray(jni.TInt)),
-				Fn: C.antui_native_permission_result(),
-			},
-			{
-				Name: "nativeOnActivityResult",
-				Sig: jni.Sig(jni.TVoid, jni.TInt, jni.TInt,
-					jni.TClass("android/content/Intent")),
-				Fn: C.antui_native_activity_result(),
-			},
-			{
-				Name: "nativeOnNewIntent",
-				Sig:  jni.Sig(jni.TVoid, jni.TClass("android/content/Intent")),
-				Fn:   C.antui_native_new_intent(),
-			},
-		})
+		return e.RegisterNatives(cls, shimNatives())
 	})
 	if err != nil {
 		ndk.Errorf("the Java shim is in the package and could not be wired up: %v", err)
@@ -62,19 +44,7 @@ func registerShim() {
 
 	// The one door every listener in the shim comes back through; see
 	// callback.go. It is on a class of its own, so it is a second call.
-	err = jni.Do(func(e *jni.Env) error {
-		cls, err := e.Class("dev/antui/Native")
-		if err != nil {
-			return nil
-		}
-		return e.RegisterNatives(cls, []jni.Native{{
-			Name: "invoke",
-			Sig: jni.Sig(jni.TObject, jni.TLong, jni.TString,
-				jni.TArray(jni.TObject)),
-			Fn: C.antui_native_invoke(),
-		}})
-	})
-	if err != nil {
+	if err := registerListenerBridge(); err != nil {
 		ndk.Errorf("the listener bridge could not be wired up: %v", err)
 	}
 }

@@ -38,22 +38,7 @@ func RequestPermissions(names ...string) (PermissionResult, error) {
 	var callErr error
 	if err := RunOnUISync(func() {
 		callErr = jni.Do(func(e *jni.Env) error {
-			act := jni.Activity()
-			cls, err := e.ClassOf(act)
-			if err != nil {
-				return err
-			}
-			defer e.Delete(cls.Object())
-			m, err := e.Method(cls, "requestPermissions",
-				jni.Sig(jni.TVoid, jni.TArray(jni.TString), jni.TInt))
-			if err != nil {
-				return err
-			}
-			arr, err := e.NewStrings(names)
-			if err != nil {
-				return err
-			}
-			return e.CallVoid(act, m, jni.Ref(arr), jni.Int(code))
+			return askPermissions(e, names, code)
 		})
 	}); err != nil {
 		callErr = err
