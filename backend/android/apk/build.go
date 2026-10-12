@@ -44,19 +44,5 @@ func Build(tc *sdk.Toolchain, cfg Config) (*Result, error) {
 	if err := Sign(tc, &cfg, packed, cfg.Out); err != nil {
 		return nil, err
 	}
-
-	st, err := os.Stat(cfg.Out)
-	if err != nil {
-		return nil, fmt.Errorf("apk: %w", err)
-	}
-	res := &Result{APK: cfg.Out, Libs: libs, Size: st.Size()}
-	// The symbols go out beside the package, because the moment they are
-	// made is the only moment they can be kept.
-	syms := symbolsPath(&cfg)
-	if wrote, err := WriteSymbols(libs, cfg.Lib, syms); err != nil {
-		return nil, err
-	} else if wrote {
-		res.Symbols = syms
-	}
-	return res, nil
+	return buildResult(cfg, libs)
 }

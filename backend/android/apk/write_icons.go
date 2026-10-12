@@ -2,9 +2,7 @@ package apk
 
 import (
 	"fmt"
-	_ "image/jpeg"
 	"os"
-	"path/filepath"
 
 	"github.com/gabrielluizsf/antui/canvas"
 )
@@ -36,63 +34,11 @@ func WriteIcons(dir, source string, background canvas.Color) error {
 			"antuiapk: the icon is %dx%d; 512x512 is what the store asks for\n",
 			src.Width, src.Height)
 	}
-
-	for _, d := range densities {
-		folder := filepath.Join(dir, "mipmap-"+d.name)
-		if err := os.MkdirAll(folder, 0o755); err != nil {
-			return err
-		}
-		square := canvas.IconScaled(src, d.size)
-		if square == nil {
-			return fmt.Errorf("apk: cannot scale the icon to %d", d.size)
-		}
-		if err := writePNG(filepath.Join(folder, "ic_launcher.png"), square); err != nil {
-			return err
-		}
-		// The round one is the same picture with the corners taken off. A
-		// launcher that asks for it is one that will not mask what it is
-		// given, so the masking has to be done here.
-		if err := writePNG(filepath.Join(folder, "ic_launcher_round.png"),
-			rounded(square)); err != nil {
-			return err
-		}
-		if err := writePNG(filepath.Join(folder, "ic_launcher_foreground.png"),
-			adaptiveLayer(src, d.adaptive)); err != nil {
-			return err
-		}
-	}
-
-	// The adaptive icon itself, which is a description rather than a
-	// picture: a background, a foreground, and — from Android 13 — a
-	// monochrome layer the system tints to match the user's wallpaper.
-	// Anydpi-v26 means "every density, from API 26", so it wins over the
-	// PNGs above wherever adaptive icons exist and is ignored where they do
-	// not.
-	folder := filepath.Join(dir, "mipmap-anydpi-v26")
-	if err := os.MkdirAll(folder, 0o755); err != nil {
+	if err := writeDensities(dir, src); err != nil {
 		return err
 	}
-	adaptive := `<?xml version="1.0" encoding="utf-8"?>
-<adaptive-icon xmlns:android="http://schemas.android.com/apk/res/android">
-    <background android:drawable="@color/ic_launcher_background" />
-    <foreground android:drawable="@mipmap/ic_launcher_foreground" />
-    <monochrome android:drawable="@mipmap/ic_launcher_foreground" />
-</adaptive-icon>
-`
-	for _, name := range []string{"ic_launcher.xml", "ic_launcher_round.xml"} {
-		if err := os.WriteFile(filepath.Join(folder, name), []byte(adaptive), 0o644); err != nil {
-			return err
-		}
-	}
-
-	values := filepath.Join(dir, "values")
-	if err := os.MkdirAll(values, 0o755); err != nil {
+	if err := writeAdaptive(dir); err != nil {
 		return err
 	}
-	colors := fmt.Sprintf(`<?xml version="1.0" encoding="utf-8"?>
-<resources>
-    <color name="ic_launcher_background">#%02X%02X%02X%02X</color>
-</resources>
-`, background.A(), background.R(), background.G(), background.B())
-	return os.WriteFile(filepath.Join(values, "colors.xml"), []byte(colors), 0o644)
+	return writeColors(dir, background)
 }

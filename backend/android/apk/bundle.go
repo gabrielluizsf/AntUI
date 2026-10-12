@@ -23,14 +23,7 @@ func Bundle(tc *sdk.Toolchain, cfg Config) (*Result, error) {
 	if cfg.Out == cfg.Label+".apk" {
 		cfg.Out = cfg.Label + ".aab"
 	}
-	// What the store would say, said now. A bundle is built to be uploaded,
-	// so it is worth hearing before the two minutes of building rather than
-	// after — but it is said and not enforced: a bundle built to be tried on
-	// an emulator wants x86_64, which no phone has and no store accepts, and
-	// that is a perfectly good reason to build one.
-	for _, p := range cfg.PlayProblems() {
-		fmt.Fprintln(os.Stderr, "antuiapk: "+p.String())
-	}
+	warnPlayProblems(cfg)
 
 	work, err := os.MkdirTemp("", "antuiaab-")
 	if err != nil {
@@ -53,21 +46,5 @@ func Bundle(tc *sdk.Toolchain, cfg Config) (*Result, error) {
 	if err := SignBundle(tc, &cfg, unsigned, cfg.Out); err != nil {
 		return nil, err
 	}
-
-	st, err := os.Stat(cfg.Out)
-	if err != nil {
-		return nil, fmt.Errorf("apk: %w", err)
-	}
-	res := &Result{APK: cfg.Out, Libs: libs, Size: st.Size()}
-	// The bundle already carries the symbols inside it, so a copy beside it
-	// would be the same three megabytes twice. One is written only when the
-	// caller asked for one by name.
-	if cfg.Symbols != "" {
-		if wrote, err := WriteSymbols(libs, cfg.Lib, cfg.Symbols); err != nil {
-			return nil, err
-		} else if wrote {
-			res.Symbols = cfg.Symbols
-		}
-	}
-	return res, nil
+	return bundleResult(cfg, libs)
 }
