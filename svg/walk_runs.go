@@ -25,19 +25,7 @@ func walkRuns(runs []TextRun, m canvas.Matrix) []piece {
 		if scale <= 0 {
 			continue
 		}
-		size := st.FontSize
-		if size <= 0 {
-			size = defaultFontSize
-		}
-		// The face is asked for at the size in pixels this writing covers on
-		// the canvas, so a drawing painted big is written big rather than a
-		// small piece of writing blown up afterwards. The face itself is the
-		// one the canvas draws with: a font-family list is read, but a drawing
-		// carries no files of its own, so the names run into the face the
-		// program already had — see [Style].
-		face := canvas.DefaultFace().AtSize(size * scale)
-		width := (float64(face.Width(run.Text)) +
-			st.LetterSpacing*float64(spaced(st, run.Text))) / scale
+		face, width := runFace(run, scale)
 		// An anchor hangs the writing on the pen, and a piece hung on an
 		// outline is hung along the outline instead — the pen has no part in
 		// where it lands, and does not carry the pen on afterwards either.

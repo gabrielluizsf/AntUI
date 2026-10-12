@@ -19,22 +19,7 @@ func readFilter(tok string) (filterOp, bool) {
 	args := strings.TrimSpace(tok[open+1 : len(tok)-1])
 	switch name {
 	case "grayscale", "sepia", "invert", "brightness", "contrast":
-		v, ok := filterAmount(args)
-		if !ok {
-			return filterOp{}, false
-		}
-		kind := canvas.FilterGrayscale
-		switch name {
-		case "sepia":
-			kind = canvas.FilterSepia
-		case "invert":
-			kind = canvas.FilterInvert
-		case "brightness":
-			kind = canvas.FilterBrightness
-		case "contrast":
-			kind = canvas.FilterContrast
-		}
-		return filterOp{kind: kind, amount: v}, true
+		return readColorAdjust(name, args)
 	case "hue-rotate":
 		deg, err := parseAngle(args)
 		if err != nil {

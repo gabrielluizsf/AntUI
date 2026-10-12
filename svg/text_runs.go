@@ -11,42 +11,20 @@ package svg
 func (img *Image) textRuns(e *element, st Style, warn func(string, ...any)) []TextRun {
 	runs := make([]TextRun, 0, len(e.Parts))
 	for _, p := range e.Parts {
-		if p.Elem == nil {
+		switch {
+		case p.Elem == nil:
 			if p.Text != "" {
 				runs = append(runs, TextRun{Text: p.Text, Style: st})
 			}
-			continue
-		}
-		if p.Elem.Name == "textPath" {
-			// The writing is not hung on a pen at all: it is laid along the
-			// outline the href names, with `startOffset` saying how far along
-			// it the first letter goes. What it names could not be followed,
-			// and then there is nowhere to write, which is worth one sentence
-			// rather than the writing turning up in the wrong place.
-			along := img.textPathOutline(p.Elem, warn)
-			if along == nil {
-				continue
+		case p.Elem.Name == "textPath":
+			if sub := img.textPathRuns(p.Elem, st, warn); sub != nil {
+				runs = append(runs, sub...)
 			}
-			kid := st.with(p.Elem, warn)
-			img.resolvePaints(&kid, warn)
-			sub := img.textRuns(p.Elem, kid, warn)
-			off := startOffset(p.Elem, along, warn)
-			for i := range sub {
-				sub[i].Path, sub[i].Offset = along, off
-			}
-			runs = append(runs, sub...)
-			continue
-		}
-		if p.Elem.Name != "tspan" {
+		case p.Elem.Name == "tspan":
+			runs = append(runs, img.childRuns(p.Elem, st, warn)...)
+		default:
 			warn("<%s> inside the writing is not writing this package draws, so it is left out", p.Elem.Name)
-			continue
 		}
-		// The `<tspan>` is read the way any other element is read, over the
-		// style the writing around it has: a size or a colour on it is the
-		// size or colour of what it holds and nothing else.
-		kid := st.with(p.Elem, warn)
-		img.resolvePaints(&kid, warn)
-		runs = append(runs, img.textRuns(p.Elem, kid, warn)...)
 	}
 	if len(runs) == 0 {
 		return nil

@@ -24,12 +24,7 @@ func (img *Image) imageNode(e *element, st Style, warn func(string, ...any)) *No
 		warn("it has no href, so there is no picture for it to draw")
 		return n
 	}
-	box := [4]float64{
-		img.pictureLength(warn, e, "x", 0),
-		img.pictureLength(warn, e, "y", 1),
-		img.pictureLength(warn, e, "width", 0),
-		img.pictureLength(warn, e, "height", 1),
-	}
+	box := img.pictureBox(e, warn)
 	if box[2] <= 0 || box[3] <= 0 {
 		// A box of no area is where the picture would go and there is no there,
 		// the same as a rectangle with no width: nothing is drawn, and this

@@ -22,26 +22,9 @@ func markerOn(def *markerDef, st Style, v markerVertex, atStart bool, prop strin
 	if def == nil {
 		return nil
 	}
-	// The room the picture is drawn into: the size the marker asked for, and a
-	// multiple of the stroke-width of this shape where markerUnits says so —
-	// the default, which is what makes a marker on a thick line a thick
-	// marker. Without a viewBox the room only bounds what is drawn rather than
-	// scaling it, since the picture is written in the room's own coordinates
-	// already; with one, the fit below is what the two numbers are used for.
-	scale := 1.0
-	if def.strokeUnits {
-		scale = st.Width
-	}
-	w, h := def.w*scale, def.h*scale
-	if !(w > 0) || !(h > 0) {
+	w, h, onto, ok := markerRoom(def, st)
+	if !ok {
 		return nil
-	}
-	// The picture onto the room, which is the fit a viewBox gets everywhere it
-	// is fitted to something — the canvas, the box a `<use>` asked a `<symbol>`
-	// for — kept proportions and all.
-	onto := canvas.Identity()
-	if def.hasView {
-		onto = fitTransform(def.view, w, h)
 	}
 	rx, ry := onto.Map(def.refX, def.refY)
 	angle := def.deg * math.Pi / 180
@@ -58,19 +41,5 @@ func markerOn(def *markerDef, st Style, v markerVertex, atStart bool, prop strin
 	if st.HasTransform && st.Transform != (canvas.Matrix{}) {
 		at = st.Transform.Mul(at)
 	}
-	// The room as a cut, in the coordinates the picture is written in: its
-	// rectangle taken backwards through the fit of the viewBox, so that where
-	// the room's edges land on the picture follow where the picture's own
-	// writing lands. A fit with no way back collapses the picture to nothing
-	// anyway, so it gets no cut rather than the wrong one.
-	var room *clipRegion
-	if !def.visible {
-		if inv, ok := onto.Inverse(); ok {
-			p := canvas.NewPath()
-			p.AddRect(0, 0, w, h)
-			p.Transform(inv)
-			room = &clipRegion{shapes: []canvas.MaskShape{{Path: p, Rule: canvas.FillNonZero}}}
-		}
-	}
-	return &markerPlace{def: def, at: at, room: room, prop: prop}
+	return &markerPlace{def: def, at: at, room: markerClip(onto, w, h, def.visible), prop: prop}
 }
