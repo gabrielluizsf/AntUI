@@ -8,24 +8,7 @@ import "github.com/gabrielluizsf/antui/template/css"
 // way, so a grid drawn inside a flex is placed as a real item.
 func (c *CSS) flexItemSized(st css.Style, nw, nh int) flexItem {
 	b := c.flex
-	if st.Has("width") {
-		nw = c.style.length(st, st.Width, b.contentW)
-	}
-	if st.Has("max-width") {
-		nw = min(nw, c.style.length(st, st.MaxWidth, b.contentW))
-	}
-	if st.Has("min-width") {
-		nw = max(nw, c.style.length(st, st.MinWidth, b.contentW))
-	}
-	if st.Has("height") {
-		nh = c.style.length(st, st.Height, b.contentW)
-	}
-	if st.Has("max-height") {
-		nh = min(nh, c.style.length(st, st.MaxHeight, b.contentW))
-	}
-	if st.Has("min-height") {
-		nh = max(nh, c.style.length(st, st.MinHeight, b.contentW))
-	}
+	nw, nh = c.flexItemSize(st, nw, nh)
 	shrink := 1.0
 	if st.Has("flex-shrink") {
 		shrink = st.FlexShrink
@@ -61,34 +44,9 @@ func (c *CSS) flexItemSized(st css.Style, nw, nh int) flexItem {
 	}
 	if st.OutOfFlow() {
 		it.out = true
-		if st.Has("left") {
-			it.inLeft = c.style.length(st, st.Left, b.contentW)
-		}
-		if st.Has("right") {
-			it.inRight = c.style.length(st, st.Right, b.contentW)
-		}
-		if st.Has("top") {
-			it.inTop = c.style.length(st, st.Top, b.contentW)
-		}
-		if st.Has("bottom") {
-			it.inBottom = c.style.length(st, st.Bottom, b.contentW)
-		}
+		c.flexItemInsets(st, &it)
 		return it
 	}
-	if b.col() {
-		if st.Has("min-height") {
-			it.minMain = c.style.length(st, st.MinHeight, b.contentW)
-		}
-		if st.Has("max-height") {
-			it.maxMain = c.style.length(st, st.MaxHeight, b.contentW)
-		}
-		return it
-	}
-	if st.Has("min-width") {
-		it.minMain = c.style.length(st, st.MinWidth, b.contentW)
-	}
-	if st.Has("max-width") {
-		it.maxMain = c.style.length(st, st.MaxWidth, b.contentW)
-	}
+	c.flexItemMain(st, &it)
 	return it
 }
