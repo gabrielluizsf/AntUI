@@ -15,12 +15,7 @@ func (c *CSS) solveTable(b *tableBatch, x0, room, pctBase int) {
 	mr := c.style.length(b.st, b.st.Margin[1], pctBase)
 	avail := max(room-ml-mr, 0)
 
-	caption := 0
-	for _, ch := range b.children {
-		if ch.caption != nil {
-			caption = max(ch.caption.nh, 0)
-		}
-	}
+	caption, rows := tableRows(b)
 	b.caption = caption
 
 	// The columns ask the cells what they need, and the table's own width — the
@@ -28,19 +23,6 @@ func (c *CSS) solveTable(b *tableBatch, x0, room, pctBase int) {
 	natural := c.tableColumns(b)
 	shared := tableShare(natural, c.tableWidth(b, natural, avail, left+right))
 	b.cols = shared
-
-	rows := 0
-	for _, ch := range b.children {
-		if ch.row == nil {
-			continue
-		}
-		height := 0
-		for _, cell := range ch.row.cells {
-			height = max(height, cell.nh)
-		}
-		ch.row.height = height
-		rows += height
-	}
 
 	h := caption + rows + top + bottom
 	if b.st.Has("height") && gridLengthDefinite(b.st.Height) {
@@ -51,21 +33,5 @@ func (c *CSS) solveTable(b *tableBatch, x0, room, pctBase int) {
 	w := colsWidth(shared) + left + right
 	c.setTableBox(b, b.st, x0+ml+(avail-w)/2, b.y, w, h, pctBase)
 
-	rowY := 0
-	for _, ch := range b.children {
-		if ch.row == nil {
-			continue
-		}
-		x := 0
-		for j, cell := range ch.row.cells {
-			cell.w = 0
-			if j < len(shared) {
-				cell.w = shared[j]
-			}
-			cell.x = x
-			cell.h, cell.y = cellPlacement(cell, ch.row.height, rowY)
-			x += cell.w
-		}
-		rowY += ch.row.height
-	}
+	placeTableCells(b, shared)
 }

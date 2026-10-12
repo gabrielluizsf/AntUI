@@ -8,39 +8,16 @@ import "github.com/gabrielluizsf/antui/template/css"
 // keywords ask for the narrowest or the widest they can be, with fit-content()
 // clamped between the two by the limit it was given.
 func (b *gridBatch) gridTrackPlan(track css.GridTrack, contribution gridContribution, base, available int, definite bool) gridTrackPlan {
-	rowCyclic := !definite
 	if track.Kind == css.GridTrackSingle {
-		switch track.Size.Kind {
-		case css.GridTrackLength:
-			size := contribution.max
-			if !rowCyclic || !track.Size.Length.IsPct() {
-				size = b.css.style.length(b.st, track.Size.Length, base)
-			}
-			return gridTrackPlan{size: max(size, 0), min: max(size, 0), max: max(size, 0)}
-		case css.GridTrackFlexible:
-			maxSize := contribution.max
-			if definite {
-				maxSize = max(available, contribution.max)
-			}
-			return gridTrackPlan{size: contribution.max, min: 0, max: maxSize, flex: track.Size.Fr}
-		case css.GridTrackMinContent:
-			return gridContributionPlan(contribution, contribution.min, false)
-		case css.GridTrackMaxContent:
-			return gridContributionPlan(contribution, contribution.max, false)
-		case css.GridTrackFitContent:
-			limit := max(b.css.style.length(b.st, track.Size.Length, base), 0)
-			return gridContributionPlan(contribution, clampGridItem(contribution.max, contribution.min, limit), false)
-		default:
-			return gridTrackPlan{size: contribution.max, min: contribution.min, max: contribution.max, stretch: true}
-		}
+		return b.singleGridTrackPlan(track, contribution, base, available, definite)
 	}
 
-	minimum := b.gridTrackMin(track.Min, contribution, base, rowCyclic)
+	minimum := b.gridTrackMin(track.Min, contribution, base, !definite)
 	plan := gridTrackPlan{min: minimum}
 	switch track.Max.Kind {
 	case css.GridTrackLength:
 		maximum := contribution.max
-		if !rowCyclic || !track.Max.Length.IsPct() {
+		if definite || !track.Max.Length.IsPct() {
 			maximum = b.css.style.length(b.st, track.Max.Length, base)
 		}
 		plan.max = max(maximum, minimum)

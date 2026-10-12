@@ -22,39 +22,13 @@ func (b *flexBatch) stackLines(lines [][]int, crosses []int, gap, avail int, def
 		// made to add up to it, so a line wider than the container is narrowed
 		// to fit and what does not fit spills out of it rather than the
 		// container growing to hold it.
-		room := max(avail-gap*(len(lines)-1), 0) / len(lines)
-		for i := range crosses {
-			crosses[i] = room
-		}
-		total = 0
-		for i, c := range crosses {
-			if i > 0 {
-				total += gap
-			}
-			total += c
-		}
+		total = stretchLines(crosses, gap, avail)
 	}
 	left := 0
 	if definite {
 		left = max(avail-total, 0)
 	}
-	lead, between := 0, gap
-	switch b.st.AlignContent {
-	case css.ContentFlexEnd:
-		lead = left
-	case css.ContentCenter:
-		lead = left / 2
-	case css.ContentSpaceBetween:
-		if len(lines) > 1 {
-			between = gap + left/(len(lines)-1)
-		}
-	case css.ContentSpaceAround:
-		between = gap + left/len(lines)
-		lead = left / (2 * len(lines))
-	case css.ContentSpaceEvenly:
-		between = gap + left/(len(lines)+1)
-		lead = left / (len(lines) + 1)
-	}
+	lead, between := contentLeadBetween(b.st.AlignContent, left, len(lines), gap)
 	offsets := make([]int, len(lines))
 	pos := lead
 	for li := range lines {

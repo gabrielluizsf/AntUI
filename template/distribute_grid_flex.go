@@ -22,41 +22,9 @@ func distributeGridFlex(plans []gridTrackPlan, indices []int, pool int, totalFle
 	sort.SliceStable(indices, func(i, j int) bool {
 		return fractions[indices[i]] > fractions[indices[j]]
 	})
-	for remaining > 0 {
-		changed := false
-		for _, index := range indices {
-			if plans[index].size >= plans[index].max {
-				continue
-			}
-			plans[index].size++
-			remaining--
-			changed = true
-			if remaining == 0 {
-				break
-			}
-		}
-		if !changed {
-			break
-		}
-	}
+	remaining = topUpGridFlex(plans, indices, remaining)
 	sort.SliceStable(indices, func(i, j int) bool {
 		return fractions[indices[i]] < fractions[indices[j]]
 	})
-	for remaining < 0 {
-		changed := false
-		for _, index := range indices {
-			if plans[index].size <= plans[index].min {
-				continue
-			}
-			plans[index].size--
-			remaining++
-			changed = true
-			if remaining == 0 {
-				break
-			}
-		}
-		if !changed {
-			break
-		}
-	}
+	trimGridFlex(plans, indices, remaining)
 }

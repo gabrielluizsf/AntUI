@@ -34,31 +34,8 @@ func (b *gridBatch) placeRowAutomatic(it *gridItem, columns *[]css.GridTrack, ro
 			}
 		}
 	}
-	if b.st.GridAutoFlowDense {
-		for row := 0; row < len(*rows); row++ {
-			for col := 0; col < len(*columns); col++ {
-				if b.fits(occupied, col, row, colSpan, rowSpan) {
-					b.reserve(occupied, it, col, row, colSpan, rowSpan)
-					return
-				}
-			}
-		}
+	if b.st.GridAutoFlowDense && b.placeDenseRow(occupied, columns, rows, it, colSpan, rowSpan) {
+		return
 	}
-	row, col := *rowCursor, *colCursor
-	for {
-		if col > 0 && col+colSpan > len(*columns) {
-			col = 0
-			row++
-			*rowCursor, *colCursor = row, col
-			continue
-		}
-		ensureGridTracks(columns, col+colSpan)
-		ensureGridTracks(rows, row+rowSpan)
-		if b.fits(occupied, col, row, colSpan, rowSpan) {
-			b.reserve(occupied, it, col, row, colSpan, rowSpan)
-			*rowCursor, *colCursor = row, col+colSpan
-			return
-		}
-		col++
-	}
+	b.placeCursorRow(occupied, columns, rows, it, rowCursor, colCursor, colSpan, rowSpan)
 }

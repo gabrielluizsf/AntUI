@@ -34,24 +34,10 @@ func (b *gridBatch) resolveGridTracks(tracks []css.GridTrack, columns, definite 
 	}
 	if flex > 0 && (columns || definite) {
 		pool := max(available-nonFlex, 0)
-		indices := make([]int, 0, len(plans))
-		for i := range plans {
-			if plans[i].flex > 0 {
-				indices = append(indices, i)
-			}
-		}
-		distributeGridFlex(plans, indices, pool, flex)
+		distributeGridFlex(plans, flexIndices(plans), pool, flex)
 	} else if definite && stretch {
-		used := sumGridPlans(plans)
-		extra := max(available-used, 0)
-		if extra > 0 {
-			indices := make([]int, 0, len(plans))
-			for i := range plans {
-				if plans[i].stretch {
-					indices = append(indices, i)
-				}
-			}
-			distributeGridExtra(plans, indices, extra)
+		if extra := max(available-sumGridPlans(plans), 0); extra > 0 {
+			distributeGridExtra(plans, stretchIndices(plans), extra)
 		}
 	}
 
