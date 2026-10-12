@@ -28,14 +28,7 @@ func (cyberStyle) TextArea(win *antui.Window, s State, x, y, w, h int, text stri
 
 	lineH := textHeight(u)
 	visible := max((h-2*padding)/lineH, 1)
-	viewTop := 0
-	for li, l := range lines {
-		if cursor >= l[0] && cursor < l[1] || (li == len(lines)-1 && cursor == l[1]) {
-			viewTop = max(li-visible+1, 0)
-			break
-		}
-	}
-	viewTop = max(min(viewTop, len(lines)-visible), 0)
+	viewTop := textAreaViewTop(cursor, lines, visible)
 
 	savedClip := cv.Clip
 	cv.SetClip(x+padding, y+padding, innerW, h-2*padding)

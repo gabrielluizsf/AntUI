@@ -21,21 +21,7 @@ func (cs *cssStyle) paintImageLayer(win *antui.Window, st css.Style, i int, src 
 	if ow <= 0 || oh <= 0 {
 		return nil
 	}
-	sz := propAt(st.BackgroundSize, i, css.BackSize{})
-	dw, dh := src.Width, src.Height
-	switch {
-	case sz.Cover:
-		dw, dh = coverSize(src.Width, src.Height, ow, oh)
-	case sz.Contain:
-		dw, dh = canvas.Fit(src.Width, src.Height, ow, oh)
-	default:
-		if !autoDim(sz.W) {
-			dw = cs.sizeDim(st, sz.W, ow, src.Width)
-		}
-		if !autoDim(sz.H) {
-			dh = cs.sizeDim(st, sz.H, oh, src.Height)
-		}
-	}
+	dw, dh := cs.backgroundTileSize(st, i, src, ow, oh)
 	if dw <= 0 || dh <= 0 {
 		return nil
 	}
@@ -50,11 +36,7 @@ func (cs *cssStyle) paintImageLayer(win *antui.Window, st css.Style, i int, src 
 	if repeat[0] == css.BackRepeatNoRepeat && repeat[1] == css.BackRepeatNoRepeat {
 		layer.BlitScaled(px, py, dw, dh, src)
 	} else {
-		for tx := boxStart(px, dw); tx < w; tx += dw {
-			for ty := boxStart(py, dh); ty < h; ty += dh {
-				layer.BlitScaled(tx, ty, dw, dh, src)
-			}
-		}
+		blitTiled(layer, src, px, py, dw, dh, w, h)
 	}
 	cs.maskLayer(layer, st, propAt(st.BackgroundClip, i, css.BackBorder), 0, 0, w, h, cr)
 	return layer
