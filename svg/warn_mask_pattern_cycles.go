@@ -16,66 +16,11 @@ package svg
 // through pictures that point at pictures, and nothing points back at the
 // drawing that names them.
 func (img *Image) warnMaskPatternCycles() {
-	gray := map[any]bool{}
-	done := map[any]bool{}
-	var walk func(n *Node)
-	var visitMask func(def *maskDef)
-	var visitPattern func(p *pattern)
-	walk = func(n *Node) {
-		if n == nil {
-			return
-		}
-		if n.mask != nil {
-			def := n.mask.def
-			switch {
-			case gray[def]:
-				img.warnings.warn(n.Name,
-					"the mask here points back at the mask this picture is inside, which would draw for ever, so it is left off when it is painted")
-			case !done[def]:
-				visitMask(def)
-			}
-		}
-		// A fill and a stroke may each name a pattern, and both walk the same
-		// way: what closes the circle is the pattern, not the side of the
-		// shape it was asked for.
-		for _, p := range []*pattern{n.Style.fillPattern, n.Style.strokePattern} {
-			if p == nil {
-				continue
-			}
-			switch {
-			case gray[p]:
-				img.warnings.warn(n.Name,
-					"the pattern here points back at the pattern this picture is inside, which would draw for ever, so it is left off when it is painted")
-			case !done[p]:
-				visitPattern(p)
-			}
-		}
-		for _, k := range n.Kids {
-			walk(k)
-		}
-	}
-	visitMask = func(def *maskDef) {
-		if done[def] {
-			return
-		}
-		gray[def] = true
-		walk(def.content)
-		gray[def] = false
-		done[def] = true
-	}
-	visitPattern = func(p *pattern) {
-		if done[p] {
-			return
-		}
-		gray[p] = true
-		walk(p.content)
-		gray[p] = false
-		done[p] = true
-	}
+	w := &cycleWalk{img: img, gray: map[any]bool{}, done: map[any]bool{}}
 	for _, def := range img.masks {
-		visitMask(def)
+		w.visitMask(def)
 	}
 	for _, p := range img.patterns {
-		visitPattern(p)
+		w.visitPattern(p)
 	}
 }
