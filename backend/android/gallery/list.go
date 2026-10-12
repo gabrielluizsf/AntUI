@@ -3,47 +3,9 @@
 package gallery
 
 import (
-	"time"
-
 	"github.com/gabrielluizsf/antui/backend/android/app"
 	"github.com/gabrielluizsf/antui/backend/android/jni"
 )
-
-// Item is one thing in the device's library.
-type Item struct {
-	// URI is its address, and is what [antui/backend/android/picker.Open] takes.
-	URI string
-	// Name is what the user sees.
-	Name string
-	// Size is in bytes, and Mime is what it holds.
-	Size int64
-	Mime string
-	// Added is when it appeared in the library.
-	Added time.Time
-	// Duration is how long it plays, and is zero for a picture.
-	Duration time.Duration
-	// Album is the folder inside the library, on Android 10 and up.
-	Album string
-}
-
-// Query is how to narrow a listing.
-type Query struct {
-	// Album keeps only what is in one folder — the same name [Create] took.
-	// Empty means everything.
-	Album string
-	// Limit is how many at most, newest first. Zero means everything, which
-	// on a real phone can be tens of thousands.
-	Limit int
-	// Mine keeps only what this app put there. It is the one listing that
-	// needs no permission at all: an app can always see its own.
-	Mine bool
-}
-
-// The columns read. They are the same names on every kind of media, because
-// they are MediaStore.MediaColumns and not the per-kind ones.
-var listColumns = []string{
-	"_id", "_display_name", "_size", "mime_type", "date_added", "duration",
-}
 
 // List is what is in one of the device's libraries.
 //
@@ -139,43 +101,4 @@ func List(kind Kind, q Query) ([]Item, error) {
 		}
 	})
 	return out, err
-}
-
-func readItem(e *jni.Env, cursor, collection jni.Object, modern bool) (Item, error) {
-	var it Item
-	str := func(i int32) string {
-		v, _ := e.InvokeString(cursor, "getString", jni.Sig(jni.TString, jni.TInt), jni.Int(i))
-		return v
-	}
-	num := func(i int32) int64 {
-		v, _ := e.InvokeLong(cursor, "getLong", jni.Sig(jni.TLong, jni.TInt), jni.Int(i))
-		return v
-	}
-	id := num(0)
-	it.Name = str(1)
-	it.Size = num(2)
-	it.Mime = str(3)
-	// date_added is in seconds, not milliseconds, which is the one column in
-	// MediaStore that is — everything else that looks like a time is in
-	// milliseconds, and mixing them puts a photograph in 1970.
-	if secs := num(4); secs > 0 {
-		it.Added = time.Unix(secs, 0)
-	}
-	if ms := num(5); ms > 0 {
-		it.Duration = time.Duration(ms) * time.Millisecond
-	}
-	if modern {
-		it.Album = str(6)
-	}
-
-	// The address of the row, which is the collection with the id on the
-	// end. There is no column that holds it.
-	uri, err := e.Static("android/content/ContentUris", "withAppendedId",
-		jni.Sig(jni.TClass("android/net/Uri"), jni.TClass("android/net/Uri"), jni.TLong),
-		jni.Ref(collection), jni.Long(id))
-	if err != nil {
-		return it, err
-	}
-	it.URI, err = e.InvokeString(uri, "toString", jni.Sig(jni.TString))
-	return it, err
 }
