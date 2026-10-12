@@ -24,40 +24,11 @@ import (
 // not know, or a path it may not read.
 func Scan(path, mime string) (string, error) {
 	answer := make(chan string, 1)
-	token, release := app.Listen(func(e *jni.Env, method string, args []jni.Object) {
-		if method != "onScanCompleted" {
-			return
-		}
-		out := ""
-		if len(args) > 1 && !args[1].IsNil() {
-			out, _ = e.InvokeString(args[1], "toString", jni.Sig(jni.TString))
-		}
-		select {
-		case answer <- out:
-		default:
-		}
-	})
+	token, release := app.Listen(scanListener(answer))
 	defer release()
 
 	err := jni.Do(func(e *jni.Env) error {
-		paths, err := e.NewStrings([]string{path})
-		if err != nil {
-			return err
-		}
-		mimes, err := e.NewStrings([]string{mime})
-		if err != nil {
-			return err
-		}
-		listener, err := app.Proxy(e, token,
-			"android.media.MediaScannerConnection$OnScanCompletedListener")
-		if err != nil {
-			return err
-		}
-		return e.StaticVoid("android/media/MediaScannerConnection", "scanFile",
-			jni.Sig(jni.TVoid, jni.TContext, jni.TArray(jni.TString),
-				jni.TArray(jni.TString),
-				jni.TClass("android/media/MediaScannerConnection$OnScanCompletedListener")),
-			jni.Ref(app.Context()), jni.Ref(paths), jni.Ref(mimes), jni.Ref(listener))
+		return startScan(e, token, path, mime)
 	})
 	if err != nil {
 		return "", err

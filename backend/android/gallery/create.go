@@ -3,10 +3,6 @@
 package gallery
 
 import (
-	"errors"
-	"fmt"
-	"os"
-
 	"github.com/gabrielluizsf/antui/backend/android/app"
 	"github.com/gabrielluizsf/antui/backend/android/jni"
 	"github.com/gabrielluizsf/antui/backend/android/permission"
@@ -41,85 +37,7 @@ func Create(kind Kind, name, mime, album string) (*Writer, error) {
 
 	w := &Writer{}
 	err := jni.Do(func(e *jni.Env) error {
-		values, err := e.Make("android/content/ContentValues", jni.Sig(jni.TVoid))
-		if err != nil {
-			return err
-		}
-		put := func(key, value string) error { return putString(e, values, key, value) }
-		if err := put(colName, name); err != nil {
-			return err
-		}
-		if err := put(colMime, mime); err != nil {
-			return err
-		}
-		if modern {
-			path := kind.folder()
-			if album != "" {
-				path += "/" + album
-			}
-			if err := put(colPath, path); err != nil {
-				return err
-			}
-			// Pending until it is written, so that nothing sees a half file.
-			if err := putInt(e, values, colPending, 1); err != nil {
-				return err
-			}
-		}
-
-		class, field := kind.collection()
-		collection, err := e.Constant(class, field, jni.TClass("android/net/Uri"))
-		if err != nil {
-			return err
-		}
-		resolver, err := e.Invoke(app.Context(), "getContentResolver",
-			jni.Sig(jni.TClass("android/content/ContentResolver")))
-		if err != nil {
-			return err
-		}
-		uri, err := e.Invoke(resolver, "insert",
-			jni.Sig(jni.TClass("android/net/Uri"), jni.TClass("android/net/Uri"),
-				jni.TClass("android/content/ContentValues")),
-			jni.Ref(collection), jni.Ref(values))
-		if err != nil {
-			return err
-		}
-		if uri.IsNil() {
-			return fmt.Errorf("gallery: the library would not take a %s called %q",
-				kind, name)
-		}
-		w.uri = e.Global(uri)
-		if w.uriText, err = e.InvokeString(uri, "toString", jni.Sig(jni.TString)); err != nil {
-			return err
-		}
-
-		// A descriptor rather than an OutputStream. Writing through Java
-		// would mean a Java byte array per chunk; a descriptor is a file Go
-		// writes to directly, at the speed of the disk.
-		mode, err := e.String("w")
-		if err != nil {
-			return err
-		}
-		pfd, err := e.Invoke(resolver, "openFileDescriptor",
-			jni.Sig(jni.TClass("android/os/ParcelFileDescriptor"),
-				jni.TClass("android/net/Uri"), jni.TString),
-			jni.Ref(uri), jni.Ref(mode))
-		if err != nil {
-			return err
-		}
-		if pfd.IsNil() {
-			return errors.New("gallery: the library gave nothing to write to")
-		}
-		// detachFd hands the descriptor over: the Java object stops owning
-		// it and closing the file is now Go's job.
-		fd, err := e.InvokeInt(pfd, "detachFd", jni.Sig(jni.TInt))
-		if err != nil {
-			return err
-		}
-		w.file = os.NewFile(uintptr(fd), name)
-		if w.file == nil {
-			return errors.New("gallery: the descriptor the library gave is not usable")
-		}
-		return nil
+		return fillWriter(e, w, kind, name, mime, album, modern)
 	})
 	if err != nil {
 		w.abandon()
