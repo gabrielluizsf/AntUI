@@ -6,7 +6,6 @@ import (
 	"sync"
 
 	"github.com/gabrielluizsf/antui/backend/android/app"
-	"github.com/gabrielluizsf/antui/backend/android/jni"
 )
 
 // Ask puts the platform's own dialog on screen and waits for an answer.
@@ -28,25 +27,7 @@ func Ask(title, message string, positive, negative, neutral string) (Button, err
 	var once sync.Once
 	send := func(b Button) { once.Do(func() { answer <- b }) }
 
-	token, release := app.Listen(func(e *jni.Env, method string, args []jni.Object) {
-		switch method {
-		case "onClick":
-			// onClick(DialogInterface, int). The button is the second
-			// argument, boxed, because a proxy's arguments are all objects.
-			if len(args) < 2 {
-				send(Cancelled)
-				return
-			}
-			which, err := e.InvokeInt(args[1], "intValue", jni.Sig(jni.TInt))
-			if err != nil {
-				send(Cancelled)
-				return
-			}
-			send(Button(which))
-		case "onCancel", "onDismiss":
-			send(Cancelled)
-		}
-	})
+	token, release := app.Listen(askListener(send))
 	defer release()
 
 	var err error

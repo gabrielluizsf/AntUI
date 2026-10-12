@@ -18,43 +18,14 @@ func show(token int64, title, message, positive, negative, neutral string) error
 		if err != nil {
 			return err
 		}
-
-		text := func(method, value string) error {
-			if value == "" {
-				return nil
-			}
-			js, err := e.String(value)
-			if err != nil {
-				return err
-			}
-			_, err = e.Invoke(builder, method,
-				jni.Sig(builderType, jni.TClass("java/lang/CharSequence")), jni.Ref(js))
+		if err := dialogText(e, builder, "setTitle", title); err != nil {
 			return err
 		}
-		if err := text("setTitle", title); err != nil {
+		if err := dialogText(e, builder, "setMessage", message); err != nil {
 			return err
 		}
-		if err := text("setMessage", message); err != nil {
+		if err := dialogButtons(e, builder, listener, positive, negative, neutral); err != nil {
 			return err
-		}
-		for _, b := range []struct{ method, label string }{
-			{"setPositiveButton", positive},
-			{"setNegativeButton", negative},
-			{"setNeutralButton", neutral},
-		} {
-			if b.label == "" {
-				continue
-			}
-			js, err := e.String(b.label)
-			if err != nil {
-				return err
-			}
-			if _, err := e.Invoke(builder, b.method,
-				jni.Sig(builderType, jni.TClass("java/lang/CharSequence"),
-					jni.TClass("android/content/DialogInterface$OnClickListener")),
-				jni.Ref(js), jni.Ref(listener)); err != nil {
-				return err
-			}
 		}
 		// The back button and a tap outside both have to answer, or a caller
 		// waiting on the channel waits forever.
