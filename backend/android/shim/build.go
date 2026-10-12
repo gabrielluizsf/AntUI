@@ -2,12 +2,8 @@ package shim
 
 import (
 	"fmt"
-	"io/fs"
 	"os"
-	"os/exec"
 	"path/filepath"
-	"sort"
-	"strings"
 
 	"github.com/gabrielluizsf/antui/backend/android/sdk"
 )
@@ -34,61 +30,23 @@ func Build(tc *sdk.Toolchain) ([]byte, error) {
 	}
 	defer os.RemoveAll(work)
 
-	names, err := fs.Glob(Sources, "*.java")
-	if err != nil || len(names) == 0 {
-		return nil, fmt.Errorf("shim: no Java to compile")
-	}
-	sort.Strings(names) // so the class files reach d8 in a fixed order
-	srcs := make([]string, 0, len(names))
-	for _, name := range names {
-		b, err := Sources.ReadFile(name)
-		if err != nil {
-			return nil, err
-		}
-		path := filepath.Join(work, name)
-		if err := os.WriteFile(path, b, 0o644); err != nil {
-			return nil, err
-		}
-		srcs = append(srcs, path)
+	srcs, err := writeSources(work)
+	if err != nil {
+		return nil, err
 	}
 	classes := filepath.Join(work, "classes")
 	if err := os.MkdirAll(classes, 0o755); err != nil {
 		return nil, err
 	}
-
-	// Compiled against android.jar as the bootclasspath rather than the
-	// JDK's own: the shim extends a platform class that no JDK has.
-	args := []string{
-		"-source", SourceLevel, "-target", SourceLevel,
-		"-bootclasspath", tc.Platform.Jar(),
-		"-nowarn",
-		"-d", classes,
+	if err := compileJava(tc, classes, srcs); err != nil {
+		return nil, err
 	}
-	out, err := exec.Command(tc.JDK.Javac, append(args, srcs...)...).CombinedOutput()
-	if err != nil {
-		return nil, fmt.Errorf("shim: javac: %w\n%s", err, out)
-	}
-
-	var compiled []string
-	err = filepath.WalkDir(classes, func(p string, d os.DirEntry, err error) error {
-		if err == nil && !d.IsDir() && strings.HasSuffix(p, ".class") {
-			compiled = append(compiled, p)
-		}
-		return err
-	})
+	compiled, err := classFiles(classes)
 	if err != nil {
 		return nil, err
 	}
-	if len(compiled) == 0 {
-		return nil, fmt.Errorf("shim: javac produced no class files")
-	}
-
-	// d8 is deterministic given the same inputs in the same order, which is
-	// what makes the committed dex checkable.
-	sort.Strings(compiled)
-	d8 := append([]string{"--lib", tc.Platform.Jar(), "--output", work}, compiled...)
-	if out, err := exec.Command(tc.BuildTools.D8(), d8...).CombinedOutput(); err != nil {
-		return nil, fmt.Errorf("shim: d8: %w\n%s", err, out)
+	if err := runD8(tc, work, compiled); err != nil {
+		return nil, err
 	}
 	return os.ReadFile(filepath.Join(work, "classes.dex"))
 }

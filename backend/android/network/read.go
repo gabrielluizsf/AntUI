@@ -26,42 +26,7 @@ func Read() (State, error) {
 		if a.Config().SDK < 23 {
 			return readOld(e, manager, &out)
 		}
-		network, err := e.Invoke(manager, "getActiveNetwork",
-			jni.Sig(jni.TClass("android/net/Network")))
-		if err != nil || network.IsNil() {
-			return err
-		}
-		caps, err := e.Invoke(manager, "getNetworkCapabilities",
-			jni.Sig(jni.TClass("android/net/NetworkCapabilities"),
-				jni.TClass("android/net/Network")), jni.Ref(network))
-		if err != nil || caps.IsNil() {
-			return err
-		}
-		has := func(name string, n int32) (bool, error) {
-			return e.InvokeBool(caps, name, jni.Sig(jni.TBool, jni.TInt), jni.Int(n))
-		}
-		if out.Online, err = has("hasCapability", capInternet); err != nil {
-			return err
-		}
-		if out.Validated, err = has("hasCapability", capValidated); err != nil {
-			return err
-		}
-		unmetered, err := has("hasCapability", capNotMetered)
-		if err != nil {
-			return err
-		}
-		out.Metered = !unmetered
-		for _, t := range []Transport{WiFi, Cellular, Ethernet, VPN, Bluetooth} {
-			on, err := has("hasTransport", int32(t))
-			if err != nil {
-				return err
-			}
-			if on {
-				out.Transport = t
-				break
-			}
-		}
-		return nil
+		return readModern(e, manager, &out)
 	})
 	return out, err
 }
