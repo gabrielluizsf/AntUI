@@ -3,10 +3,8 @@
 package antui
 
 import (
-	"github.com/gabrielluizsf/antui/backend"
 	"github.com/gabrielluizsf/antui/backend/android/app"
 	"github.com/gabrielluizsf/antui/backend/android/ndk"
-	"time"
 )
 
 // The Android backend. A phone has no window manager to ask for anything: the

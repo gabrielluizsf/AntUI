@@ -4,7 +4,6 @@ package antui
 
 import (
 	"github.com/gabrielluizsf/antui/backend/android/ndk"
-	"github.com/gabrielluizsf/antui/template/event"
 )
 
 // key turns a key event into a key event.

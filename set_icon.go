@@ -4,7 +4,6 @@ package antui
 
 import (
 	"github.com/gabrielluizsf/antui/canvas"
-	"runtime"
 )
 
 // setIcon: the icon is a resource in the package, chosen when the APK is
