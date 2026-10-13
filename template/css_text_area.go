@@ -12,7 +12,7 @@ func (c *CSS) TextArea(text *string) event.Event {
 	if !ok {
 		return event.Nothing
 	}
-	s := c.interactionState("textarea", x, y, w, h, "", w, h, State{})
+	s := c.interactionState(widgetBox{"textarea", "", x, y, w, h, w, h}, State{})
 	st = c.style.entryStyle(c.style.cur, css.RoleTextArea, s)
 	var e event.Event
 	c.paint(st, css.RoleTextArea, "", x, y, w, h, func() {

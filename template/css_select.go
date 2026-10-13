@@ -13,7 +13,7 @@ func (c *CSS) Select(index *int, options []string) event.Event {
 	if !ok {
 		return event.Nothing
 	}
-	s := c.interactionState("select", x, y, w, h, "", w, h, State{})
+	s := c.interactionState(widgetBox{"select", "", x, y, w, h, w, h}, State{})
 	st = c.style.entryStyle(c.style.cur, css.RoleSelect, s)
 	var e event.Event
 	c.paint(st, css.RoleSelect, "", x, y, w, h, func() {

@@ -16,7 +16,7 @@ func (c *CSS) Switch(label string, value *bool) event.Event {
 	trackW, trackH := switchTrackW*u, switchTrackH*u
 	cy := y + (h-trackH)/2
 	on := value != nil && *value
-	s := c.interactionState("switch", x, cy, trackW, trackH, label, trackW+labelGap*u+textWidth(u, label), trackH, State{On: on})
+	s := c.interactionState(widgetBox{"switch", label, x, cy, trackW, trackH, trackW + labelGap*u + textWidth(u, label), trackH}, State{On: on})
 	st = c.style.entryStyle(c.style.cur, css.RoleSwitch, s)
 	if !interactive(st) {
 		c.paint(st, css.RoleSwitch, label, x, y, w, h, func() {

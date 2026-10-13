@@ -11,7 +11,7 @@ func (c *CSS) Slider(value *float32, minValue, maxValue float32) event.Event {
 	if !ok {
 		return event.Nothing
 	}
-	s := c.interactionState("slider", x, y, w, h, "", w, h, State{})
+	s := c.interactionState(widgetBox{"slider", "", x, y, w, h, w, h}, State{})
 	st = c.style.entryStyle(c.style.cur, css.RoleSlider, s)
 	var e event.Event
 	c.paint(st, css.RoleSlider, "", x, y, w, h, func() {

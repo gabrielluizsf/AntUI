@@ -11,7 +11,7 @@ func (c *CSS) Button(label string) event.Event {
 	if !ok {
 		return event.Nothing
 	}
-	s := c.interactionState("button", x, y, w, h, label, w, h, State{})
+	s := c.interactionState(widgetBox{"button", label, x, y, w, h, w, h}, State{})
 	st = c.style.entryStyle(c.style.cur, css.RoleButton, s)
 	if !interactive(st) {
 		c.paint(st, css.RoleButton, label, x, y, w, h, func() {

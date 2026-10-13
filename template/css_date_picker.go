@@ -12,7 +12,7 @@ func (c *CSS) DatePicker(value *Date) event.Event {
 	if !ok {
 		return event.Nothing
 	}
-	s := c.interactionState("date", x, y, w, h, "", w, h, State{})
+	s := c.interactionState(widgetBox{"date", "", x, y, w, h, w, h}, State{})
 	st = c.style.entryStyle(c.style.cur, css.RoleDatePicker, s)
 	var e event.Event
 	c.paint(st, css.RoleDatePicker, "", x, y, w, h, func() {

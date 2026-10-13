@@ -11,7 +11,7 @@ func (c *CSS) Input(text *string) event.Event {
 	if !ok {
 		return event.Nothing
 	}
-	s := c.interactionState("input", x, y, w, h, "", w, h, State{})
+	s := c.interactionState(widgetBox{"input", "", x, y, w, h, w, h}, State{})
 	st = c.style.entryStyle(c.style.cur, css.RoleInput, s)
 	var e event.Event
 	c.paint(st, css.RoleInput, "", x, y, w, h, func() {
