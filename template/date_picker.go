@@ -16,7 +16,9 @@ func (builtinStyle) DatePicker(win *antui.Window, s State, x, y, w, h int, year,
 	}
 	cv.RoundRect(x, y, w, h, 4*u, border)
 
-	paintDatePickerHeader(cv, th, u, x, y, w, dateHeaderHeight(u), month, year)
-	paintWeekdayHeads(cv, u, x, y, firstWD, th.TextMuted)
-	paintDateDays(cv, th, u, x, y, firstWD, days, selected, today, hover)
+	p := datePaint{x: x, y: y, w: w, h: h, u: u, month: month, year: year,
+		firstWD: firstWD, days: days, selected: selected, today: today, hover: hover}
+	paintDatePickerHeader(cv, th, p)
+	paintWeekdayHeads(cv, p, th.TextMuted)
+	paintDateDays(cv, th, p)
 }

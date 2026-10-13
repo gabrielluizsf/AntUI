@@ -7,13 +7,16 @@ import (
 
 // paintDatePickerHeader draws the month and year, and the prev/next arrows in
 // the gutters beside the day grid.
-func paintDatePickerHeader(cv *canvas.Canvas, th *antui.Theme, u, x, y, w, header, month, year int) {
-	mname := monthName(month)
-	cv.TextScaled(x+w/2-textWidth(u, mname)/2, y+(header-textHeight(u))/2, mname, th.Text, u)
-	cv.TextScaled(x+w/2-textWidth(u, mname)/2+textWidth(u, mname)+4*u, y+(header-textHeight(u))/2, itoa(year), th.TextMuted, u)
+func paintDatePickerHeader(cv *canvas.Canvas, th *antui.Theme, p datePaint) {
+	u := p.u
+	mname := monthName(p.month)
+	x := p.x + p.w/2 - textWidth(u, mname)/2
+	y := p.headerTextY(textHeight(u))
+	cv.TextScaled(x, y, mname, th.Text, u)
+	cv.TextScaled(x+textWidth(u, mname)+4*u, y, itoa(p.year), th.TextMuted, u)
 
-	ax, ay, aw := dateArrowRect(x, y, u, true)
+	ax, ay, aw := dateArrowRect(p.x, p.y, u, true)
 	DrawIcon(cv, IconCaretLeft, ax, ay, aw, aw, th.TextMuted)
-	ax, ay, aw = dateArrowRect(x, y, u, false)
+	ax, ay, aw = dateArrowRect(p.x, p.y, u, false)
 	DrawIcon(cv, IconCaretRight, ax, ay, aw, aw, th.TextMuted)
 }

@@ -14,7 +14,9 @@ func (cyberStyle) DatePicker(win *antui.Window, s State, x, y, w, h int, year, m
 	}
 	neonFill(cv, x, y, w, h, 4*u, body, v.edge)
 
-	paintCyberDateHeader(cv, v, u, x, y, w, dateHeaderHeight(u), month, year)
-	paintWeekdayHeads(cv, u, x, y, firstWD, v.dim)
-	paintCyberDateDays(cv, v, u, x, y, firstWD, days, selected, today, hover)
+	p := datePaint{x: x, y: y, w: w, h: h, u: u, month: month, year: year,
+		firstWD: firstWD, days: days, selected: selected, today: today, hover: hover}
+	paintCyberDateHeader(cv, v, p)
+	paintWeekdayHeads(cv, p, v.dim)
+	paintCyberDateDays(cv, v, p)
 }
