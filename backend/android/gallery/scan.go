@@ -10,6 +10,8 @@ import (
 	"github.com/gabrielluizsf/antui/backend/android/jni"
 )
 
+const galleryScanTimeout = 15 * time.Second
+
 // Scan tells the device to look at a file that is already on disk and put it
 // in the library.
 //
@@ -36,7 +38,7 @@ func Scan(path, mime string) (string, error) {
 	select {
 	case uri := <-answer:
 		return uri, nil
-	case <-time.After(15 * time.Second):
+	case <-time.After(galleryScanTimeout):
 		return "", errors.New("gallery: the scanner never answered")
 	}
 }
