@@ -113,6 +113,42 @@ func TestRenderScalesTheDashWithTheTransform(t *testing.T) {
 	}
 }
 
+func TestRenderKeepsNonScalingDashAtDeviceLength(t *testing.T) {
+	// The non-scaling stroke cuts after the viewBox and element transforms have
+	// reached the device. A ten-unit dash therefore stays ten pixels at both
+	// sizes, while the line itself grows with the drawing.
+	src := `<svg viewBox="0 0 100 100">
+		<g transform="scale(2)">
+			<line x1="0" y1="25" x2="50" y2="25" fill="none" stroke="red"
+				stroke-width="2" stroke-dasharray="10 10" vector-effect="non-scaling-stroke"/>
+		</g>
+	</svg>`
+	for _, tc := range []struct {
+		name string
+		size int
+		row  int
+	}{
+		{"one device scale", 100, 50},
+		{"two device scales", 200, 100},
+	} {
+		img, err := Parse(src)
+		if err != nil {
+			t.Fatalf("%s: parse: %v", tc.name, err)
+		}
+		cv := img.Render(tc.size, tc.size)
+		for _, point := range []struct {
+			x       int
+			painted bool
+		}{
+			{5, true}, {15, false}, {25, true}, {35, false},
+		} {
+			if got := pixelAt(cv, point.x, tc.row).A() != 0; got != point.painted {
+				t.Errorf("%s: pixel %d painted=%v, want %v", tc.name, point.x, got, point.painted)
+			}
+		}
+	}
+}
+
 func TestRenderCutsTheDashBeforeANonUniformTransform(t *testing.T) {
 	// The pattern is cut in the units the drawing wrote and only then taken
 	// through the transform, so a stretch of two to one doubles what a dash
