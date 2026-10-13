@@ -22,12 +22,12 @@ func (cs *cssStyle) paintBorder(cv *canvas.Canvas, st css.Style, x, y, w, h, rx,
 			// ring is stroked instead of filled and left covered: one outline
 			// per unit of width, which follows the radius the way the fill did.
 			for i := range bw {
-				cv.RoundRectXY(x+i, y+i, w-2*i, h-2*i, max(rx-i, 0), max(ry-i, 0), col)
+				cv.RoundRect(canvas.Rounded{Area: canvas.Area{X: x + i, Y: y + i, Width: w - 2*i, Height: h - 2*i}, RX: max(rx-i, 0), RY: max(ry-i, 0)}, col)
 			}
 			return
 		}
-		cv.FillRoundRectXY(x, y, w, h, max(rx, u), max(ry, u), col)
-		cv.FillRoundRectXY(x+bw, y+bw, w-2*bw, h-2*bw, max(rx-u, 0), max(ry-u, 0), fill)
+		cv.FillRoundRect(canvas.Rounded{Area: canvas.Area{X: x, Y: y, Width: w, Height: h}, RX: max(rx, u), RY: max(ry, u)}, col)
+		cv.FillRoundRect(canvas.Rounded{Area: canvas.Area{X: x + bw, Y: y + bw, Width: w - 2*bw, Height: h - 2*bw}, RX: max(rx-u, 0), RY: max(ry-u, 0)}, fill)
 		return
 	}
 	for side := 0; side < 4; side++ {

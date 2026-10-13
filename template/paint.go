@@ -1,6 +1,9 @@
 package template
 
-import "github.com/gabrielluizsf/antui/template/css"
+import (
+	"github.com/gabrielluizsf/antui/canvas"
+	"github.com/gabrielluizsf/antui/template/css"
+)
 
 // paint runs a widget's painter clipped to its box when overflow asks for it,
 // then adds the scrollbar indicators for scroll/auto. A transform on the
@@ -26,7 +29,7 @@ func (c *CSS) paint(st css.Style, role, label string, x, y, w, h int, draw func(
 		nw, nh := c.style.natural(role, label, st, u)
 		cv := c.win.Canvas()
 		saved := cv.Clip
-		cv.SetClip(x, y, w, h)
+		cv.SetClip(canvas.Area{X: x, Y: y, Width: w, Height: h})
 		draw()
 		cv.Clip = saved
 		c.style.paintScrollbars(c.win, st, x, y, w, h, nw, nh)

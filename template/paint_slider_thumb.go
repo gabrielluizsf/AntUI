@@ -13,14 +13,14 @@ func paintSliderThumb(cv *canvas.Canvas, th *antui.Theme, s State, knobX, cy, kn
 	}
 
 	// Outer thumb.
-	cv.FillCircle(knobX, cy, knobRadius, knob)
+	cv.FillCircle(canvas.Circle{X: knobX, Y: cy, R: knobRadius}, knob)
 
 	// Inner surface creates the visual "thumb" ring.
 	innerRadius := max(knobRadius-4*u, 2*u)
-	cv.FillCircle(knobX, cy, innerRadius, th.Surface)
+	cv.FillCircle(canvas.Circle{X: knobX, Y: cy, R: innerRadius}, th.Surface)
 
 	// Focus ring.
 	if s.Focused {
-		cv.Circle(knobX, cy, knobRadius+3*u, th.Accent)
+		cv.Circle(canvas.Circle{X: knobX, Y: cy, R: knobRadius + 3*u}, th.Accent)
 	}
 }

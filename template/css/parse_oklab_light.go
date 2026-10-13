@@ -1,8 +1,6 @@
 package css
 
-import (
-	"strings"
-)
+import "strings"
 
 // parseOKLabLight reads oklab/oklch lightness: 0-1, with 100% meaning 1.
 func parseOKLabLight(f string) (float64, error) {

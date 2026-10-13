@@ -26,7 +26,7 @@ func (cyberStyle) Input(win *antui.Window, s State, x, y, w, h int, text string,
 	scroll := max(cursorPx-(w-2*padding), 0)
 
 	savedClip := cv.Clip
-	cv.SetClip(x+padding, y+u, w-2*padding, h-2*u)
+	cv.SetClip(canvas.Area{X: x + padding, Y: y + u, Width: w - 2*padding, Height: h - 2*u})
 
 	textY := y + (h-textHeight(u))/2
 	colour := v.text
@@ -36,8 +36,8 @@ func (cyberStyle) Input(win *antui.Window, s State, x, y, w, h int, text string,
 	cv.TextScaled(x+padding-scroll, textY, text, colour, u)
 	if s.Focused && caret {
 		cx := x + padding - scroll + cursorPx
-		cv.FillRect(cx, textY, 2*u, textHeight(u), v.neon)
-		cv.FillRect(cx, textY+textHeight(u), 2*u, 2*u, canvas.Fade(v.neon, 150))
+		cv.FillRect(canvas.Area{X: cx, Y: textY, Width: 2 * u, Height: textHeight(u)}, v.neon)
+		cv.FillRect(canvas.Area{X: cx, Y: textY + textHeight(u), Width: 2 * u, Height: 2 * u}, canvas.Fade(v.neon, 150))
 	}
 	cv.Clip = savedClip
 }

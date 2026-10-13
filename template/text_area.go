@@ -1,6 +1,9 @@
 package template
 
-import "github.com/gabrielluizsf/antui"
+import (
+	"github.com/gabrielluizsf/antui"
+	"github.com/gabrielluizsf/antui/canvas"
+)
 
 func (builtinStyle) TextArea(win *antui.Window, s State, x, y, w, h int, text string, cursor int, caret bool) {
 	cv := win.Canvas()
@@ -8,7 +11,7 @@ func (builtinStyle) TextArea(win *antui.Window, s State, x, y, w, h int, text st
 	u := Scale(win)
 	padding := 8 * u
 
-	cv.FillRoundRect(x, y, w, h, th.Radius, th.Surface)
+	cv.FillRoundRect(canvas.Round(canvas.Area{X: x, Y: y, Width: w, Height: h}, th.Radius), th.Surface)
 	border := th.Border
 	switch {
 	case s.Focused:
@@ -16,7 +19,7 @@ func (builtinStyle) TextArea(win *antui.Window, s State, x, y, w, h int, text st
 	case s.Hovered:
 		border = th.TextMuted
 	}
-	cv.RoundRect(x, y, w, h, th.Radius, border)
+	cv.RoundRect(canvas.Round(canvas.Area{X: x, Y: y, Width: w, Height: h}, th.Radius), border)
 
 	innerW := w - 2*padding
 	textW := max(innerW/u, 12)
@@ -35,7 +38,7 @@ func (builtinStyle) TextArea(win *antui.Window, s State, x, y, w, h int, text st
 	viewTop = max(min(viewTop, len(lines)-visible), 0)
 
 	savedClip := cv.Clip
-	cv.SetClip(x+padding, y+padding, innerW, h-2*padding)
+	cv.SetClip(canvas.Area{X: x + padding, Y: y + padding, Width: innerW, Height: h - 2*padding})
 
 	for lif, l := range lines {
 		if lif < viewTop || lif >= viewTop+visible {
@@ -47,7 +50,7 @@ func (builtinStyle) TextArea(win *antui.Window, s State, x, y, w, h int, text st
 		if s.Focused && caret && cursor >= l[0] && cursor <= l[1] {
 			off := cursor - l[0]
 			cx := x + padding + textWidth(u, line[:off])
-			cv.FillRect(cx, cy, u, lineH, th.Text)
+			cv.FillRect(canvas.Area{X: cx, Y: cy, Width: u, Height: lineH}, th.Text)
 		}
 	}
 	cv.Clip = savedClip

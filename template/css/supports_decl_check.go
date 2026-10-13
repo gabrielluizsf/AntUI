@@ -1,8 +1,6 @@
 package css
 
-import (
-	"strings"
-)
+import "strings"
 
 // supportsDecl reports whether the engine would take a declaration: a
 // property it has, holding a value it reads. Both halves come from applyDecl

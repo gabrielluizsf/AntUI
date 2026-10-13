@@ -1,8 +1,6 @@
 package css
 
-import (
-	"strings"
-)
+import "strings"
 
 // parseStop reads "red", "red 50%" or "red 10% 20%": a colour, then up to two
 // offsets. Two offsets pin the colour over a span, so the painter spreads it

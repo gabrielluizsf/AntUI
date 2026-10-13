@@ -1,8 +1,6 @@
 package css
 
-import (
-	"strings"
-)
+import "strings"
 
 // sourceKind reads one @font-face src source: which function it is and what
 // it names, or "" when the source is neither url() nor local().

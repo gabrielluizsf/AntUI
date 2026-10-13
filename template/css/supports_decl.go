@@ -1,8 +1,6 @@
 package css
 
-import (
-	"strings"
-)
+import "strings"
 
 // splitSupportDecl reads "property: value" when a colon at the top level of
 // the group splits it there. Inside parens or quotes a colon belongs to what

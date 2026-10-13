@@ -18,9 +18,12 @@ func (cs *cssStyle) maskLayer(layer *canvas.Canvas, st css.Style, clip uint8, x,
 		boxX, boxY, boxW, boxH = cs.originRect(st, x, y, w, h, css.BackContent)
 	}
 	if cr == 0 {
-		layer.MaskRect(boxX, boxY, boxW, boxH)
+		layer.MaskRect(canvas.Area{X: boxX, Y: boxY, Width: boxW, Height: boxH})
 		return
 	}
 	rr := min(boxW, boxH)
-	layer.MaskRoundRect(boxX, boxY, boxW, boxH, int(cr*float64(rr)+0.5), int(cr*float64(rr)+0.5))
+	r := int(cr*float64(rr) + 0.5)
+	layer.MaskRoundRect(canvas.Rounded{
+		Area: canvas.Area{X: boxX, Y: boxY, Width: boxW, Height: boxH}, RX: r, RY: r,
+	})
 }

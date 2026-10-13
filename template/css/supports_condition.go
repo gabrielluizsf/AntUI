@@ -1,8 +1,6 @@
 package css
 
-import (
-	"strings"
-)
+import "strings"
 
 // supportsCondition reads the prelude of an @supports rule and answers it
 // against the engine: whether it has the properties, the values and the

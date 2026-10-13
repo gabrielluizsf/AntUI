@@ -1,8 +1,6 @@
 package css
 
-import (
-	"fmt"
-)
+import "fmt"
 
 // term parses a product of factors.
 func (p *mathParser) term() (float64, error) {

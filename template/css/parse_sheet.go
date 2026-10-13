@@ -1,8 +1,6 @@
 package css
 
-import (
-	"path/filepath"
-)
+import "path/filepath"
 
 // Parse turns CSS source text into a Sheet. Unknown declarations are skipped
 // and reported through Warn; a malformed selector or an unbalanced block is an

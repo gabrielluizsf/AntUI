@@ -1,8 +1,6 @@
 package css
 
-import (
-	"strings"
-)
+import "strings"
 
 // parseFontFace reads a @font-face block: the family the file answers to,
 // which file it is, and the weight and slant it was cut for. Everything the

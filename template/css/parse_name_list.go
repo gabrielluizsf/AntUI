@@ -1,8 +1,6 @@
 package css
 
-import (
-	"strings"
-)
+import "strings"
 
 // parseNameList reads an animation-name value: a comma-separated series of
 // keyframe names.

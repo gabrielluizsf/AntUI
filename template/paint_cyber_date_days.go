@@ -13,10 +13,10 @@ func paintCyberDateDays(cv *canvas.Canvas, v vivid, p datePaint) {
 		switch day {
 		case p.selected:
 			glow(cv, halo{x: cx, y: cy, w: cc, h: cc, radius: 2 * p.u, colour: v.neon, strength: int(float64(20) * v.glow), u: p.u})
-			cv.FillRoundRect(cx, cy, cc, cc, 2*p.u, v.neon)
+			cv.FillRoundRect(canvas.Round(canvas.Area{X: cx, Y: cy, Width: cc, Height: cc}, 2*p.u), v.neon)
 			cv.TextScaled(tx, ty, num, cyberPalette.bg, p.u)
 		case p.hover:
-			cv.FillRoundRect(cx, cy, cc, cc, 2*p.u, cyberPalette.panelHov)
+			cv.FillRoundRect(canvas.Round(canvas.Area{X: cx, Y: cy, Width: cc, Height: cc}, 2*p.u), cyberPalette.panelHov)
 			cv.TextScaled(tx, ty, num, v.text, p.u)
 		default:
 			colour := v.text
@@ -26,7 +26,7 @@ func paintCyberDateDays(cv *canvas.Canvas, v vivid, p datePaint) {
 			cv.TextScaled(tx, ty, num, colour, p.u)
 		}
 		if day == p.today && day != p.selected {
-			cv.Circle(cx+cc/2, cy+cc/2, cc/2-2*p.u, v.neon)
+			cv.Circle(canvas.Circle{X: cx + cc/2, Y: cy + cc/2, R: cc/2 - 2*p.u}, v.neon)
 		}
 	}
 }

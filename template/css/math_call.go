@@ -1,8 +1,6 @@
 package css
 
-import (
-	"fmt"
-)
+import "fmt"
 
 // call evaluates calc(...) and clamp(...). calc is a single expression whose
 // additions, subtractions, products and divisions were consumed by expr;

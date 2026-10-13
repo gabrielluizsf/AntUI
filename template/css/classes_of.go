@@ -1,8 +1,6 @@
 package css
 
-import (
-	"fmt"
-)
+import "fmt"
 
 // classesOf is the class table's entry for a widget kind.
 func (c *CSSClasses) classesOf(tag string) []string {

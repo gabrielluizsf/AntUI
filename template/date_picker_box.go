@@ -1,6 +1,9 @@
 package template
 
-import "github.com/gabrielluizsf/antui"
+import (
+	"github.com/gabrielluizsf/antui"
+	"github.com/gabrielluizsf/antui/canvas"
+)
 
 func (builtinStyle) DatePickerBox(win *antui.Window, s State, x, y, w, h int, value string, open bool) {
 	cv := win.Canvas()
@@ -15,8 +18,8 @@ func (builtinStyle) DatePickerBox(win *antui.Window, s State, x, y, w, h int, va
 	if s.Focused || open {
 		border = th.Accent
 	}
-	cv.FillRoundRect(x, y, w, h, th.Radius, local)
-	cv.RoundRect(x, y, w, h, th.Radius, border)
+	cv.FillRoundRect(canvas.Round(canvas.Area{X: x, Y: y, Width: w, Height: h}, th.Radius), local)
+	cv.RoundRect(canvas.Round(canvas.Area{X: x, Y: y, Width: w, Height: h}, th.Radius), border)
 
 	padding := 8 * u
 	cv.TextScaled(x+padding, y+(h-textHeight(u))/2, value, th.Text, u)

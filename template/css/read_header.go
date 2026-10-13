@@ -1,8 +1,6 @@
 package css
 
-import (
-	"strings"
-)
+import "strings"
 
 // readHeader reads a prelude (a selector list or an at-rule condition) up to
 // the '{' that opens the block, returning the text it passed over. When semi

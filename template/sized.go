@@ -1,8 +1,6 @@
 package template
 
-import (
-	"github.com/gabrielluizsf/antui/template/css"
-)
+import "github.com/gabrielluizsf/antui/template/css"
 
 // sized is the shape of a widget built from the width of its text, so the
 // natural reading and the min-content reading of one role cannot drift apart.

@@ -1,8 +1,6 @@
 package css
 
-import (
-	"strings"
-)
+import "strings"
 
 // clauseWord reads the layer or supports keyword an @import may carry after
 // its URL, or "" when what comes next is something else — a media type, or

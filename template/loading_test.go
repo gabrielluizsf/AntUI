@@ -364,7 +364,7 @@ func TestTheCSSLoopShowsItsLoadingScreenUntilReady(t *testing.T) {
 		win.Begin()
 		win.Clear(bg)
 		tpl.Reset()
-		win.FillRect(0, 0, win.Width(), win.Height(), red)
+		win.FillRect(canvas.Area{X: 0, Y: 0, Width: win.Width(), Height: win.Height()}, red)
 		win.End()
 	}
 
@@ -394,7 +394,7 @@ func TestTheCSSTemplateOptsOutOfLoading(t *testing.T) {
 	// Whatever is on the canvas when the flag goes down is replaced by the
 	// plain background: the picture the screen left behind, wiped.
 	marker := canvas.RGBA(220, 30, 30, 255)
-	win.FillRect(0, 0, win.Width(), win.Height(), marker)
+	win.FillRect(canvas.Area{X: 0, Y: 0, Width: win.Width(), Height: win.Height()}, marker)
 	tpl.SetDisableLoading(true)
 	if got := win.Canvas().At(4, 4); got != bg {
 		t.Errorf("disabling left %v on the canvas, want the plain background", got)

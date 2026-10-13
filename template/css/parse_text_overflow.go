@@ -1,8 +1,6 @@
 package css
 
-import (
-	"strings"
-)
+import "strings"
 
 // parseTextOverflow reads the text-overflow keyword. The two-value form
 // (clip ellipsis) is accepted with the last keyword winning.

@@ -1,8 +1,6 @@
 package css
 
-import (
-	"strings"
-)
+import "strings"
 
 // applyBackground folds a background shorthand into the style: a comma
 // separates layers, position and size split at "/", and a colour may only be

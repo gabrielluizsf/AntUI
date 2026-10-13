@@ -1,8 +1,6 @@
 package css
 
-import (
-	"strings"
-)
+import "strings"
 
 // parseBackgroundImage reads a comma-separated background-image list: url()
 // names the template looks up in its image registry, the gradient functions

@@ -1,8 +1,6 @@
 package css
 
-import (
-	"strings"
-)
+import "strings"
 
 // parseRadialGradient reads the prelude of a radial gradient — the ending
 // shape, the size and an optional "at <position>", each optional — then the

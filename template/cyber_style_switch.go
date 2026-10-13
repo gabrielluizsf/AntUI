@@ -22,11 +22,11 @@ func (cyberStyle) Switch(win *antui.Window, s State, x, y int, label string, on 
 	if on || s.Focused {
 		border = v.neon
 	}
-	cv.FillRoundRect(x, y, trackW, trackH, trackH/2, body)
-	cv.RoundRect(x, y, trackW, trackH, trackH/2, border)
+	cv.FillRoundRect(canvas.Round(canvas.Area{X: x, Y: y, Width: trackW, Height: trackH}, trackH/2), body)
+	cv.RoundRect(canvas.Round(canvas.Area{X: x, Y: y, Width: trackW, Height: trackH}, trackH/2), border)
 
 	if on {
-		cv.FillRoundRect(x, y, trackH, trackH, trackH/2, canvas.Fade(v.neon, 120))
+		cv.FillRoundRect(canvas.Round(canvas.Area{X: x, Y: y, Width: trackH, Height: trackH}, trackH/2), canvas.Fade(v.neon, 120))
 	}
 	colour := v.edge
 	if on {
@@ -36,7 +36,7 @@ func (cyberStyle) Switch(win *antui.Window, s State, x, y int, label string, on 
 	if on {
 		cx = x + trackW - trackH/2
 	}
-	cv.FillCircle(cx, y+trackH/2, trackH/2-3*u, colour)
-	cv.Circle(cx, y+trackH/2, trackH/2-4*u, cyberPalette.panelAct)
+	cv.FillCircle(canvas.Circle{X: cx, Y: y + trackH/2, R: trackH/2 - 3*u}, colour)
+	cv.Circle(canvas.Circle{X: cx, Y: y + trackH/2, R: trackH/2 - 4*u}, cyberPalette.panelAct)
 	cv.TextScaled(x+trackW+labelGap*u, y+(trackH-textHeight(u))/2, label, v.text, u)
 }

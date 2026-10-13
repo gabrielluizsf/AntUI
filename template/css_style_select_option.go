@@ -17,9 +17,9 @@ func (cs *cssStyle) SelectOption(win *antui.Window, s State, x, y, w, h int, lab
 	}
 	u := cs.u()
 	cv := win.Canvas()
-	cv.FillRect(x, y, w, h, cs.fade(st, fill))
+	cv.FillRect(canvas.Area{X: x, Y: y, Width: w, Height: h}, cs.fade(st, fill))
 	if selected || s.Hovered {
-		cv.FillRect(x, y, 3*u, h, cs.ink(st))
+		cv.FillRect(canvas.Area{X: x, Y: y, Width: 3 * u, Height: h}, cs.ink(st))
 	}
 	cs.drawText(win, st, x, y, w, h, label)
 }

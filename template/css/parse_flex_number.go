@@ -1,8 +1,6 @@
 package css
 
-import (
-	"strconv"
-)
+import "strconv"
 
 // parseFlexNumber reads a non-negative flex factor such as the grow or
 // shrink multiplier; a negative number is invalid, as in CSS.

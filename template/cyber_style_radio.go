@@ -1,6 +1,9 @@
 package template
 
-import "github.com/gabrielluizsf/antui"
+import (
+	"github.com/gabrielluizsf/antui"
+	"github.com/gabrielluizsf/antui/canvas"
+)
 
 func (cyberStyle) Radio(win *antui.Window, s State, x, y int, label string, on bool) {
 	cv := win.Canvas()
@@ -15,14 +18,14 @@ func (cyberStyle) Radio(win *antui.Window, s State, x, y int, label string, on b
 	if s.Hovered {
 		body = cyberPalette.panelHov
 	}
-	cv.FillCircle(cx, cy, size/2, body)
+	cv.FillCircle(canvas.Circle{X: cx, Y: cy, R: size / 2}, body)
 	border := v.edge
 	if on || s.Hovered {
 		border = v.neon
 	}
-	cv.Circle(cx, cy, size/2, border)
+	cv.Circle(canvas.Circle{X: cx, Y: cy, R: size / 2}, border)
 	if on {
-		cv.FillCircle(cx, cy, size/2-4*u, v.neon)
+		cv.FillCircle(canvas.Circle{X: cx, Y: cy, R: size/2 - 4*u}, v.neon)
 	}
 	cv.TextScaled(x+size+labelGap*u, y+(size-textHeight(u))/2, label, v.text, u)
 }

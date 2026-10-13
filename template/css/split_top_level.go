@@ -1,8 +1,6 @@
 package css
 
-import (
-	"strings"
-)
+import "strings"
 
 func splitTopLevel(text string) []string {
 	var out []string

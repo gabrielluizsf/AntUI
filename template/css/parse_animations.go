@@ -1,8 +1,6 @@
 package css
 
-import (
-	"strings"
-)
+import "strings"
 
 // parseAnimations reads the animation shorthand: a comma-separated list of
 // animations, each made of a keyframe name, two times, an easing, an

@@ -1,8 +1,6 @@
 package css
 
-import (
-	"math"
-)
+import "math"
 
 // Resolve turns the length into reference pixels under a context. Keywords
 // (auto, none) resolve to zero; a caller that needs to tell them apart asks

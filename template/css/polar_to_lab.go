@@ -1,8 +1,6 @@
 package css
 
-import (
-	"math"
-)
+import "math"
 
 // polarToLab converts polar lch coordinates into lab a/b.
 func polarToLab(c, h float64) (a, b float64) {

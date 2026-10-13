@@ -1,8 +1,6 @@
 package css
 
-import (
-	"strings"
-)
+import "strings"
 
 // parseTimeList reads a comma-separated list of CSS times.
 func parseTimeList(raw string) ([]Time, bool) {

@@ -1,8 +1,6 @@
 package css
 
-import (
-	"strings"
-)
+import "strings"
 
 // parsePropertyList reads a transition-property value: a comma-separated
 // series of canonical names, or "none" meaning nothing transitions. The

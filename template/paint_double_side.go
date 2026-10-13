@@ -17,6 +17,6 @@ func (cs *cssStyle) paintDoubleSide(cv *canvas.Canvas, s boxSide) {
 	// whichever edge this side is flush with.
 	for _, off := range [2]int{0, s.width - line} {
 		x, y, w, h := s.rect(0, s.along(), off, line)
-		cv.FillRect(x, y, w, h, s.colour)
+		cv.FillRect(canvas.Area{X: x, Y: y, Width: w, Height: h}, s.colour)
 	}
 }

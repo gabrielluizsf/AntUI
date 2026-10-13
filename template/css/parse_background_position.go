@@ -1,8 +1,6 @@
 package css
 
-import (
-	"strings"
-)
+import "strings"
 
 // parseBackgroundPosition reads a comma-separated background-position list.
 // Each value holds one position per axis; a single value is expanded across

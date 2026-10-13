@@ -1,8 +1,6 @@
 package css
 
-import (
-	"strings"
-)
+import "strings"
 
 // parseLCHChroma reads lch chroma: a number, or a percentage where 100% is
 // 150 (the CIE reference saturation).

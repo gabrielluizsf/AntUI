@@ -1,8 +1,6 @@
 package css
 
-import (
-	"strings"
-)
+import "strings"
 
 // isRemoteRef reports whether an @import names something outside this
 // machine: another host, a data: document, anything with a scheme behind it.

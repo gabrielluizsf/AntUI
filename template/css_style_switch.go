@@ -19,7 +19,7 @@ func (cs *cssStyle) Switch(win *antui.Window, s State, x, y int, label string, o
 		fill = cs.ink(st)
 	}
 	cv := win.Canvas()
-	cv.FillRoundRect(x, y, trackW, trackH, trackH/2, cs.fade(st, fill))
+	cv.FillRoundRect(canvas.Round(canvas.Area{X: x, Y: y, Width: trackW, Height: trackH}, trackH/2), cs.fade(st, fill))
 	cx := x + trackH/2
 	if on {
 		cx = x + trackW - trackH/2
@@ -34,6 +34,6 @@ func (cs *cssStyle) Switch(win *antui.Window, s State, x, y int, label string, o
 		// drawn as the dot at the end of an empty track.
 		thumb = cs.ink(st)
 	}
-	cv.FillCircle(cx, y+trackH/2, trackH/2-2*u, thumb)
+	cv.FillCircle(canvas.Circle{X: cx, Y: y + trackH/2, R: trackH/2 - 2*u}, thumb)
 	cs.run(cv, st, x+trackW+labelGap*u, y+(trackH-cs.textHeight(st))/2, label)
 }

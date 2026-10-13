@@ -1,8 +1,6 @@
 package css
 
-import (
-	"strings"
-)
+import "strings"
 
 // normalizeFamily turns a font-family declaration into the name a
 // @font-face answers to: comma-separated, each name unquoted, lowercased —

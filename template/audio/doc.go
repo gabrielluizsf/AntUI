@@ -22,9 +22,7 @@
 // for commercial use, no attribution required. See sfx/THIRD_PARTY.md.
 package audio
 
-import (
-	"sync/atomic"
-)
+import "sync/atomic"
 
 // defaultDevice is the player the packages's sounds play through, or nil
 // when nothing is open and everything should stay quiet.

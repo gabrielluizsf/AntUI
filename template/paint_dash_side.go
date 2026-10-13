@@ -28,9 +28,9 @@ func (cs *cssStyle) paintDashSide(cv *canvas.Canvas, s boxSide, dotted bool) {
 		}
 		x, y, w, h := s.rect(at, n, 0, s.width)
 		if dotted {
-			cv.FillCircle(x+w/2, y+h/2, max(s.width/2, 1), s.colour)
+			cv.FillCircle(canvas.Circle{X: x + w/2, Y: y + h/2, R: max(s.width/2, 1)}, s.colour)
 		} else {
-			cv.FillRect(x, y, w, h, s.colour)
+			cv.FillRect(canvas.Area{X: x, Y: y, Width: w, Height: h}, s.colour)
 		}
 	}
 }

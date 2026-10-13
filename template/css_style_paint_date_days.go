@@ -14,7 +14,7 @@ func (cs *cssStyle) paintDateDays(cv *canvas.Canvas, st css.Style, p datePaint) 
 		c := dateCellAt(p, day, textWidth(p.u, itoa(day)), cs.textHeight(st))
 		cs.paintDateDay(cv, st, p, day, c)
 		if day == p.today && day != p.selected {
-			cv.Circle(c.x+c.w/2, c.y+c.w/2, c.w/2-2*p.u, cs.ink(st))
+			cv.Circle(canvas.Circle{X: c.x + c.w/2, Y: c.y + c.w/2, R: c.w/2 - 2*p.u}, cs.ink(st))
 		}
 	}
 }
@@ -28,10 +28,10 @@ func (cs *cssStyle) paintDateDay(cv *canvas.Canvas, st css.Style, p datePaint, d
 		// The chosen day is a chip of the widget's own ink with the number
 		// reversed out in the surface colour, the way the built-in templates
 		// mark it in their accent colour.
-		cv.FillRoundRect(c.x, c.y, c.w, c.h, 2*p.u, canvas.Fade(cs.ink(st), cs.alpha(st)))
+		cv.FillRoundRect(canvas.Round(canvas.Area{X: c.x, Y: c.y, Width: c.w, Height: c.h}, 2*p.u), canvas.Fade(cs.ink(st), cs.alpha(st)))
 		cs.runOn(cv, st, cs.surface(st), c.tx, c.ty, num)
 	case p.hover:
-		cv.FillRoundRect(c.x, c.y, c.w, c.h, 2*p.u, cs.fade(st, canvas.Shade(cs.fill(st), hoverFillShade)))
+		cv.FillRoundRect(canvas.Round(canvas.Area{X: c.x, Y: c.y, Width: c.w, Height: c.h}, 2*p.u), cs.fade(st, canvas.Shade(cs.fill(st), hoverFillShade)))
 		cs.run(cv, st, c.tx, c.ty, num)
 	default:
 		cs.run(cv, st, c.tx, c.ty, num)

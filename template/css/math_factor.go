@@ -1,8 +1,6 @@
 package css
 
-import (
-	"fmt"
-)
+import "fmt"
 
 // factor parses a number, a signed factor, a parenthesised expression or a
 // math function. Unary minus is a factor of its own, so calc(-10px) and

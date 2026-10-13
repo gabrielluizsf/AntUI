@@ -1,8 +1,6 @@
 package css
 
-import (
-	"strings"
-)
+import "strings"
 
 // function answers one of the condition's own functions. Anything else is a
 // function the reader has no rule for, which leaves the whole condition

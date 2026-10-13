@@ -1,8 +1,6 @@
 package css
 
-import (
-	"strings"
-)
+import "strings"
 
 // skipAtRuleBody swallows the rest of an unknown at-rule: a ';' statement or
 // a balanced { … } block, honouring strings and comments.

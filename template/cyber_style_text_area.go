@@ -31,7 +31,7 @@ func (cyberStyle) TextArea(win *antui.Window, s State, x, y, w, h int, text stri
 	viewTop := textAreaViewTop(cursor, lines, visible)
 
 	savedClip := cv.Clip
-	cv.SetClip(x+padding, y+padding, innerW, h-2*padding)
+	cv.SetClip(canvas.Area{X: x + padding, Y: y + padding, Width: innerW, Height: h - 2*padding})
 
 	for lif, l := range lines {
 		if lif < viewTop || lif >= viewTop+visible {
@@ -47,8 +47,8 @@ func (cyberStyle) TextArea(win *antui.Window, s State, x, y, w, h int, text stri
 		if s.Focused && caret && cursor >= l[0] && cursor <= l[1] {
 			off := cursor - l[0]
 			cx := x + padding + textWidth(u, line[:off])
-			cv.FillRect(cx, cy, 2*u, lineH, v.neon)
-			cv.FillRect(cx, cy+lineH, 2*u, 2*u, canvas.Fade(v.neon, 150))
+			cv.FillRect(canvas.Area{X: cx, Y: cy, Width: 2 * u, Height: lineH}, v.neon)
+			cv.FillRect(canvas.Area{X: cx, Y: cy + lineH, Width: 2 * u, Height: 2 * u}, canvas.Fade(v.neon, 150))
 		}
 	}
 	cv.Clip = savedClip

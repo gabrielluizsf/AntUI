@@ -1,8 +1,6 @@
 package css
 
-import (
-	"strings"
-)
+import "strings"
 
 // parseGridLineNames reads a "[…]" line-name list. Names are case-sensitive,
 // the way CSS spells them, and the keywords the grid grammar already spent are

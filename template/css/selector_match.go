@@ -1,8 +1,6 @@
 package css
 
-import (
-	"strings"
-)
+import "strings"
 
 func (s Selector) match(tag string, classes []string, state State) bool {
 	if s.Unsupported != "" {

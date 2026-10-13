@@ -1,8 +1,6 @@
 package css
 
-import (
-	"math"
-)
+import "math"
 
 // srgbToLinear inverts the sRGB transfer curve.
 func srgbToLinear(v float64) float64 {

@@ -15,6 +15,6 @@ func paintCyberMarks(cv *canvas.Canvas, v vivid, trackX, trackY, trackW, trackH,
 			tickColor = v.neon
 		}
 
-		cv.FillRoundRect(gx-u, trackY-3*u, 2*u, trackH+6*u, u, tickColor)
+		cv.FillRoundRect(canvas.Round(canvas.Area{X: gx - u, Y: trackY - 3*u, Width: 2 * u, Height: trackH + 6*u}, u), tickColor)
 	}
 }

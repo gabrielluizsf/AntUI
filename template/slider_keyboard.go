@@ -1,8 +1,6 @@
 package template
 
-import (
-	"github.com/gabrielluizsf/antui"
-)
+import "github.com/gabrielluizsf/antui"
 
 // sliderKeyboard moves the value by a tenth of the span per arrow key press
 // and reports whether it changed.

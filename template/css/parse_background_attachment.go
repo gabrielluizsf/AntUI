@@ -1,8 +1,6 @@
 package css
 
-import (
-	"strings"
-)
+import "strings"
 
 // parseBackgroundAttachment reads a comma-separated scroll/fixed/local list.
 func parseBackgroundAttachment(raw string) ([]uint8, bool) {

@@ -1,8 +1,6 @@
 package css
 
-import (
-	"testing"
-)
+import "testing"
 
 // TestKeyframesParse reads a @keyframes block: its name, its frames in order,
 // and each frame's offset and declarations.

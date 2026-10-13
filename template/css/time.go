@@ -1,8 +1,6 @@
 package css
 
-import (
-	"strings"
-)
+import "strings"
 
 // Time is a duration in milliseconds, the unit the frame loop ticks in. CSS
 // spells seconds and milliseconds; both collapse here so transition and

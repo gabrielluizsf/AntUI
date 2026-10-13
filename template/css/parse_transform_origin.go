@@ -1,8 +1,6 @@
 package css
 
-import (
-	"strings"
-)
+import "strings"
 
 // parseTransformOrigin reads 1–3 values: a vertical keyword alone sets x to
 // the centre; two values order left/right/centre for x and top/centre/bottom

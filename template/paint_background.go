@@ -2,6 +2,7 @@ package template
 
 import (
 	"github.com/gabrielluizsf/antui"
+	"github.com/gabrielluizsf/antui/canvas"
 	"github.com/gabrielluizsf/antui/template/css"
 )
 
@@ -14,7 +15,7 @@ import (
 func (cs *cssStyle) paintBackground(win *antui.Window, st css.Style, x, y, w, h, rx, ry int) {
 	cv := win.Canvas()
 	if st.Has("background-color") || st.Has("background") {
-		cv.FillRoundRectXY(x, y, w, h, rx, ry, cs.fill(st))
+		cv.FillRoundRect(canvas.Rounded{Area: canvas.Area{X: x, Y: y, Width: w, Height: h}, RX: rx, RY: ry}, cs.fill(st))
 	}
 	n := len(st.BackgroundImages)
 	if n == 0 {

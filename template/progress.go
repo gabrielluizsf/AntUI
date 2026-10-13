@@ -1,6 +1,9 @@
 package template
 
-import "github.com/gabrielluizsf/antui"
+import (
+	"github.com/gabrielluizsf/antui"
+	"github.com/gabrielluizsf/antui/canvas"
+)
 
 func (builtinStyle) Progress(win *antui.Window, x, y, w, h int, value float32) {
 	cv := win.Canvas()
@@ -10,9 +13,9 @@ func (builtinStyle) Progress(win *antui.Window, x, y, w, h int, value float32) {
 	value = min(max(value, 0), 1)
 	filled := int(float32(w)*value + 0.5)
 
-	cv.FillRoundRect(x, y, w, h, h/2, th.Border)
+	cv.FillRoundRect(canvas.Round(canvas.Area{X: x, Y: y, Width: w, Height: h}, h/2), th.Border)
 	if filled > 0 {
-		cv.FillRoundRect(x, y, filled, h, h/2, th.Accent)
+		cv.FillRoundRect(canvas.Round(canvas.Area{X: x, Y: y, Width: filled, Height: h}, h/2), th.Accent)
 	}
 	_ = u
 }

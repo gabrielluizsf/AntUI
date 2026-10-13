@@ -2,6 +2,7 @@ package template
 
 import (
 	"github.com/gabrielluizsf/antui"
+	"github.com/gabrielluizsf/antui/canvas"
 	"github.com/gabrielluizsf/antui/template/css"
 )
 
@@ -27,7 +28,7 @@ func (cs *cssStyle) TextArea(win *antui.Window, s State, x, y, w, h int, text st
 	viewTop = max(min(viewTop, len(lines)-visible), 0)
 
 	savedClip := win.Canvas().Clip
-	win.Canvas().SetClip(x+padding, y+padding, innerW, h-2*padding)
+	win.Canvas().SetClip(canvas.Area{X: x + padding, Y: y + padding, Width: innerW, Height: h - 2*padding})
 
 	for lif, l := range lines {
 		if lif < viewTop || lif >= viewTop+visible {
@@ -42,7 +43,7 @@ func (cs *cssStyle) TextArea(win *antui.Window, s State, x, y, w, h int, text st
 		if s.Focused && caret && cursor >= l[0] && cursor <= l[1] {
 			off := cursor - l[0]
 			cx := x + padding + cs.measure(st, text[l[0]:l[0]+off])
-			win.Canvas().FillRect(cx, cy, u, lineH, cs.ink(st))
+			win.Canvas().FillRect(canvas.Area{X: cx, Y: cy, Width: u, Height: lineH}, cs.ink(st))
 		}
 	}
 	win.Canvas().Clip = savedClip

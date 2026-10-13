@@ -1,8 +1,6 @@
 package css
 
-import (
-	"strings"
-)
+import "strings"
 
 // fontNamed is the face the sheet holds for one family name at a weight and a
 // slant, or nil when it holds none.

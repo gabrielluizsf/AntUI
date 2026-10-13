@@ -1,8 +1,6 @@
 package css
 
-import (
-	"math"
-)
+import "math"
 
 // linearToSRGB runs the sRGB transfer curve on one linear channel.
 func linearToSRGB(v float64) float64 {

@@ -1,8 +1,6 @@
 package css
 
-import (
-	"strings"
-)
+import "strings"
 
 func (t *mathTokens) split() []string {
 	if t.toks != nil {

@@ -1,6 +1,9 @@
 package template
 
-import "github.com/gabrielluizsf/antui"
+import (
+	"github.com/gabrielluizsf/antui"
+	"github.com/gabrielluizsf/antui/canvas"
+)
 
 func (builtinStyle) Switch(win *antui.Window, s State, x, y int, label string, on bool) {
 	cv := win.Canvas()
@@ -16,8 +19,8 @@ func (builtinStyle) Switch(win *antui.Window, s State, x, y int, label string, o
 	if on || s.Focused {
 		border = th.Accent
 	}
-	cv.FillRoundRect(x, y, trackW, trackH, trackH/2, fill)
-	cv.RoundRect(x, y, trackW, trackH, trackH/2, border)
+	cv.FillRoundRect(canvas.Round(canvas.Area{X: x, Y: y, Width: trackW, Height: trackH}, trackH/2), fill)
+	cv.RoundRect(canvas.Round(canvas.Area{X: x, Y: y, Width: trackW, Height: trackH}, trackH/2), border)
 
 	colour := th.Border
 	if on {
@@ -27,9 +30,9 @@ func (builtinStyle) Switch(win *antui.Window, s State, x, y int, label string, o
 	if on {
 		cx = x + trackW - trackH/2
 	}
-	cv.FillCircle(cx, y+trackH/2, trackH/2-2*u, colour)
+	cv.FillCircle(canvas.Circle{X: cx, Y: y + trackH/2, R: trackH/2 - 2*u}, colour)
 	if s.Focused {
-		cv.Circle(x+trackW/2, y+trackH/2, trackH/2+3*u, th.Accent)
+		cv.Circle(canvas.Circle{X: x + trackW/2, Y: y + trackH/2, R: trackH/2 + 3*u}, th.Accent)
 	}
 	cv.TextScaled(x+trackW+labelGap*u, y+(trackH-textHeight(u))/2, label, th.Text, u)
 }

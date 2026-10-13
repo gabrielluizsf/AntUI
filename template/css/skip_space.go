@@ -1,8 +1,6 @@
 package css
 
-import (
-	"strings"
-)
+import "strings"
 
 // skipSpace advances past whitespace and /* comments */.
 func (p *parser) skipSpace() {

@@ -1,8 +1,6 @@
 package css
 
-import (
-	"strings"
-)
+import "strings"
 
 // parseStops reads the colour stops of a gradient. A bare percentage or
 // length between stops is a colour hint and is skipped, the way a browser

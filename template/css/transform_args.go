@@ -1,8 +1,6 @@
 package css
 
-import (
-	"strings"
-)
+import "strings"
 
 // transformArgs splits a function's arguments on commas and whitespace and
 // rejects leftovers that are not real arguments.

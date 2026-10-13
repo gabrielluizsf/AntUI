@@ -1,8 +1,6 @@
 package css
 
-import (
-	"strings"
-)
+import "strings"
 
 // splitColorArgs cuts a functional colour's body ("1 2 3 / 0.5",
 // "255, 0, 0, 0.5") into channel slots and, when a "/" introduced it, the

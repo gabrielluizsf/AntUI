@@ -1,8 +1,6 @@
 package css
 
-import (
-	"strconv"
-)
+import "strconv"
 
 // parseOrder reads an integer order, auto resets it to zero.
 func parseOrder(raw string) (int, bool) {

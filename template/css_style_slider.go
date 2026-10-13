@@ -16,8 +16,8 @@ func (cs *cssStyle) Slider(win *antui.Window, s State, x, y, w, h int, value flo
 	trackY := y + h/2 - 3*u
 
 	cv := win.Canvas()
-	cv.FillRoundRect(x+knobRadius, trackY, knobX-(x+knobRadius), 6*u, 3*u, cs.fill(st))
-	cv.FillRoundRect(x+knobRadius, trackY, usable, 6*u, 3*u, canvas.Shade(cs.fill(st), trackShade))
-	cv.FillCircle(knobX, y+h/2, knobRadius, cs.ink(st))
-	cv.FillCircle(knobX, y+h/2, knobRadius-4*u, cs.fill(st))
+	cv.FillRoundRect(canvas.Round(canvas.Area{X: x + knobRadius, Y: trackY, Width: knobX - (x + knobRadius), Height: 6 * u}, 3*u), cs.fill(st))
+	cv.FillRoundRect(canvas.Round(canvas.Area{X: x + knobRadius, Y: trackY, Width: usable, Height: 6 * u}, 3*u), canvas.Shade(cs.fill(st), trackShade))
+	cv.FillCircle(canvas.Circle{X: knobX, Y: y + h/2, R: knobRadius}, cs.ink(st))
+	cv.FillCircle(canvas.Circle{X: knobX, Y: y + h/2, R: knobRadius - 4*u}, cs.fill(st))
 }

@@ -21,17 +21,17 @@ func (cs *cssStyle) paintScrollbars(win *antui.Window, st css.Style, x, y, w, h,
 	vScroll := st.Overflow[1] == css.OverflowScroll || st.Overflow[1] == css.OverflowAuto
 	if vScroll && contentH > h && h > 2*inset {
 		tx := x + w - bar - inset
-		cv.FillRoundRect(tx, y+inset, bar, h-2*inset, bar/2, track)
+		cv.FillRoundRect(canvas.Round(canvas.Area{X: tx, Y: y + inset, Width: bar, Height: h - 2*inset}, bar/2), track)
 		th := max(h*(h-2*inset)/max(contentH, 1), 3*bar)
 		th = min(th, h-2*inset)
-		cv.FillRoundRect(tx, y+inset, bar, th, bar/2, thumb)
+		cv.FillRoundRect(canvas.Round(canvas.Area{X: tx, Y: y + inset, Width: bar, Height: th}, bar/2), thumb)
 	}
 	hScroll := st.Overflow[0] == css.OverflowScroll || st.Overflow[0] == css.OverflowAuto
 	if hScroll && contentW > w && w > 2*inset {
 		ty := y + h - bar - inset
-		cv.FillRoundRect(x+inset, ty, w-2*inset, bar, bar/2, track)
+		cv.FillRoundRect(canvas.Round(canvas.Area{X: x + inset, Y: ty, Width: w - 2*inset, Height: bar}, bar/2), track)
 		tw := max(w*(w-2*inset)/max(contentW, 1), 3*bar)
 		tw = min(tw, w-2*inset)
-		cv.FillRoundRect(x+inset, ty, tw, bar, bar/2, thumb)
+		cv.FillRoundRect(canvas.Round(canvas.Area{X: x + inset, Y: ty, Width: tw, Height: bar}, bar/2), thumb)
 	}
 }

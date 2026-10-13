@@ -10,8 +10,8 @@ func paintCyberTerminals(cv *canvas.Canvas, v vivid, trackX, cy, trackW, u int) 
 		trackX,
 		trackX + trackW,
 	} {
-		cv.FillCircle(px, cy, 3*u, cyberPalette.panelAct)
-		cv.Circle(px, cy, 3*u, v.edge)
-		cv.FillCircle(px, cy, u, v.neon)
+		cv.FillCircle(canvas.Circle{X: px, Y: cy, R: 3 * u}, cyberPalette.panelAct)
+		cv.Circle(canvas.Circle{X: px, Y: cy, R: 3 * u}, v.edge)
+		cv.FillCircle(canvas.Circle{X: px, Y: cy, R: u}, v.neon)
 	}
 }

@@ -2,6 +2,7 @@ package template
 
 import (
 	"github.com/gabrielluizsf/antui"
+	"github.com/gabrielluizsf/antui/canvas"
 	"github.com/gabrielluizsf/antui/template/css"
 )
 
@@ -11,7 +12,7 @@ func (cs *cssStyle) Input(win *antui.Window, s State, x, y, w, h int, text strin
 	u := cs.u()
 	padding := cs.base(st, st.Padding[css.SideLeft])
 	savedClip := win.Canvas().Clip
-	win.Canvas().SetClip(x+padding, y+1, w-2*padding, h-2)
+	win.Canvas().SetClip(canvas.Area{X: x + padding, Y: y + 1, Width: w - 2*padding, Height: h - 2})
 
 	cursor = clampInt(cursor, 0, len(text))
 	cursorPx := cs.measure(st, text[:cursor])
@@ -23,7 +24,7 @@ func (cs *cssStyle) Input(win *antui.Window, s State, x, y, w, h int, text strin
 	if s.Focused && caret {
 		cx := x + padding - scroll + cursorPx
 		cy := y + (h-cs.textHeight(st))/2
-		win.Canvas().FillRect(cx, cy, u, cs.textHeight(st), cs.ink(st))
+		win.Canvas().FillRect(canvas.Area{X: cx, Y: cy, Width: u, Height: cs.textHeight(st)}, cs.ink(st))
 	}
 	win.Canvas().Clip = savedClip
 }

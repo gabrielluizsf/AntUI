@@ -1,6 +1,9 @@
 package template
 
-import "github.com/gabrielluizsf/antui"
+import (
+	"github.com/gabrielluizsf/antui"
+	"github.com/gabrielluizsf/antui/canvas"
+)
 
 func (cyberStyle) SelectOption(win *antui.Window, s State, x, y, w, h int, label string, selected bool) {
 	cv := win.Canvas()
@@ -11,14 +14,14 @@ func (cyberStyle) SelectOption(win *antui.Window, s State, x, y, w, h int, label
 	if selected || s.Hovered {
 		body = cyberPalette.panelHov
 	}
-	cv.FillRect(x, y, w, h, body)
+	cv.FillRect(canvas.Area{X: x, Y: y, Width: w, Height: h}, body)
 	edge := v.edge
 	if selected {
 		edge = v.neon
 	}
 	cv.Line(x, y, x+w, y, edge)
 	if selected || s.Hovered {
-		cv.FillRect(x, y, 3*u, h, v.neon)
+		cv.FillRect(canvas.Area{X: x, Y: y, Width: 3 * u, Height: h}, v.neon)
 	}
 	colour := v.text
 	if selected {

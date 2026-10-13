@@ -1,8 +1,6 @@
 package css
 
-import (
-	"strings"
-)
+import "strings"
 
 // skipBlock swallows a balanced { … } block.
 func (p *parser) skipBlock() error {

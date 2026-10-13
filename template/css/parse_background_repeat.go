@@ -1,8 +1,6 @@
 package css
 
-import (
-	"strings"
-)
+import "strings"
 
 // parseBackgroundRepeat reads a comma-separated background-repeat list: one
 // keyword for both axes, or an X and a Y keyword, with the shorthand

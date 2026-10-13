@@ -1,8 +1,6 @@
 package css
 
-import (
-	"strings"
-)
+import "strings"
 
 // parseDirectionList reads a comma-separated list of direction keywords.
 func parseDirectionList(raw string) ([]uint8, bool) {

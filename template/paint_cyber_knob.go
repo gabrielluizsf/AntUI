@@ -21,19 +21,19 @@ func paintCyberKnob(cv *canvas.Canvas, v vivid, s State, knobX, cy, knobRadius, 
 	glow(cv, halo{x: knobX - knobRadius - 3*u, y: cy - knobRadius - 3*u, w: knobRadius*2 + 6*u, h: knobRadius*2 + 6*u, radius: knobRadius + 2*u, colour: v.neon, strength: int(float64(reach) * v.glow), u: u})
 
 	// Outer neon shell.
-	cv.FillCircle(knobX, cy, knobRadius+2*u, v.neon)
+	cv.FillCircle(canvas.Circle{X: knobX, Y: cy, R: knobRadius + 2*u}, v.neon)
 
 	// Dark body.
-	cv.FillCircle(knobX, cy, knobRadius, cyberPalette.panelAct)
+	cv.FillCircle(canvas.Circle{X: knobX, Y: cy, R: knobRadius}, cyberPalette.panelAct)
 
 	// Bright inner ring.
-	cv.Circle(knobX, cy, knobRadius-2*u, v.neon)
+	cv.Circle(canvas.Circle{X: knobX, Y: cy, R: knobRadius - 2*u}, v.neon)
 
 	// Inner core.
-	cv.FillCircle(knobX, cy, 3*u, v.neon)
+	cv.FillCircle(canvas.Circle{X: knobX, Y: cy, R: 3 * u}, v.neon)
 
 	// Focus gives the thumb an additional outer ring.
 	if s.Focused {
-		cv.Circle(knobX, cy, knobRadius+5*u, v.text)
+		cv.Circle(canvas.Circle{X: knobX, Y: cy, R: knobRadius + 5*u}, v.text)
 	}
 }

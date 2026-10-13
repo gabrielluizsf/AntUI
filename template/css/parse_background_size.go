@@ -1,8 +1,6 @@
 package css
 
-import (
-	"strings"
-)
+import "strings"
 
 // parseBackgroundSize reads a comma-separated background-size list: each value
 // is "cover", "contain" or one or two lengths, the missing axis becoming auto.

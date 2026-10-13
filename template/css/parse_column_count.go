@@ -1,8 +1,6 @@
 package css
 
-import (
-	"strconv"
-)
+import "strconv"
 
 // parseColumnCount reads a column count. A whole number is the count; auto and
 // an unreadable number leave it to the width, as the initial value does.

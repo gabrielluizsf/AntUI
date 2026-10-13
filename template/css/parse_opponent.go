@@ -1,8 +1,6 @@
 package css
 
-import (
-	"strings"
-)
+import "strings"
 
 // parseOpponent reads lab a/b: numbers, or percentages where 100% is 125.
 func parseOpponent(f string) (float64, error) {

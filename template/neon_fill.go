@@ -6,6 +6,6 @@ import "github.com/gabrielluizsf/antui/canvas"
 // coloured edge. What happens under the pointer — who glows, who brightens —
 // is the caller's call, because a button and a field answer differently.
 func neonFill(cv *canvas.Canvas, x, y, w, h, radius int, body, border canvas.Color) {
-	cv.FillRoundRect(x, y, w, h, radius, body)
-	cv.RoundRect(x, y, w, h, radius, border)
+	cv.FillRoundRect(canvas.Round(canvas.Area{X: x, Y: y, Width: w, Height: h}, radius), body)
+	cv.RoundRect(canvas.Round(canvas.Area{X: x, Y: y, Width: w, Height: h}, radius), border)
 }

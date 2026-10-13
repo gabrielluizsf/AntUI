@@ -1,8 +1,6 @@
 package css
 
-import (
-	"strings"
-)
+import "strings"
 
 // parseShadows reads a comma-separated shadow list. allowInset admits the
 // inset keyword (box-shadow) and max is the number of lengths the property

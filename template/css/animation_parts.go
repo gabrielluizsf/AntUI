@@ -1,8 +1,6 @@
 package css
 
-import (
-	"math"
-)
+import "math"
 
 // animationParts splits a parsed shorthand into the parallel lists the
 // longhands also fill, so the cascade merges them in one finisher. An

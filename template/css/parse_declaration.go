@@ -1,8 +1,6 @@
 package css
 
-import (
-	"strings"
-)
+import "strings"
 
 // parseDeclaration reads "property: value". A missing ':' is not a
 // declaration. A trailing !important is recorded, not parsed as a value.

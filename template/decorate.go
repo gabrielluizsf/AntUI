@@ -13,12 +13,12 @@ func (cs *cssStyle) decorate(cv *canvas.Canvas, st css.Style, x, y, tw, th, scal
 	ink := cs.ink(st)
 	u := max(scale, 1)
 	if st.TextDecoration&css.TextDecorationUnderline != 0 {
-		cv.FillRect(x, y+th-2*u, tw, u, ink)
+		cv.FillRect(canvas.Area{X: x, Y: y + th - 2*u, Width: tw, Height: u}, ink)
 	}
 	if st.TextDecoration&css.TextDecorationLineThrough != 0 {
-		cv.FillRect(x, y+th/2, tw, u, ink)
+		cv.FillRect(canvas.Area{X: x, Y: y + th/2, Width: tw, Height: u}, ink)
 	}
 	if st.TextDecoration&css.TextDecorationOverline != 0 {
-		cv.FillRect(x, y, tw, u, ink)
+		cv.FillRect(canvas.Area{X: x, Y: y, Width: tw, Height: u}, ink)
 	}
 }

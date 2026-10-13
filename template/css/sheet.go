@@ -1,8 +1,6 @@
 package css
 
-import (
-	"sync"
-)
+import "sync"
 
 // Sheet is a parsed stylesheet: every rule in order, the @keyframes blocks it
 // named, plus warnings for the declarations it did not understand. Like a

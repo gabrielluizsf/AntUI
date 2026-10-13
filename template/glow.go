@@ -23,7 +23,6 @@ func glow(cv *canvas.Canvas, h halo) {
 			continue
 		}
 		g := (i + 1) * h.u
-		cv.FillRoundRect(h.x-g, h.y-g, h.w+g*2, h.h+g*2, h.radius+g,
-			canvas.Fade(h.colour, alpha))
+		cv.FillRoundRect(canvas.Round(canvas.Area{X: h.x - g, Y: h.y - g, Width: h.w + g*2, Height: h.h + g*2}, h.radius+g), canvas.Fade(h.colour, alpha))
 	}
 }

@@ -1,8 +1,6 @@
 package css
 
-import (
-	"strings"
-)
+import "strings"
 
 // parseTransform reads a space-separated transform list: functions such as
 // translate(10px 20%), rotate(45deg), scale(2), skew(20deg) or matrix(...).

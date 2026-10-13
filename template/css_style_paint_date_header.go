@@ -12,8 +12,8 @@ func (cs *cssStyle) paintDateHeader(cv *canvas.Canvas, st css.Style, p datePaint
 	u, header := p.u, p.header()
 	band := cs.fade(st, canvas.Shade(cs.fill(st), -0.035))
 	line := cs.fade(st, canvas.Shade(cs.fill(st), -0.10))
-	cv.FillRect(p.x+u, p.y+u, p.w-2*u, max(header-u, 1), band)
-	cv.FillRect(p.x+2*u, p.y+header-u, p.w-4*u, u, line)
+	cv.FillRect(canvas.Area{X: p.x + u, Y: p.y + u, Width: p.w - 2*u, Height: max(header-u, 1)}, band)
+	cv.FillRect(canvas.Area{X: p.x + 2*u, Y: p.y + header - u, Width: p.w - 4*u, Height: u}, line)
 
 	mname := monthName(p.month)
 	labelW := textWidth(u, mname) + 3*u + textWidth(u, itoa(p.year))

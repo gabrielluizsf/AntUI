@@ -1,8 +1,6 @@
 package css
 
-import (
-	"strings"
-)
+import "strings"
 
 // readName reads a CSS identifier from s: ASCII letters, digits, underscore,
 // hyphen, high bytes, or an escape sequence that resolves to one character.

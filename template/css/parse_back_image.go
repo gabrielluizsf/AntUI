@@ -1,8 +1,6 @@
 package css
 
-import (
-	"strings"
-)
+import "strings"
 
 // parseBackImage reads one layer: a url() or one of the gradient functions.
 func parseBackImage(part string, ctx Units) (BackImage, bool) {

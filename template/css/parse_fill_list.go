@@ -1,8 +1,6 @@
 package css
 
-import (
-	"strings"
-)
+import "strings"
 
 // parseFillList reads a comma-separated list of fill-mode keywords.
 func parseFillList(raw string) ([]uint8, bool) {

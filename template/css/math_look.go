@@ -1,8 +1,6 @@
 package css
 
-import (
-	"strings"
-)
+import "strings"
 
 // mathLook reports whether a raw value opens a math formula the engine can
 // evaluate (calc/min/max/clamp). Anything else with a "(" in the way is a

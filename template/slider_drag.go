@@ -1,8 +1,6 @@
 package template
 
-import (
-	"github.com/gabrielluizsf/antui"
-)
+import "github.com/gabrielluizsf/antui"
 
 // sliderDrag follows the mouse while a drag is active, compensating for the
 // point where the mouse grabbed the knob, and reports whether the value

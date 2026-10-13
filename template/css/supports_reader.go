@@ -1,8 +1,6 @@
 package css
 
-import (
-	"strings"
-)
+import "strings"
 
 // supportsReader walks an @supports prelude. A condition is an or-list of
 // and-lists of negations, each of which is either a parenthesised group — a

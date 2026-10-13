@@ -1,8 +1,6 @@
 package css
 
-import (
-	"strings"
-)
+import "strings"
 
 // parseKeyframes reads the body of an @keyframes block: a series of frames
 // introduced by from, to or a percentage followed by a declaration block.

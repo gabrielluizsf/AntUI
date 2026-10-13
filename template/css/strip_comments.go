@@ -1,8 +1,6 @@
 package css
 
-import (
-	"strings"
-)
+import "strings"
 
 // stripComments removes every /* … */ comment from a string. A comment in a
 // file any old position — selector, value, media prelude — carries nothing, so

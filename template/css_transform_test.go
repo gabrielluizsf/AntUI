@@ -140,7 +140,7 @@ func TestCSSTransformCompositesDrawnOverspill(t *testing.T) {
 	st := bgRule(t, "transform: translate(10px 0);")
 	cs := newCSSStyle(win)
 	cs.transformed(st, 10, 10, 20, 20, func() {
-		win.Canvas().FillRect(10, 20, 15, 8, canvas.RGBA(255, 0, 0, 255))
+		win.Canvas().FillRect(canvas.Area{X: 10, Y: 20, Width: 15, Height: 8}, canvas.RGBA(255, 0, 0, 255))
 	})
 
 	// The menu block lands 10px right, unmangled, through the transform.
@@ -175,7 +175,7 @@ func TestCSSTransformShadowStaysSoftInLayer(t *testing.T) {
 func TestCSSTransformBackdropSeesPageBehind(t *testing.T) {
 	win := blankWin(t, 40, 40)
 	for y := 10; y < 20; y++ {
-		win.Canvas().FillRect(10, y, 20, 1, canvas.RGBA(255, 0, 0, 255))
+		win.Canvas().FillRect(canvas.Area{X: 10, Y: y, Width: 20, Height: 1}, canvas.RGBA(255, 0, 0, 255))
 	}
 	st := bgRule(t, "transform: translate(10px 10px); backdrop-filter: invert(1);")
 	cs := newCSSStyle(win)

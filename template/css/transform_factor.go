@@ -1,8 +1,6 @@
 package css
 
-import (
-	"strings"
-)
+import "strings"
 
 // transformFactor is a scale argument: a unitless number or a percentage,
 // which divides by a hundred the way scale(150%) means scale(1.5).

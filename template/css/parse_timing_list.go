@@ -1,8 +1,6 @@
 package css
 
-import (
-	"strings"
-)
+import "strings"
 
 // parseTimingList reads a comma-separated list of easings.
 func parseTimingList(raw string) ([]Timing, bool) {

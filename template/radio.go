@@ -1,6 +1,9 @@
 package template
 
-import "github.com/gabrielluizsf/antui"
+import (
+	"github.com/gabrielluizsf/antui"
+	"github.com/gabrielluizsf/antui/canvas"
+)
 
 func (builtinStyle) Radio(win *antui.Window, s State, x, y int, label string, on bool) {
 	cv := win.Canvas()
@@ -16,10 +19,10 @@ func (builtinStyle) Radio(win *antui.Window, s State, x, y int, label string, on
 	if on {
 		border = th.Accent
 	}
-	cv.FillCircle(x+size/2, y+size/2, size/2, surface)
-	cv.Circle(x+size/2, y+size/2, size/2, border)
+	cv.FillCircle(canvas.Circle{X: x + size/2, Y: y + size/2, R: size / 2}, surface)
+	cv.Circle(canvas.Circle{X: x + size/2, Y: y + size/2, R: size / 2}, border)
 	if s.Focused {
-		cv.Circle(x+size/2, y+size/2, size/2+3*u, th.Accent)
+		cv.Circle(canvas.Circle{X: x + size/2, Y: y + size/2, R: size/2 + 3*u}, th.Accent)
 	}
 	if on {
 		DrawIconIn(cv, IconDot, x+4*u, y+4*u, 10*u, th.Accent)

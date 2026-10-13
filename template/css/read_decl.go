@@ -1,8 +1,6 @@
 package css
 
-import (
-	"strings"
-)
+import "strings"
 
 // readDecl reads one declaration inside a block, stopping at the ';' or the
 // '}' that ends it. Strings, comments and parentheses are kept intact, so a

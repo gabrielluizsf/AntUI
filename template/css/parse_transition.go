@@ -1,8 +1,6 @@
 package css
 
-import (
-	"strings"
-)
+import "strings"
 
 // parseTransition reads one comma-free transition: a property name (which may
 // be "all" or "none"), two times with the duration first, an easing, in any

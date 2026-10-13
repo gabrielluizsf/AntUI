@@ -2,6 +2,7 @@ package template
 
 import (
 	"github.com/gabrielluizsf/antui"
+	"github.com/gabrielluizsf/antui/canvas"
 	"github.com/gabrielluizsf/antui/template/css"
 )
 
@@ -36,7 +37,7 @@ func (cs *cssStyle) paintOutline(win *antui.Window, st css.Style, x, y, w, h int
 				ory = max(ry-i, 0)
 			}
 			cv := win.Canvas()
-			cv.RoundRectXY(ox+i, oy+i, rw, rh, orx, ory, col)
+			cv.RoundRect(canvas.Rounded{Area: canvas.Area{X: ox + i, Y: oy + i, Width: rw, Height: rh}, RX: orx, RY: ory}, col)
 		}
 		return
 	}

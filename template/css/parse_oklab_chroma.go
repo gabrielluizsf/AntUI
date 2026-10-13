@@ -1,8 +1,6 @@
 package css
 
-import (
-	"strings"
-)
+import "strings"
 
 // parseOKLabChroma reads oklab a/b: a number, or a percentage where 100% is
 // 0.4 (the OKLab reference extent).

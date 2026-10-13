@@ -26,8 +26,8 @@ func (cs *cssStyle) Progress(win *antui.Window, x, y, w, h int, value float32) {
 		r = h / 2
 	}
 	filled := int(float32(w)*value + 0.5)
-	cv.FillRoundRect(x, y, w, h, r, canvas.Shade(fill, trackShade))
+	cv.FillRoundRect(canvas.Round(canvas.Area{X: x, Y: y, Width: w, Height: h}, r), canvas.Shade(fill, trackShade))
 	if filled > 0 {
-		cv.FillRoundRect(x, y, filled, h, r, fill)
+		cv.FillRoundRect(canvas.Round(canvas.Area{X: x, Y: y, Width: filled, Height: h}, r), fill)
 	}
 }

@@ -27,7 +27,7 @@ func blankWin(t *testing.T, w, h int) *antui.Window {
 	if err != nil {
 		t.Fatal(err)
 	}
-	win.Canvas().FillRect(0, 0, w, h, canvas.RGBA(30, 40, 50, 255))
+	win.Canvas().FillRect(canvas.Area{X: 0, Y: 0, Width: w, Height: h}, canvas.RGBA(30, 40, 50, 255))
 	return win
 }
 
@@ -73,7 +73,7 @@ func TestCSSBackgroundImagePaint(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	logo.FillRect(0, 0, 5, 5, canvas.Red)
+	logo.FillRect(canvas.Area{X: 0, Y: 0, Width: 5, Height: 5}, canvas.Red)
 	cs.images["logo"] = logo
 
 	cs.paintBackground(win, st, 10, 10, 20, 20, 0, 0)
@@ -90,7 +90,7 @@ func TestCSSBackgroundImageRepeats(t *testing.T) {
 	st := bgRule(t, "background-image: url(tile); background-repeat: repeat;")
 	cs := newCSSStyle(win)
 	tile, _ := canvas.NewCanvas(5, 5)
-	tile.FillRect(0, 0, 5, 5, canvas.Red)
+	tile.FillRect(canvas.Area{X: 0, Y: 0, Width: 5, Height: 5}, canvas.Red)
 	cs.images["tile"] = tile
 
 	cs.paintBackground(win, st, 10, 10, 21, 21, 0, 0)
@@ -106,7 +106,7 @@ func TestCSSBackgroundPositionAndSize(t *testing.T) {
 	st := bgRule(t, "background-image: url(pic); background-repeat: no-repeat; background-size: 10px 10px; background-position: right 2px top 3px;")
 	cs := newCSSStyle(win)
 	pic, _ := canvas.NewCanvas(5, 5)
-	pic.FillRect(0, 0, 5, 5, canvas.Red)
+	pic.FillRect(canvas.Area{X: 0, Y: 0, Width: 5, Height: 5}, canvas.Red)
 	cs.images["pic"] = pic
 	u := cs.u()
 	box := 20 * u
@@ -126,7 +126,7 @@ func TestCSSBackgroundRoundedCornersClipped(t *testing.T) {
 	st := bgRule(t, "background-image: url(pill); background-repeat: no-repeat; border-radius: 5px;")
 	cs := newCSSStyle(win)
 	img, _ := canvas.NewCanvas(20, 20)
-	img.FillRect(0, 0, 20, 20, canvas.Red)
+	img.FillRect(canvas.Area{X: 0, Y: 0, Width: 20, Height: 20}, canvas.Red)
 	cs.images["pill"] = img
 
 	cs.paintBackground(win, st, 10, 10, 20, 20, 5, 5)
@@ -145,7 +145,7 @@ func TestCSSBackgroundClipInsideBorder(t *testing.T) {
 	rule := "background-image: url(dot); background-repeat: no-repeat; background-clip: padding-box; border: 4px solid #000000;"
 	cs := newCSSStyle(win)
 	img, _ := canvas.NewCanvas(12, 12)
-	img.FillRect(0, 0, 12, 12, canvas.Red)
+	img.FillRect(canvas.Area{X: 0, Y: 0, Width: 12, Height: 12}, canvas.Red)
 	cs.images["dot"] = img
 	st := bgRule(t, rule)
 

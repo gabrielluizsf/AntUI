@@ -14,9 +14,9 @@ func (cs *cssStyle) paintDateRules(cv *canvas.Canvas, st css.Style, p datePaint)
 	c := dateCellSize(u)
 	rule := cs.fade(st, canvas.Shade(cs.fill(st), -0.035))
 	for col := 0; col <= 7; col++ {
-		cv.FillRect(gx+col*c, p.weekHeadY(), u, weekdayHeadHeight(u)+p.rows()*c, rule)
+		cv.FillRect(canvas.Area{X: gx + col*c, Y: p.weekHeadY(), Width: u, Height: weekdayHeadHeight(u) + p.rows()*c}, rule)
 	}
 	for row := 0; row <= p.rows(); row++ {
-		cv.FillRect(gx, gy+row*c, gw, u, rule)
+		cv.FillRect(canvas.Area{X: gx, Y: gy + row*c, Width: gw, Height: u}, rule)
 	}
 }

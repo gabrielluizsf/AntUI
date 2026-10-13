@@ -1,8 +1,6 @@
 package css
 
-import (
-	"strings"
-)
+import "strings"
 
 // parseBackgroundBox reads a comma-separated background-clip or
 // background-origin list of border/padding/content box keywords.

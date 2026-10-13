@@ -1,8 +1,6 @@
 package css
 
-import (
-	"strings"
-)
+import "strings"
 
 // parseIterationList reads a comma-separated list of iteration counts.
 func parseIterationList(raw string) ([]float64, bool) {

@@ -1,8 +1,6 @@
 package css
 
-import (
-	"strings"
-)
+import "strings"
 
 // sourceFormat reads the format("…") clause of a src source, lowercased, or
 // "" when the source carries none. It is a hint only: a format this engine

@@ -11,15 +11,15 @@ func paintCyberTrack(cv *canvas.Canvas, v vivid, trackX, trackY, trackW, trackH,
 	glow(cv, halo{x: trackX - 2*u, y: trackY - 2*u, w: trackW + 4*u, h: trackH + 4*u, radius: trackH/2 + 2*u, colour: v.neon, strength: 5, u: u})
 
 	// Dark glass body.
-	cv.FillRoundRect(trackX, trackY, trackW, trackH, trackH/2, canvas.Fade(cyberPalette.panelAct, 230))
+	cv.FillRoundRect(canvas.Round(canvas.Area{X: trackX, Y: trackY, Width: trackW, Height: trackH}, trackH/2), canvas.Fade(cyberPalette.panelAct, 230))
 
 	// Thin outer edge.
-	cv.RoundRect(trackX, trackY, trackW, trackH, trackH/2, v.edge)
+	cv.RoundRect(canvas.Round(canvas.Area{X: trackX, Y: trackY, Width: trackW, Height: trackH}, trackH/2), v.edge)
 
 	fillW := knobX - trackX
 	if fillW > 0 {
 		// Glow around the active portion.
 		glow(cv, halo{x: trackX - u, y: trackY - u, w: fillW + 2*u, h: trackH + 2*u, radius: trackH/2 + u, colour: v.neon, strength: 10, u: u})
-		cv.FillRoundRect(trackX, trackY, fillW, trackH, trackH/2, v.neon)
+		cv.FillRoundRect(canvas.Round(canvas.Area{X: trackX, Y: trackY, Width: fillW, Height: trackH}, trackH/2), v.neon)
 	}
 }

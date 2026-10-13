@@ -1,8 +1,6 @@
 package css
 
-import (
-	"math"
-)
+import "math"
 
 // finishAnimations merges the animation longhands (and the shorthand's own
 // parallel lists) into the style's final Animations slice. The name list

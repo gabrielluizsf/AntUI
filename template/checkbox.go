@@ -1,6 +1,9 @@
 package template
 
-import "github.com/gabrielluizsf/antui"
+import (
+	"github.com/gabrielluizsf/antui"
+	"github.com/gabrielluizsf/antui/canvas"
+)
 
 func (builtinStyle) Checkbox(win *antui.Window, s State, x, y int, label string, on bool) {
 	cv := win.Canvas()
@@ -19,11 +22,11 @@ func (builtinStyle) Checkbox(win *antui.Window, s State, x, y int, label string,
 	if on {
 		border = th.Accent
 	}
-	cv.FillRoundRect(x, y, box, box, 4*u, fill)
-	cv.RoundRect(x, y, box, box, 4*u, border)
+	cv.FillRoundRect(canvas.Round(canvas.Area{X: x, Y: y, Width: box, Height: box}, 4*u), fill)
+	cv.RoundRect(canvas.Round(canvas.Area{X: x, Y: y, Width: box, Height: box}, 4*u), border)
 
 	if s.Focused {
-		cv.RoundRect(x-focusRing*u, y-focusRing*u, box+2*focusRing*u, box+2*focusRing*u, focusRingRadius*u, th.Accent)
+		cv.RoundRect(canvas.Round(canvas.Area{X: x - focusRing*u, Y: y - focusRing*u, Width: box + 2*focusRing*u, Height: box + 2*focusRing*u}, focusRingRadius*u), th.Accent)
 	}
 
 	if on {

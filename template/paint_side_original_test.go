@@ -104,13 +104,13 @@ func sideName(s int) string {
 func origSolid(cv *canvas.Canvas, side, bw, x, y, w, h int, col canvas.Color) {
 	switch side {
 	case 0:
-		cv.FillRect(x, y, w, bw, col)
+		cv.FillRect(canvas.Area{X: x, Y: y, Width: w, Height: bw}, col)
 	case 1:
-		cv.FillRect(x+w-bw, y, bw, h, col)
+		cv.FillRect(canvas.Area{X: x + w - bw, Y: y, Width: bw, Height: h}, col)
 	case 2:
-		cv.FillRect(x, y+h-bw, w, bw, col)
+		cv.FillRect(canvas.Area{X: x, Y: y + h - bw, Width: w, Height: bw}, col)
 	default:
-		cv.FillRect(x, y, bw, h, col)
+		cv.FillRect(canvas.Area{X: x, Y: y, Width: bw, Height: h}, col)
 	}
 }
 
@@ -123,17 +123,17 @@ func origDouble(cv *canvas.Canvas, side, bw, x, y, w, h int, col canvas.Color) {
 	}
 	switch side {
 	case 0:
-		cv.FillRect(x, y, w, line, col)
-		cv.FillRect(x, y+bw-line, w, line, col)
+		cv.FillRect(canvas.Area{X: x, Y: y, Width: w, Height: line}, col)
+		cv.FillRect(canvas.Area{X: x, Y: y + bw - line, Width: w, Height: line}, col)
 	case 1:
-		cv.FillRect(x+w-line, y, line, h, col)
-		cv.FillRect(x+w-bw, y, line, h, col)
+		cv.FillRect(canvas.Area{X: x + w - line, Y: y, Width: line, Height: h}, col)
+		cv.FillRect(canvas.Area{X: x + w - bw, Y: y, Width: line, Height: h}, col)
 	case 2:
-		cv.FillRect(x, y+h-line, w, line, col)
-		cv.FillRect(x, y+h-bw, w, line, col)
+		cv.FillRect(canvas.Area{X: x, Y: y + h - line, Width: w, Height: line}, col)
+		cv.FillRect(canvas.Area{X: x, Y: y + h - bw, Width: w, Height: line}, col)
 	default:
-		cv.FillRect(x, y, line, h, col)
-		cv.FillRect(x+bw-line, y, line, h, col)
+		cv.FillRect(canvas.Area{X: x, Y: y, Width: line, Height: h}, col)
+		cv.FillRect(canvas.Area{X: x + bw - line, Y: y, Width: line, Height: h}, col)
 	}
 }
 
@@ -157,13 +157,13 @@ func origDash(cv *canvas.Canvas, side, bw, x, y, w, h int, col canvas.Color, dot
 				if side == 2 {
 					yy = y + h - bw
 				}
-				cv.FillCircle(x+p+bw/2, yy+bw/2, r, col)
+				cv.FillCircle(canvas.Circle{X: x + p + bw/2, Y: yy + bw/2, R: r}, col)
 			} else {
 				xx := x
 				if side == 1 {
 					xx = x + w - bw
 				}
-				cv.FillCircle(xx+bw/2, y+p+bw/2, r, col)
+				cv.FillCircle(canvas.Circle{X: xx + bw/2, Y: y + p + bw/2, R: r}, col)
 			}
 		}
 		return
@@ -180,13 +180,13 @@ func origDash(cv *canvas.Canvas, side, bw, x, y, w, h int, col canvas.Color, dot
 			if side == 2 {
 				yy = y + h - bw
 			}
-			cv.FillRect(x+p, yy, n, bw, col)
+			cv.FillRect(canvas.Area{X: x + p, Y: yy, Width: n, Height: bw}, col)
 		} else {
 			xx := x
 			if side == 1 {
 				xx = x + w - bw
 			}
-			cv.FillRect(xx, y+p, bw, n, col)
+			cv.FillRect(canvas.Area{X: xx, Y: y + p, Width: bw, Height: n}, col)
 		}
 	}
 }

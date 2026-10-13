@@ -1,8 +1,6 @@
 package css
 
-import (
-	"strings"
-)
+import "strings"
 
 // parseTextDecoration reads the text-decoration shorthand or its -line
 // longhand: none clears the flags, otherwise underline, overline and

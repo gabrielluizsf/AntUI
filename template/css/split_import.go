@@ -1,8 +1,6 @@
 package css
 
-import (
-	"strings"
-)
+import "strings"
 
 // splitImport takes an @import prelude apart: the URL it names, the media
 // query that gates the whole of it, and the layer() and supports() clauses

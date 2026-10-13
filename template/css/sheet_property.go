@@ -1,8 +1,6 @@
 package css
 
-import (
-	"strings"
-)
+import "strings"
 
 // Property reads the winning raw value for one property of the element at
 // rest, the way the cascade would compute it: the last matching declaration

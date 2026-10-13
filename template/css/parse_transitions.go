@@ -1,8 +1,6 @@
 package css
 
-import (
-	"strings"
-)
+import "strings"
 
 // parseTransitions reads the transition shorthand: a comma-separated list of
 // transitions. "none" clears every entry, so a style returns no transitions

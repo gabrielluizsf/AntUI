@@ -1,8 +1,6 @@
 package css
 
-import (
-	"fmt"
-)
+import "fmt"
 
 // minmax evaluates min(...) or max(...): a comma-separated list, the smallest
 // or the largest wins.

@@ -16,10 +16,10 @@ func (builtinStyle) Button(win *antui.Window, s State, x, y, w, h int, label str
 	case s.Hovered:
 		fill = th.AccentHover
 	}
-	cv.FillRoundRect(x, y, w, h, th.Radius, fill)
+	cv.FillRoundRect(canvas.Round(canvas.Area{X: x, Y: y, Width: w, Height: h}, th.Radius), fill)
 
 	if s.Focused && !s.Pressed {
-		cv.RoundRect(x-focusRing*u, y-focusRing*u, w+2*focusRing*u, h+2*focusRing*u, th.Radius+focusRing*u, th.Accent)
+		cv.RoundRect(canvas.Round(canvas.Area{X: x - focusRing*u, Y: y - focusRing*u, Width: w + 2*focusRing*u, Height: h + 2*focusRing*u}, th.Radius+focusRing*u), th.Accent)
 	}
 
 	textY := y + (h-textHeight(u))/2

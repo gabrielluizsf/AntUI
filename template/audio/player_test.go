@@ -1,8 +1,6 @@
 package audio
 
-import (
-	"testing"
-)
+import "testing"
 
 // tapSound is a known square wave the mixer tests can predict.
 func tapSound(rate int, n int) *Sound {
