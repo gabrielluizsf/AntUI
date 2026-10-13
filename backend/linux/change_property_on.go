@@ -10,7 +10,7 @@ import "encoding/binary"
 func (x *Driver) changePropertyOn(window, property, typ uint32, format byte,
 	value []byte, count uint32) {
 
-	body := make([]byte, 20, 20+len(value)+3)
+	body := make([]byte, xPropertyRequestBytes, xPropertyRequestBytes+len(value)+3)
 	binary.LittleEndian.PutUint32(body[0:], window)
 	binary.LittleEndian.PutUint32(body[4:], property)
 	binary.LittleEndian.PutUint32(body[8:], typ)

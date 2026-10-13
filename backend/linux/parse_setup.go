@@ -11,7 +11,7 @@ import (
 // parseSetup walks the success reply. Its layout is fixed by the protocol:
 // a header, the vendor string, the pixel formats, then the screens.
 func (x *Driver) parseSetup(body []byte) error {
-	if len(body) < 32 {
+	if len(body) < xSetupHeaderBytes {
 		return errors.New("antui: the X server's answer was too short to read")
 	}
 	x.idBase = binary.LittleEndian.Uint32(body[4:])
@@ -24,19 +24,19 @@ func (x *Driver) parseSetup(body []byte) error {
 	x.minKeycode = body[26]
 	x.maxKeycode = body[27]
 
-	x.maxRequestBytes = max(uint32(maxRequest)*4, 4096)
+	x.maxRequestBytes = max(uint32(maxRequest)*xProtocolWordBytes, xMinRequestBytes)
 
-	at := 32 + vendorLen
+	at := xSetupHeaderBytes + vendorLen
 	at += pad(at)
 	formatsAt := at
-	screenAt := at + formats*8
+	screenAt := at + formats*xFormatRecordBytes
 
-	if screens == 0 || screenAt+40 > len(body) {
+	if screens == 0 || screenAt+xScreenMinimumBytes > len(body) {
 		return errors.New("antui: the X server described no screen this library can draw on")
 	}
 	x.parseScreen(body, screenAt, formatsAt, formats)
 
-	if x.bitsPerPixel != 32 {
+	if x.bitsPerPixel != xPixel32Bits {
 		return fmt.Errorf("antui: the X server uses %d bits per pixel; this library needs 32",
 			x.bitsPerPixel)
 	}

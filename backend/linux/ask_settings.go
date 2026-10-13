@@ -8,6 +8,8 @@ import (
 	"time"
 )
 
+const settingsTimeout = 2 * time.Second
+
 // askSettings runs the settings tool and returns what it printed, or nothing
 // when it is not there, fails, or takes too long. The timeout mirrors ask in
 // sysfont.go for the same reason: a session with a settings bus that will
@@ -31,7 +33,7 @@ func askSettings(args ...string) string {
 	select {
 	case answer := <-done:
 		return answer
-	case <-time.After(2 * time.Second):
+	case <-time.After(settingsTimeout):
 		if cmd.Process != nil {
 			cmd.Process.Kill()
 		}

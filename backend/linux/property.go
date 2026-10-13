@@ -13,7 +13,7 @@ func (x *Driver) property(window, name, typ uint32, maxBytes int) ([]byte, bool)
 	if window == 0 || name == 0 {
 		return nil, false
 	}
-	body := make([]byte, 20)
+	body := make([]byte, xPropertyRequestBytes)
 	binary.LittleEndian.PutUint32(body[0:], window)
 	binary.LittleEndian.PutUint32(body[4:], name)
 	binary.LittleEndian.PutUint32(body[8:], typ)

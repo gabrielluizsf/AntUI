@@ -15,6 +15,6 @@ func (x *Driver) SetOpacity(alpha uint8) bool {
 	// The property is a 32-bit ARGB mask; 0xffffffff is fully opaque and
 	// each step of alpha is one of those bytes.
 	value := uint32(alpha) * 0x01010101
-	x.changeProperty(x.atomNetWMOpacity, atomCardinal, 32, le32(value), 1)
+	x.changeProperty(x.atomNetWMOpacity, atomCardinal, xFormat32Bits, le32(value), 1)
 	return x.alive
 }

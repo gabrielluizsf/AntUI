@@ -14,15 +14,15 @@ func (x *Driver) wmState(action, state uint32) bool {
 	if !x.alive || x.atomNetWMState == 0 || state == 0 {
 		return false
 	}
-	body := make([]byte, 40)
+	body := make([]byte, xClientMessageBytes)
 	binary.LittleEndian.PutUint32(body[0:], x.root)
 	// SubstructureNotify | SubstructureRedirect: what a root-directed EWMH
 	// message is required to be sent with.
 	binary.LittleEndian.PutUint32(body[4:], 0x180000)
 
-	event := body[8:]
+	event := body[xClientMessageHeaderBytes:]
 	event[0] = xClientMessage
-	event[1] = 32 // format
+	event[1] = xFormat32Bits // format
 	binary.LittleEndian.PutUint32(event[4:], x.window)
 	binary.LittleEndian.PutUint32(event[8:], x.atomNetWMState)
 	binary.LittleEndian.PutUint32(event[12:], action) // 0 off, 1 on, 2 flip

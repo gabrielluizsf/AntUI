@@ -7,11 +7,11 @@ import "encoding/binary"
 // sendSelectionNotify tells the asker the answer is on their window, or that
 // there is no answer.
 func (x *Driver) sendSelectionNotify(requestor, property, target, when uint32) {
-	body := make([]byte, 40)
+	body := make([]byte, xClientMessageBytes)
 	binary.LittleEndian.PutUint32(body[0:], requestor)
 	binary.LittleEndian.PutUint32(body[4:], 0) // straight to the client
 
-	event := body[8:]
+	event := body[xClientMessageHeaderBytes:]
 	event[0] = xSelectionNotify
 	binary.LittleEndian.PutUint32(event[4:], when)
 	binary.LittleEndian.PutUint32(event[8:], requestor)

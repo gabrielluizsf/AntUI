@@ -31,10 +31,10 @@ func (x *Driver) answerSelection(packet []byte) bool {
 			// What this window can give: the list itself, and the three ways
 			// of asking for text that are still in use.
 			kinds := le32(x.atomTargets, x.atomUTF8String, atomString, x.atomText)
-			x.changePropertyOn(requestor, property, atomAtom, 32, kinds, 4)
+			x.changePropertyOn(requestor, property, atomAtom, xFormat32Bits, kinds, xProtocolWordBytes)
 
 		case target == x.atomUTF8String || target == atomString || target == x.atomText:
-			x.changePropertyOn(requestor, property, target, 8,
+			x.changePropertyOn(requestor, property, target, xFormat8Bits,
 				[]byte(x.copied), uint32(len(x.copied)))
 
 		default:

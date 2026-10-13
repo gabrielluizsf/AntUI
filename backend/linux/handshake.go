@@ -16,7 +16,7 @@ func (x *Driver) handshake(displayNumber int) error {
 
 	// Byte order is declared once, here, and everything after it is read and
 	// written little-endian regardless of what the machine is.
-	request := make([]byte, 12)
+	request := make([]byte, xHandshakeRequestBytes)
 	request[0] = 'l'
 	binary.LittleEndian.PutUint16(request[2:], 11) // protocol major
 	binary.LittleEndian.PutUint16(request[4:], 0)  // protocol minor
@@ -31,11 +31,11 @@ func (x *Driver) handshake(displayNumber int) error {
 		return errors.New("antui: could not send the handshake to the X server")
 	}
 
-	if !x.need(8, xReplyTimeout) {
+	if !x.need(xProtocolHeaderBytes, xReplyTimeout) {
 		return errors.New("antui: the X server did not answer the handshake")
 	}
-	header := append([]byte(nil), x.rbuf[x.rpos:x.rpos+8]...)
-	x.consume(8)
+	header := append([]byte(nil), x.rbuf[x.rpos:x.rpos+xProtocolHeaderBytes]...)
+	x.consume(xProtocolHeaderBytes)
 
 	bodyLen := int(binary.LittleEndian.Uint16(header[6:])) * 4
 	var body []byte
