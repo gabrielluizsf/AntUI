@@ -9,7 +9,7 @@ func (cs *cssStyle) TextArea(win *antui.Window, s State, x, y, w, h int, text st
 	st := cs.styleFor(css.RoleTextArea, s)
 	cs.paintBox(win, st, x, y, w, h)
 	u := cs.u()
-	padding := cs.base(st, st.Padding[3])
+	padding := cs.base(st, st.Padding[css.SideLeft])
 	innerW := w - 2*padding
 	textW := max(innerW/cs.fontScale(st), 12)
 	cursor = clampInt(cursor, 0, len(text))

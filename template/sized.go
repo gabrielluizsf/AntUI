@@ -10,8 +10,8 @@ import (
 func (cs *cssStyle) sized(role string, st css.Style, u, labelW int) (w, h int) {
 	var bx, by int
 	if st.BorderOn() {
-		bx = (st.BorderWidth[1] + st.BorderWidth[3]) * u
-		by = (st.BorderWidth[0] + st.BorderWidth[2]) * u
+		bx = (st.BorderWidth[css.SideRight] + st.BorderWidth[css.SideLeft]) * u
+		by = (st.BorderWidth[css.SideTop] + st.BorderWidth[css.SideBottom]) * u
 	}
 	ph := cs.textHeight(st)
 	switch role {

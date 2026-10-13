@@ -12,10 +12,10 @@ func (cs *cssStyle) paintOutline(win *antui.Window, st css.Style, x, y, w, h int
 	off := st.OutlineOffset * u
 	ow := st.OutlineWidth * u
 	col := cs.effectColor(win, st, st.OutlineColor)
-	rx := st.Radius[0] * u
+	rx := st.Radius[css.SideTop] * u
 	ry := rx
-	if st.RadiusY[0] != 0 {
-		ry = st.RadiusY[0] * u
+	if st.RadiusY[css.SideTop] != 0 {
+		ry = st.RadiusY[css.SideTop] * u
 	}
 	ox, oy := x-off-ow, y-off-ow
 	ow2, oh2 := w+2*(off+ow), h+2*(off+ow)

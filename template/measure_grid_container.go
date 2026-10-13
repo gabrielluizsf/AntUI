@@ -9,8 +9,8 @@ import "github.com/gabrielluizsf/antui/template/css"
 func (c *CSS) measureGridContainer(st css.Style, draw func(*CSS), pctBase int) *gridNested {
 	left, right, top, bottom := c.gridChrome(st, pctBase)
 	height := c.gridDeclaredHeight(st)
-	ml := c.style.length(st, st.Margin[3], pctBase)
-	mr := c.style.length(st, st.Margin[1], pctBase)
+	ml := c.style.length(st, st.Margin[css.SideLeft], pctBase)
+	mr := c.style.length(st, st.Margin[css.SideRight], pctBase)
 	width := max(pctBase-ml-mr, 0)
 	if st.Has("width") && gridLengthDefinite(st.Width) {
 		width = max(c.style.length(st, st.Width, pctBase)-left-right, 0)

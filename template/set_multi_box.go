@@ -10,10 +10,10 @@ import "github.com/gabrielluizsf/antui/template/css"
 // container is as tall as its columns turn out to be.
 func (c *CSS) setMultiBox(b *multiBatch, st css.Style, x, y, w, h, pctBase int) {
 	u := c.style.u()
-	left := st.BorderWidth[3]*u + c.style.length(st, st.Padding[3], pctBase)
-	right := st.BorderWidth[1]*u + c.style.length(st, st.Padding[1], pctBase)
-	b.top = st.BorderWidth[0]*u + c.style.length(st, st.Padding[0], pctBase)
-	b.bottom = st.BorderWidth[2]*u + c.style.length(st, st.Padding[2], pctBase)
+	left := st.BorderWidth[css.SideLeft]*u + c.style.length(st, st.Padding[css.SideLeft], pctBase)
+	right := st.BorderWidth[css.SideRight]*u + c.style.length(st, st.Padding[css.SideRight], pctBase)
+	b.top = st.BorderWidth[css.SideTop]*u + c.style.length(st, st.Padding[css.SideTop], pctBase)
+	b.bottom = st.BorderWidth[css.SideBottom]*u + c.style.length(st, st.Padding[css.SideBottom], pctBase)
 	b.x, b.y, b.w, b.h = x, y, w, h
 	b.originX, b.originY = x+left, y+b.top
 	b.left, b.right = left, right

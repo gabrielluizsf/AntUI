@@ -9,7 +9,7 @@ func (cs *cssStyle) Input(win *antui.Window, s State, x, y, w, h int, text strin
 	st := cs.styleFor(css.RoleInput, s)
 	cs.paintBox(win, st, x, y, w, h)
 	u := cs.u()
-	padding := cs.base(st, st.Padding[3])
+	padding := cs.base(st, st.Padding[css.SideLeft])
 	savedClip := win.Canvas().Clip
 	win.Canvas().SetClip(x+padding, y+1, w-2*padding, h-2)
 

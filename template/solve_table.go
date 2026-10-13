@@ -1,5 +1,7 @@
 package template
 
+import "github.com/gabrielluizsf/antui/template/css"
+
 // solveTable gives every cell the width of its column and every row the height
 // of its tallest cell, then gives the table the box that makes: a caption above
 // the rows, the rows themselves and the table's own border and padding.
@@ -11,8 +13,8 @@ package template
 func (c *CSS) solveTable(b *tableBatch, x0, room, pctBase int) {
 	winH := c.win.Height()
 	left, right, top, bottom := c.tableChrome(b.st, pctBase)
-	ml := c.style.length(b.st, b.st.Margin[3], pctBase)
-	mr := c.style.length(b.st, b.st.Margin[1], pctBase)
+	ml := c.style.length(b.st, b.st.Margin[css.SideLeft], pctBase)
+	mr := c.style.length(b.st, b.st.Margin[css.SideRight], pctBase)
 	avail := max(room-ml-mr, 0)
 
 	caption, rows := tableRows(b)

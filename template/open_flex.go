@@ -7,9 +7,9 @@ import "github.com/gabrielluizsf/antui/template/css"
 func (c *CSS) openFlex(st css.Style) *flexBatch {
 	u := c.style.u()
 	winW := c.win.Width()
-	ml := c.style.length(st, st.Margin[3], winW)
-	mr := c.style.length(st, st.Margin[1], winW)
-	mt := c.style.length(st, st.Margin[0], winW)
+	ml := c.style.length(st, st.Margin[css.SideLeft], winW)
+	mr := c.style.length(st, st.Margin[css.SideRight], winW)
+	mt := c.style.length(st, st.Margin[css.SideTop], winW)
 
 	// The container is a block: it closes the inline line, collapses the
 	// sibling margins and rests on the flow cursor.
@@ -26,14 +26,14 @@ func (c *CSS) openFlex(st css.Style) *flexBatch {
 	w = c.clampDim(st, w, "width", winW)
 	x := ml + (winW-ml-mr-w)/2
 
-	bl := st.BorderWidth[3] * u
-	br := st.BorderWidth[1] * u
-	bt := st.BorderWidth[0] * u
-	bb := st.BorderWidth[2] * u
-	pl := c.style.length(st, st.Padding[3], winW)
-	pr := c.style.length(st, st.Padding[1], winW)
-	pt := c.style.length(st, st.Padding[0], winW)
-	pb := c.style.length(st, st.Padding[2], winW)
+	bl := st.BorderWidth[css.SideLeft] * u
+	br := st.BorderWidth[css.SideRight] * u
+	bt := st.BorderWidth[css.SideTop] * u
+	bb := st.BorderWidth[css.SideBottom] * u
+	pl := c.style.length(st, st.Padding[css.SideLeft], winW)
+	pr := c.style.length(st, st.Padding[css.SideRight], winW)
+	pt := c.style.length(st, st.Padding[css.SideTop], winW)
+	pb := c.style.length(st, st.Padding[css.SideBottom], winW)
 
 	return &flexBatch{
 		css:      c,

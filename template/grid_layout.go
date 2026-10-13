@@ -10,10 +10,10 @@ func (c *CSS) gridLayout(draw func(*CSS)) {
 		return
 	}
 	winW := c.win.Width()
-	ml := c.style.length(st, st.Margin[3], winW)
-	mr := c.style.length(st, st.Margin[1], winW)
-	mt := c.style.length(st, st.Margin[0], winW)
-	mb := c.style.length(st, st.Margin[2], winW)
+	ml := c.style.length(st, st.Margin[css.SideLeft], winW)
+	mr := c.style.length(st, st.Margin[css.SideRight], winW)
+	mt := c.style.length(st, st.Margin[css.SideTop], winW)
+	mb := c.style.length(st, st.Margin[css.SideBottom], winW)
 
 	c.cursorY += c.lineH
 	c.lineH = 0

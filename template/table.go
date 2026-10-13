@@ -18,8 +18,8 @@ func (c *CSS) Table(draw func(*CSS)) {
 		return
 	}
 	winW := c.win.Width()
-	mt := c.style.length(st, st.Margin[0], winW)
-	mb := c.style.length(st, st.Margin[2], winW)
+	mt := c.style.length(st, st.Margin[css.SideTop], winW)
+	mb := c.style.length(st, st.Margin[css.SideBottom], winW)
 
 	// The table is a block: it closes the inline line, collapses the sibling
 	// margins and rests on the flow cursor.

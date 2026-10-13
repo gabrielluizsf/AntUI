@@ -39,5 +39,5 @@ func (c *CSS) flexLayout(draw func(*CSS)) {
 	c.flex = nil
 
 	c.cursorY = b.y + h
-	c.lastMB = c.style.length(st, st.Margin[2], c.win.Width())
+	c.lastMB = c.style.length(st, st.Margin[css.SideBottom], c.win.Width())
 }

@@ -17,21 +17,21 @@ func setPropBox(dst *Style, src Style, prop string) {
 	case "max-height":
 		dst.MaxHeight = src.MaxHeight
 	case "margin-top":
-		dst.Margin[0] = src.Margin[0]
+		dst.Margin[SideTop] = src.Margin[SideTop]
 	case "margin-right":
-		dst.Margin[1] = src.Margin[1]
+		dst.Margin[SideRight] = src.Margin[SideRight]
 	case "margin-bottom":
-		dst.Margin[2] = src.Margin[2]
+		dst.Margin[SideBottom] = src.Margin[SideBottom]
 	case "margin-left":
-		dst.Margin[3] = src.Margin[3]
+		dst.Margin[SideLeft] = src.Margin[SideLeft]
 	case "padding-top":
-		dst.Padding[0] = src.Padding[0]
+		dst.Padding[SideTop] = src.Padding[SideTop]
 	case "padding-right":
-		dst.Padding[1] = src.Padding[1]
+		dst.Padding[SideRight] = src.Padding[SideRight]
 	case "padding-bottom":
-		dst.Padding[2] = src.Padding[2]
+		dst.Padding[SideBottom] = src.Padding[SideBottom]
 	case "padding-left":
-		dst.Padding[3] = src.Padding[3]
+		dst.Padding[SideLeft] = src.Padding[SideLeft]
 	case "top":
 		dst.Top = src.Top
 	case "right":

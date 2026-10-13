@@ -11,10 +11,10 @@ func (c *CSS) multiItemSized(st css.Style, nw, nh int) multiItem {
 	return multiItem{
 		st: st,
 		nw: nw, nh: nh, w: nw, h: nh,
-		ml:   c.style.length(st, st.Margin[3], b.colW),
-		mr:   c.style.length(st, st.Margin[1], b.colW),
-		mt:   c.style.length(st, st.Margin[0], b.colW),
-		mb:   c.style.length(st, st.Margin[2], b.colW),
+		ml:   c.style.length(st, st.Margin[css.SideLeft], b.colW),
+		mr:   c.style.length(st, st.Margin[css.SideRight], b.colW),
+		mt:   c.style.length(st, st.Margin[css.SideTop], b.colW),
+		mb:   c.style.length(st, st.Margin[css.SideBottom], b.colW),
 		keep: st.BreakInside == css.BreakAvoid,
 	}
 }

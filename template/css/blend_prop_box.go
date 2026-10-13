@@ -17,21 +17,21 @@ func blendPropBox(dst *Style, from Style, prop string, t float64, ctx Units) {
 	case "max-height":
 		dst.MaxHeight = blendLength(from.MaxHeight, dst.MaxHeight, t, ctx)
 	case "margin-top":
-		dst.Margin[0] = blendLength(from.Margin[0], dst.Margin[0], t, ctx)
+		dst.Margin[SideTop] = blendLength(from.Margin[SideTop], dst.Margin[SideTop], t, ctx)
 	case "margin-right":
-		dst.Margin[1] = blendLength(from.Margin[1], dst.Margin[1], t, ctx)
+		dst.Margin[SideRight] = blendLength(from.Margin[SideRight], dst.Margin[SideRight], t, ctx)
 	case "margin-bottom":
-		dst.Margin[2] = blendLength(from.Margin[2], dst.Margin[2], t, ctx)
+		dst.Margin[SideBottom] = blendLength(from.Margin[SideBottom], dst.Margin[SideBottom], t, ctx)
 	case "margin-left":
-		dst.Margin[3] = blendLength(from.Margin[3], dst.Margin[3], t, ctx)
+		dst.Margin[SideLeft] = blendLength(from.Margin[SideLeft], dst.Margin[SideLeft], t, ctx)
 	case "padding-top":
-		dst.Padding[0] = blendLength(from.Padding[0], dst.Padding[0], t, ctx)
+		dst.Padding[SideTop] = blendLength(from.Padding[SideTop], dst.Padding[SideTop], t, ctx)
 	case "padding-right":
-		dst.Padding[1] = blendLength(from.Padding[1], dst.Padding[1], t, ctx)
+		dst.Padding[SideRight] = blendLength(from.Padding[SideRight], dst.Padding[SideRight], t, ctx)
 	case "padding-bottom":
-		dst.Padding[2] = blendLength(from.Padding[2], dst.Padding[2], t, ctx)
+		dst.Padding[SideBottom] = blendLength(from.Padding[SideBottom], dst.Padding[SideBottom], t, ctx)
 	case "padding-left":
-		dst.Padding[3] = blendLength(from.Padding[3], dst.Padding[3], t, ctx)
+		dst.Padding[SideLeft] = blendLength(from.Padding[SideLeft], dst.Padding[SideLeft], t, ctx)
 	case "top":
 		dst.Top = blendLength(from.Top, dst.Top, t, ctx)
 	case "right":

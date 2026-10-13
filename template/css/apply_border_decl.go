@@ -4,7 +4,7 @@ func applyBorderDecl(e *declEnv) []string {
 	st, set, raw, note := e.st, e.set, e.raw, e.note
 	switch e.prop {
 	case "border":
-		applyBorder(st, set, [4]int{0, 1, 2, 3}, raw, note)
+		applyBorder(st, set, allSides, raw, note)
 	case "border-width":
 		if v, ok := parseBorderWidths(raw); ok {
 			st.BorderWidth = v
@@ -21,13 +21,13 @@ func applyBorderDecl(e *declEnv) []string {
 			note()
 		}
 	case "border-top":
-		applyBorder(st, set, [4]int{0, -1, -1, -1}, raw, note)
+		applyBorder(st, set, oneSide(SideTop), raw, note)
 	case "border-right":
-		applyBorder(st, set, [4]int{-1, 1, -1, -1}, raw, note)
+		applyBorder(st, set, oneSide(SideRight), raw, note)
 	case "border-bottom":
-		applyBorder(st, set, [4]int{-1, -1, 2, -1}, raw, note)
+		applyBorder(st, set, oneSide(SideBottom), raw, note)
 	case "border-left":
-		applyBorder(st, set, [4]int{-1, -1, -1, 3}, raw, note)
+		applyBorder(st, set, oneSide(SideLeft), raw, note)
 	case "border-radius":
 		if rx, ry, ok := parseRadiiXY(raw); ok {
 			st.Radius = rx

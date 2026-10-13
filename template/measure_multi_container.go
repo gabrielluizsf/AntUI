@@ -8,8 +8,8 @@ import "github.com/gabrielluizsf/antui/template/css"
 // answers to. The children are collected once and re-flowed at the narrower
 // width a parent that shrinks its items may end up giving.
 func (c *CSS) measureMultiContainer(st css.Style, draw func(*CSS), pctBase int) *multiNested {
-	ml := c.style.length(st, st.Margin[3], pctBase)
-	mr := c.style.length(st, st.Margin[1], pctBase)
+	ml := c.style.length(st, st.Margin[css.SideLeft], pctBase)
+	mr := c.style.length(st, st.Margin[css.SideRight], pctBase)
 	width := max(pctBase-ml-mr, 0)
 	if st.Has("width") {
 		width = c.style.length(st, st.Width, pctBase)

@@ -14,7 +14,7 @@ func (cs *cssStyle) Progress(win *antui.Window, x, y, w, h int, value float32) {
 	// A square progress whose border radius rounds it into a full circle is
 	// a ring: the value draws as an arc sweeping around a track, instead of
 	// a bar filling from the left.
-	r := st.Radius[0] * u
+	r := st.Radius[css.SideTop] * u
 	if w == h && r >= min(w, h)/2 {
 		cs.progressRing(win, st, x, y, w, h, value)
 		return

@@ -17,23 +17,23 @@ func initialBox(st *Style, prop string) {
 	case "margin":
 		st.Margin = [4]Length{Zero(), Zero(), Zero(), Zero()}
 	case "margin-top":
-		st.Margin[0] = Zero()
+		st.Margin[SideTop] = Zero()
 	case "margin-right":
-		st.Margin[1] = Zero()
+		st.Margin[SideRight] = Zero()
 	case "margin-bottom":
-		st.Margin[2] = Zero()
+		st.Margin[SideBottom] = Zero()
 	case "margin-left":
-		st.Margin[3] = Zero()
+		st.Margin[SideLeft] = Zero()
 	case "padding":
 		st.Padding = [4]Length{Zero(), Zero(), Zero(), Zero()}
 	case "padding-top":
-		st.Padding[0] = Zero()
+		st.Padding[SideTop] = Zero()
 	case "padding-right":
-		st.Padding[1] = Zero()
+		st.Padding[SideRight] = Zero()
 	case "padding-bottom":
-		st.Padding[2] = Zero()
+		st.Padding[SideBottom] = Zero()
 	case "padding-left":
-		st.Padding[3] = Zero()
+		st.Padding[SideLeft] = Zero()
 	case "box-sizing":
 		st.BoxSizing = false
 	}

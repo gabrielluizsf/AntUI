@@ -6,9 +6,9 @@ import "github.com/gabrielluizsf/antui/template/css"
 // its border box from the flow cursor and makes the batch the flow will fill.
 func (c *CSS) openMultiCol(st css.Style) *multiBatch {
 	winW := c.win.Width()
-	ml := c.style.length(st, st.Margin[3], winW)
-	mr := c.style.length(st, st.Margin[1], winW)
-	mt := c.style.length(st, st.Margin[0], winW)
+	ml := c.style.length(st, st.Margin[css.SideLeft], winW)
+	mr := c.style.length(st, st.Margin[css.SideRight], winW)
+	mt := c.style.length(st, st.Margin[css.SideTop], winW)
 
 	// The container is a block: it closes the inline line, collapses the
 	// sibling margins and rests on the flow cursor.

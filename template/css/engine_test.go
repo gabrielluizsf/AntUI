@@ -26,7 +26,7 @@ func TestParseClassSelector(t *testing.T) {
 	if st.Background != 0xFF3E63DD {
 		t.Errorf("background = %v, want 0xFF3E63DD", st.Background)
 	}
-	if st.Radius[0] != 8 || st.Radius[1] != 8 || st.Radius[2] != 8 || st.Radius[3] != 8 {
+	if st.Radius[SideTop] != 8 || st.Radius[SideRight] != 8 || st.Radius[SideBottom] != 8 || st.Radius[SideLeft] != 8 {
 		t.Errorf("radius = %v, want all 8", st.Radius)
 	}
 	if st.Display != 0 {
@@ -43,8 +43,8 @@ func TestUniversalAndElement(t *testing.T) {
 	if !st.BoxSizing {
 		t.Error("* box-sizing did not apply")
 	}
-	if st.Padding[0].Px(0) != 8 {
-		t.Errorf("input padding = %d, want 8 (classically more specific wins)", st.Padding[0].Px(0))
+	if st.Padding[SideTop].Px(0) != 8 {
+		t.Errorf("input padding = %d, want 8 (classically more specific wins)", st.Padding[SideTop].Px(0))
 	}
 }
 
@@ -115,7 +115,7 @@ func TestMarginShorthand(t *testing.T) {
 	sh := mustParse(t, `.btn { margin: 4px 8px; }`)
 	st := sh.Style("button", []string{"btn"}, StateNone, 800)
 	want := [4]int{4, 8, 4, 8}
-	got := [4]int{st.Margin[0].Px(0), st.Margin[1].Px(0), st.Margin[2].Px(0), st.Margin[3].Px(0)}
+	got := [4]int{st.Margin[SideTop].Px(0), st.Margin[SideRight].Px(0), st.Margin[SideBottom].Px(0), st.Margin[SideLeft].Px(0)}
 	if got != want {
 		t.Errorf("margin = %v, want %v", got, want)
 	}
@@ -124,7 +124,7 @@ func TestMarginShorthand(t *testing.T) {
 func TestMarginFourValues(t *testing.T) {
 	sh := mustParse(t, `.btn { margin: 1px 2px 3px 4px; }`)
 	st := sh.Style("button", []string{"btn"}, StateNone, 800)
-	got := [4]int{st.Margin[0].Px(0), st.Margin[1].Px(0), st.Margin[2].Px(0), st.Margin[3].Px(0)}
+	got := [4]int{st.Margin[SideTop].Px(0), st.Margin[SideRight].Px(0), st.Margin[SideBottom].Px(0), st.Margin[SideLeft].Px(0)}
 	if got != [4]int{1, 2, 3, 4} {
 		t.Errorf("margin = %v", got)
 	}

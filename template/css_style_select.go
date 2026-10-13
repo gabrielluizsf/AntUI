@@ -11,7 +11,7 @@ func (cs *cssStyle) Select(win *antui.Window, s State, x, y, w, h int, value str
 		st = cs.styleFor(css.RoleSelect, State{Focused: true, Hovered: s.Hovered})
 	}
 	cs.paintBox(win, st, x, y, w, h)
-	padR := cs.base(st, st.Padding[1])
+	padR := cs.base(st, st.Padding[css.SideRight])
 	u := cs.u()
 	textW := w - padR - 14*u
 	cs.drawText(win, st, x, y, max(textW, 0), h, value)

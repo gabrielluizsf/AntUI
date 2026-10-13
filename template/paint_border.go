@@ -12,7 +12,7 @@ func (cs *cssStyle) paintBorder(cv *canvas.Canvas, st css.Style, x, y, w, h, rx,
 	u := cs.u()
 
 	if !cs.perSideBorder(st) && len(st.BackgroundImages) == 0 {
-		bw := st.BorderWidth[0] * u
+		bw := st.BorderWidth[css.SideTop] * u
 		if bw <= 0 {
 			bw = u
 		}

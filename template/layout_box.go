@@ -32,10 +32,10 @@ func (c *CSS) layoutBox(e *widgetEntry, role, label string, s State) (x, y, w, h
 		h = max(h, c.style.length(st, st.MinHeight, winH))
 	}
 
-	ml := c.style.length(st, st.Margin[3], winW)
-	mr := c.style.length(st, st.Margin[1], winW)
-	mt := c.style.length(st, st.Margin[0], winW)
-	mb := c.style.length(st, st.Margin[2], winW)
+	ml := c.style.length(st, st.Margin[css.SideLeft], winW)
+	mr := c.style.length(st, st.Margin[css.SideRight], winW)
+	mt := c.style.length(st, st.Margin[css.SideTop], winW)
+	mb := c.style.length(st, st.Margin[css.SideBottom], winW)
 
 	if st.OutOfFlow() {
 		x, y = c.placeOutOfFlow(st, w, h, winW, winH)

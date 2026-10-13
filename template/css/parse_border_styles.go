@@ -1,9 +1,9 @@
 package css
 
-func parseBorderStyles(raw string) ([4]uint8, bool) {
-	var out [4]uint8
+func parseBorderStyles(raw string) ([sideCount]uint8, bool) {
+	var out [sideCount]uint8
 	parts := splitWords(raw)
-	if len(parts) == 0 || len(parts) > 4 {
+	if len(parts) == 0 || len(parts) > sideCount {
 		return out, false
 	}
 	vals := make([]uint8, len(parts))
@@ -14,7 +14,7 @@ func parseBorderStyles(raw string) ([4]uint8, bool) {
 		}
 		vals[i] = v
 	}
-	fill := expandFourInt8(vals)
+	fill := expandFour(vals)
 	copy(out[:], fill[:])
 	return out, true
 }

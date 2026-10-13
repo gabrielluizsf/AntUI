@@ -7,10 +7,10 @@ import (
 
 func (cs *cssStyle) paintBoxOf(win *antui.Window, st css.Style, x, y, w, h int, surface bool) {
 	cv := win.Canvas()
-	rx := st.Radius[0] * cs.u()
+	rx := st.Radius[css.SideTop] * cs.u()
 	ry := rx
-	if st.RadiusY[0] != 0 {
-		ry = st.RadiusY[0] * cs.u()
+	if st.RadiusY[css.SideTop] != 0 {
+		ry = st.RadiusY[css.SideTop] * cs.u()
 	}
 
 	if len(st.BackdropFilters) > 0 {
