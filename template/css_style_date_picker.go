@@ -2,10 +2,41 @@ package template
 
 import (
 	"github.com/gabrielluizsf/antui"
-	"github.com/gabrielluizsf/antui/canvas"
 	"github.com/gabrielluizsf/antui/template/css"
 )
 
+// datePaint is one calendar's geometry and its month, gathered so the painters
+// that draw its parts agree on where they are and what day they are marking
+// without passing thirteen numbers between them.
+//
+// x, y, w and h are the popup box, u the scale everything in it is measured at
+// (its own, once it grew to fill the window), and the rest is the month: which
+// weekday its first day falls on, how many days it has, and the day numbers to
+// mark as chosen, today and hovered — 0 when not applicable.
+type datePaint struct {
+	x, y, w, h int
+	u          int
+	firstWD    int
+	days       int
+	selected   int
+	today      int
+	hover      int
+}
+
+// header is the height of the title row the month and the arrows sit in.
+func (p datePaint) header() int { return dateHeaderHeight(p.u) }
+
+// headerY is the top of the title row's text, centred in it.
+func (p datePaint) headerTextY(th int) int { return p.y + (p.header()-th)/2 }
+
+// weekHeadY is the top of the weekday-name row under the header.
+func (p datePaint) weekHeadY() int { return weekdayHeadY(p.x, p.y, p.u) }
+
+// rows is how many week rows the month actually needs, up to six.
+func (p datePaint) rows() int { return min((p.firstWD+p.days+6)/7, 6) }
+
+// DatePicker paints the calendar popup: the month header, the weekday row, and
+// the day grid below it with the chosen, hovered and today's days marked.
 func (cs *cssStyle) DatePicker(win *antui.Window, s State, x, y, w, h int, year, month, firstWD, days, selected, today, hover int) {
 	// The calendar is a datepicker carrying a class of its own, so a sheet can
 	// tell it apart from the box it dropped from while the element's rules go
@@ -17,67 +48,12 @@ func (cs *cssStyle) DatePicker(win *antui.Window, s State, x, y, w, h int, year,
 	u := popupScale(w)
 	cs.textScale = u
 	defer func() { cs.textScale = 0 }()
+
+	p := datePaint{x: x, y: y, w: w, h: h, u: u, firstWD: firstWD, days: days,
+		selected: selected, today: today, hover: hover}
 	cs.paintBox(win, st, x, y, w, h)
-
-	header := dateHeaderHeight(u)
-	// The title row is the table's heading: a quiet band separates navigation
-	// from the weekday and day rows without introducing another card.
-	band := cs.fade(st, canvas.Shade(cs.fill(st), -0.035))
-	line := cs.fade(st, canvas.Shade(cs.fill(st), -0.10))
 	cv := win.Canvas()
-	cv.FillRect(x+u, y+u, w-2*u, max(header-u, 1), band)
-	cv.FillRect(x+2*u, y+header-u, w-4*u, u, line)
-	mname := monthName(month)
-	labelW := textWidth(u, mname) + 3*u + textWidth(u, itoa(year))
-	lx := x + (w-labelW)/2
-	cs.run(cv, st, lx, y+(header-cs.textHeight(st))/2, mname)
-	cs.run(cv, st, lx+textWidth(u, mname)+3*u, y+(header-cs.textHeight(st))/2, itoa(year))
-
-	// The arrows sit in the header, leaving the weekday and day rows aligned as
-	// one table below it.
-	ax, ay, aw := dateArrowRect(x, y, u, true)
-	DrawIcon(cv, IconCaretLeft, ax, ay, aw, aw, cs.ink(st))
-	ax, ay, aw = dateArrowRect(x, y, u, false)
-	DrawIcon(cv, IconCaretRight, ax, ay, aw, aw, cs.ink(st))
-
-	c := dateCellSize(u)
-	gx, gy, gw, _ := dateGridRect(x, y, u)
-	hy := weekdayHeadY(x, y, u)
-	// The calendar body is a table: its fine rules make the weekday columns
-	// and week rows easy to scan while staying underneath selected/hovered days.
-	rule := cs.fade(st, canvas.Shade(cs.fill(st), -0.035))
-	rows := min((firstWD+days+6)/7, 6)
-	for col := 0; col <= 7; col++ {
-		cv.FillRect(gx+col*c, hy, u, weekdayHeadHeight(u)+rows*c, rule)
-	}
-	for row := 0; row <= rows; row++ {
-		cv.FillRect(gx, gy+row*c, gw, u, rule)
-	}
-	for d := 0; d < 7; d++ {
-		cx := gx + d*c
-		cs.run(cv, st, cx+(c-textWidth(u, "S"))/2, hy, dayHeadName((firstWD+d)%7))
-	}
-
-	for day := 1; day <= days; day++ {
-		pos := firstWD + day - 1
-		col, row := pos%7, pos/7
-		cx, cy, cc, _ := dayCellRect(x, y, u, col, row)
-		tx, ty := cx+(cc-textWidth(u, itoa(day)))/2, cy+(cc-cs.textHeight(st))/2
-		switch day {
-		case selected:
-			// The selected day is a chip of the widget's own ink with the
-			// number reversed out in the surface colour, the way the
-			// built-in templates mark it in their accent colour.
-			cv.FillRoundRect(cx, cy, cc, cc, 2*u, canvas.Fade(cs.ink(st), cs.alpha(st)))
-			cs.runOn(cv, st, cs.surface(st), tx, ty, itoa(day))
-		case hover:
-			cv.FillRoundRect(cx, cy, cc, cc, 2*u, cs.fade(st, canvas.Shade(cs.fill(st), -0.15)))
-			cs.run(cv, st, tx, ty, itoa(day))
-		default:
-			cs.run(cv, st, tx, ty, itoa(day))
-		}
-		if day == today && day != selected {
-			cv.Circle(cx+cc/2, cy+cc/2, cc/2-2*u, cs.ink(st))
-		}
-	}
+	cs.paintDateHeader(cv, st, p, month, year)
+	cs.paintDateRules(cv, st, p)
+	cs.paintDateDays(cv, st, p)
 }
