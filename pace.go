@@ -17,6 +17,9 @@ func (win *Window) pace() {
 		return
 	}
 	now := time.Now()
+	if win.clock != nil {
+		now = win.clock()
+	}
 	if win.nextFrame.IsZero() {
 		win.nextFrame = now
 	}
