@@ -39,6 +39,7 @@ func (cs *cssStyle) paintBorder(cv *canvas.Canvas, st css.Style, x, y, w, h, rx,
 		if bw <= 0 {
 			bw = u
 		}
-		cs.paintSide(cv, side, style, bw, x, y, w, h, cs.fade(st, st.BoxColor[side]))
+		cs.paintSide(cv, boxSide{side: side, x: x, y: y, w: w, h: h,
+			width: bw, colour: cs.fade(st, st.BoxColor[side])}, style)
 	}
 }

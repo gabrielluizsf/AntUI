@@ -5,17 +5,19 @@ import (
 	"github.com/gabrielluizsf/antui/template/css"
 )
 
-// paintSide strokes one side of a box in the given border style. side is 0
-// top, 1 right, 2 bottom, 3 left.
-func (cs *cssStyle) paintSide(cv *canvas.Canvas, side int, style uint8, bw, x, y, w, h int, col canvas.Color) {
+// paintSide strokes one side of a box in the border style the element declared,
+// handing it to the painter for that style. The styles are separate painters
+// rather than branches of one, so a new style is a new file and nothing else
+// has to know about it.
+func (cs *cssStyle) paintSide(cv *canvas.Canvas, s boxSide, style uint8) {
 	switch style {
 	case css.BorderDouble:
-		cs.paintDoubleSide(cv, side, bw, x, y, w, h, col)
+		cs.paintDoubleSide(cv, s)
 	case css.BorderDashed:
-		cs.paintDashSide(cv, side, bw, x, y, w, h, col, false)
+		cs.paintDashSide(cv, s, false)
 	case css.BorderDotted:
-		cs.paintDashSide(cv, side, bw, x, y, w, h, col, true)
+		cs.paintDashSide(cv, s, true)
 	default:
-		cs.paintSolidSide(cv, side, bw, x, y, w, h, col)
+		cs.paintSolidSide(cv, s)
 	}
 }

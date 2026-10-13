@@ -41,6 +41,7 @@ func (cs *cssStyle) paintOutline(win *antui.Window, st css.Style, x, y, w, h int
 		return
 	}
 	for side := 0; side < 4; side++ {
-		cs.paintSide(win.Canvas(), side, st.OutlineStyle, ow, ox, oy, ow2, oh2, col)
+		cs.paintSide(win.Canvas(), boxSide{side: side, x: ox, y: oy, w: ow2, h: oh2,
+			width: ow, colour: col}, st.OutlineStyle)
 	}
 }

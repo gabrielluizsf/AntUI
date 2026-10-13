@@ -30,6 +30,7 @@ func (cs *cssStyle) paintColumnRules(win *antui.Window, b *multiBatch) {
 		// Centred in the gutter; a rule wider than the gutter starts at its edge
 		// and runs over the column beside it, as it does in a browser.
 		x := max(gutter+(b.gap-bw)/2, gutter)
-		cs.paintSide(cv, 3, st.ColumnRuleStyle, bw, x, top, bw, height, st.ColumnRuleColor)
+		cs.paintSide(cv, boxSide{side: css.SideLeft, x: x, y: top, w: bw, h: height,
+			width: bw, colour: st.ColumnRuleColor}, st.ColumnRuleStyle)
 	}
 }

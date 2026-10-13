@@ -3,57 +3,34 @@ package template
 import "github.com/gabrielluizsf/antui/canvas"
 
 // paintDashSide draws a dashed or dotted side: dashes as rectangles, dots as
-// small discs, spaced along the side.
-func (cs *cssStyle) paintDashSide(cv *canvas.Canvas, side int, bw, x, y, w, h int, col canvas.Color, dotted bool) {
-	horizontal := side == 0 || side == 2
-	length := w
-	if !horizontal {
-		length = h
-	}
+// small discs, spaced along the side. The two differ only in what is laid down
+// and how far apart, so they share the walk and the spacing.
+func (cs *cssStyle) paintDashSide(cv *canvas.Canvas, s boxSide, dotted bool) {
+	length := s.along()
 	u := cs.u()
-	step := max(3*bw, 3*u)
+	step := max(3*s.width, 3*u)
+	seg := max(2*s.width, 2*u)
 	if dotted {
-		step = max(2*bw, 2*u)
+		step = max(2*s.width, 2*u)
+		seg = s.width
 	}
 
-	if dotted {
-		r := max(bw/2, 1)
-		for p := 0; p+bw <= length; p += step {
-			if horizontal {
-				yy := y
-				if side == 2 {
-					yy = y + h - bw
-				}
-				cv.FillCircle(x+p+bw/2, yy+bw/2, r, col)
-			} else {
-				xx := x
-				if side == 1 {
-					xx = x + w - bw
-				}
-				cv.FillCircle(xx+bw/2, y+p+bw/2, r, col)
-			}
+	// A dot is a disc of the border's own thickness, so it has to fit whole
+	// before it is drawn and one hanging off the end is dropped; a dash is a
+	// rectangle clipped to whatever is left of the side.
+	for at := 0; at < length; at += step {
+		if dotted && at+s.width > length {
+			break
 		}
-		return
-	}
-
-	seg := max(2*bw, 2*u)
-	for p := 0; p < length; p += step {
-		n := min(seg, length-p)
+		n := min(seg, length-at)
 		if n <= 0 {
 			break
 		}
-		if horizontal {
-			yy := y
-			if side == 2 {
-				yy = y + h - bw
-			}
-			cv.FillRect(x+p, yy, n, bw, col)
+		x, y, w, h := s.rect(at, n, 0, s.width)
+		if dotted {
+			cv.FillCircle(x+w/2, y+h/2, max(s.width/2, 1), s.colour)
 		} else {
-			xx := x
-			if side == 1 {
-				xx = x + w - bw
-			}
-			cv.FillRect(xx, y+p, bw, n, col)
+			cv.FillRect(x, y, w, h, s.colour)
 		}
 	}
 }
