@@ -5,8 +5,8 @@ import (
 	"strings"
 )
 
-func parseFour(raw string) ([4]Length, error) {
-	var out [4]Length
+func parseFour(raw string) ([sideCount]Length, error) {
+	var out [sideCount]Length
 	parts := strings.Fields(raw)
 	if len(parts) == 0 {
 		return out, fmt.Errorf("css: expected a length, got %q", raw)
@@ -19,7 +19,7 @@ func parseFour(raw string) ([4]Length, error) {
 		}
 		vals[i] = v
 	}
-	return expandInto(out, vals), nil
+	return expandFour(vals), nil
 }
 
 // parseFourAt is parseFour under a measurement context, so % and the

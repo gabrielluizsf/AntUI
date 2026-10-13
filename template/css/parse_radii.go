@@ -4,8 +4,8 @@ import "strings"
 
 // parseRadiiList expands one to four non-negative pixel radii into the four
 // corners, in CSS order: top-left, top-right, bottom-right, bottom-left.
-func parseRadiiList(raw string) ([4]int, bool) {
-	var out [4]int
+func parseRadiiList(raw string) ([sideCount]int, bool) {
+	var out [sideCount]int
 	parts := splitWords(raw)
 	if len(parts) == 0 || len(parts) > 4 {
 		return out, false
@@ -26,7 +26,7 @@ func parseRadiiList(raw string) ([4]int, bool) {
 // parseRadiiXY parses a border-radius value, splitting the elliptical form
 // "8px / 16px" into horizontal and vertical radii. With no slash the two axes
 // are equal.
-func parseRadiiXY(raw string) ([4]int, [4]int, bool) {
+func parseRadiiXY(raw string) ([sideCount]int, [sideCount]int, bool) {
 	head, tail, hasSlash := splitSlash(raw)
 	rx, ok := parseRadiiList(head)
 	if !ok {

@@ -2,7 +2,7 @@ package css
 
 // applyBorder sets one or all sides of the border from a shorthand like
 // "1px solid red". sides[i] >= 0 names the side to set, or all four.
-func applyBorder(st *Style, set map[string]bool, sides [4]int, raw string, note func()) {
+func applyBorder(st *Style, set map[string]bool, sides [sideCount]int, raw string, note func()) {
 	b := parseBorderSides(raw, sides)
 	for i := 0; i < 4; i++ {
 		dst := i

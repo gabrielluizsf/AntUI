@@ -1,7 +1,7 @@
 package css
 
-func parseBorderWidths(raw string) ([4]int, bool) {
-	var out [4]int
+func parseBorderWidths(raw string) ([sideCount]int, bool) {
+	var out [sideCount]int
 	parts := splitWords(raw)
 	if len(parts) == 0 || len(parts) > 4 {
 		return out, false

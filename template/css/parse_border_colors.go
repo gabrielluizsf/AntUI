@@ -2,8 +2,8 @@ package css
 
 import "github.com/gabrielluizsf/antui/canvas"
 
-func parseBorderColors(raw string) ([4]canvas.Color, bool) {
-	var out [4]canvas.Color
+func parseBorderColors(raw string) ([sideCount]canvas.Color, bool) {
+	var out [sideCount]canvas.Color
 	parts := splitWords(raw)
 	if len(parts) == 0 || len(parts) > 4 {
 		return out, false

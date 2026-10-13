@@ -5,15 +5,15 @@ import (
 	"strings"
 )
 
-func parseFourAt(raw string, ctx Units) ([4]Length, error) {
+func parseFourAt(raw string, ctx Units) ([sideCount]Length, error) {
 	if mathLook(raw) {
 		px, ok := EvalMath(raw, ctx)
 		if ok {
-			return [4]Length{Fixed(px), Fixed(px), Fixed(px), Fixed(px)}, nil
+			return [sideCount]Length{Fixed(px), Fixed(px), Fixed(px), Fixed(px)}, nil
 		}
-		return [4]Length{}, fmt.Errorf("css: %q does not evaluate", raw)
+		return [sideCount]Length{}, fmt.Errorf("css: %q does not evaluate", raw)
 	}
-	var out [4]Length
+	var out [sideCount]Length
 	parts := strings.Fields(raw)
 	if len(parts) == 0 {
 		return out, fmt.Errorf("css: expected a length, got %q", raw)
@@ -26,5 +26,5 @@ func parseFourAt(raw string, ctx Units) ([4]Length, error) {
 		}
 		vals[i] = v
 	}
-	return expandInto(out, vals), nil
+	return expandFour(vals), nil
 }

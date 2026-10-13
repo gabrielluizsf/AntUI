@@ -9,20 +9,20 @@ type boxStyle struct {
 	Width, Height        Length
 	MinWidth, MaxWidth   Length
 	MinHeight, MaxHeight Length
-	Margin               [4]Length // top, right, bottom, left
-	Padding              [4]Length
+	Margin               [sideCount]Length // top, right, bottom, left
+	Padding              [sideCount]Length
 	BoxSizing            bool // border-box when true, content-box otherwise
 
-	// Border. BoxStyle[i] is one of the Border* constants.
-	BorderWidth [4]int
-	BoxStyle    [4]uint8
-	BoxColor    [4]canvas.Color
-	Radius      [4]int
-	RadiusY     [4]int // vertical radii; zero means the same as Radius
+	// Border. BoxStyle[i] is one of the Border* constants, indexed by side.
+	BorderWidth [sideCount]int
+	BoxStyle    [sideCount]uint8
+	BoxColor    [sideCount]canvas.Color
+	Radius      [sideCount]int
+	RadiusY     [sideCount]int // vertical radii; zero means the same as Radius
 }
 
 // BorderOn reports whether any side paints a border.
 func (s *Style) BorderOn() bool {
-	return s.BoxStyle[0] != BorderNone || s.BoxStyle[1] != BorderNone ||
-		s.BoxStyle[2] != BorderNone || s.BoxStyle[3] != BorderNone
+	return s.BoxStyle[SideTop] != BorderNone || s.BoxStyle[SideRight] != BorderNone ||
+		s.BoxStyle[SideBottom] != BorderNone || s.BoxStyle[SideLeft] != BorderNone
 }

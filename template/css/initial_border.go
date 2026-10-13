@@ -5,17 +5,17 @@ import "github.com/gabrielluizsf/antui/canvas"
 func initialBorder(st *Style, prop string) {
 	switch prop {
 	case "border":
-		st.BorderWidth = [4]int{}
-		st.BoxStyle = [4]uint8{}
-		st.BoxColor = [4]canvas.Color{}
+		st.BorderWidth = [sideCount]int{}
+		st.BoxStyle = [sideCount]uint8{}
+		st.BoxColor = [sideCount]canvas.Color{}
 	case "border-width":
-		st.BorderWidth = [4]int{}
+		st.BorderWidth = [sideCount]int{}
 	case "border-style":
-		st.BoxStyle = [4]uint8{}
+		st.BoxStyle = [sideCount]uint8{}
 	case "border-color":
-		st.BoxColor = [4]canvas.Color{}
+		st.BoxColor = [sideCount]canvas.Color{}
 	case "border-radius":
-		st.Radius = [4]int{}
-		st.RadiusY = [4]int{}
+		st.Radius = [sideCount]int{}
+		st.RadiusY = [sideCount]int{}
 	}
 }

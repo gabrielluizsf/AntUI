@@ -1,6 +1,6 @@
 package css
 
-// The four sides, in the order every `[4]` in a Style is written: the numbers
+// The four sides, in the order every per-side array in a Style is written: the numbers
 // the shorthand expands into, the index a border or a radius is stored at, and
 // the order they go round the box. CSS writes it top, right, bottom, left —
 // two values are top/bottom then left/right, three leave out the left because it

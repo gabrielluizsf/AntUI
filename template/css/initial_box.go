@@ -15,7 +15,7 @@ func initialBox(st *Style, prop string) {
 	case "max-height":
 		st.MaxHeight = Length{u: unitNone}
 	case "margin":
-		st.Margin = [4]Length{Zero(), Zero(), Zero(), Zero()}
+		st.Margin = [sideCount]Length{Zero(), Zero(), Zero(), Zero()}
 	case "margin-top":
 		st.Margin[SideTop] = Zero()
 	case "margin-right":
@@ -25,7 +25,7 @@ func initialBox(st *Style, prop string) {
 	case "margin-left":
 		st.Margin[SideLeft] = Zero()
 	case "padding":
-		st.Padding = [4]Length{Zero(), Zero(), Zero(), Zero()}
+		st.Padding = [sideCount]Length{Zero(), Zero(), Zero(), Zero()}
 	case "padding-top":
 		st.Padding[SideTop] = Zero()
 	case "padding-right":
