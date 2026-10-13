@@ -13,3 +13,12 @@ func (cs *cssStyle) styleFor(role string, s State) css.Style {
 	}
 	return cs.baseStyle(role, s)
 }
+
+// styleForClass is the style of a widget drawn from another widget's role
+// that carries a class of the template's own — the calendar the date box
+// drops, which has to stay styleable apart from the box while the element's
+// own rules keep reaching it. It paints as the cascade answers it, with no
+// animation of the box's to inherit.
+func (cs *cssStyle) styleForClass(role, class string, s State) css.Style {
+	return cs.baseStyleClass(role, []string{class}, s)
+}

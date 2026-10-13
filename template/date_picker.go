@@ -5,7 +5,9 @@ import "github.com/gabrielluizsf/antui"
 func (builtinStyle) DatePicker(win *antui.Window, s State, x, y, w, h int, year, month, firstWD, days, selected, today, hover int) {
 	cv := win.Canvas()
 	th := win.Theme()
-	u := Scale(win)
+	// The popup is drawn at the scale it was measured at, which is the step it
+	// grew to for this window rather than the window's own.
+	u := popupScale(w)
 
 	cv.FillRoundRect(x, y, w, h, 4*u, th.Surface)
 	border := th.Border

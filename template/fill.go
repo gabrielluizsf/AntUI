@@ -12,5 +12,5 @@ func (cs *cssStyle) fill(st css.Style) canvas.Color {
 	if st.Background.A() == 0 {
 		return canvas.Transparent
 	}
-	return canvas.Fade(st.Background, cs.alpha(st))
+	return fadeColor(st.Background, cs.alpha(st))
 }

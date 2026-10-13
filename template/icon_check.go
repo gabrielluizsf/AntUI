@@ -14,4 +14,8 @@ const (
 	// IconCaretUp is the same arrow the other way up, which is what a date
 	// picker shows while its calendar is open.
 	IconCaretUp = "caret-up"
+	// IconCaretLeft is the arrow that steps a calendar back a month.
+	IconCaretLeft = "caret-left"
+	// IconCaretRight is the same arrow the other way, forward a month.
+	IconCaretRight = "caret-right"
 )

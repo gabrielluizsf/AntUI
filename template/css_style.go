@@ -29,4 +29,10 @@ type cssStyle struct {
 	layer  *canvas.Canvas
 	layerW int
 	layerH int
+
+	// textScale is the scale the drawing under way wants its text at, when a
+	// widget draws at a step of its own rather than the window's — the open
+	// calendar, which grows to fill the window. Zero is the window's own scale,
+	// and every widget but that calendar leaves it there.
+	textScale int
 }

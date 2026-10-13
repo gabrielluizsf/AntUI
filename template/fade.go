@@ -13,5 +13,5 @@ func (cs *cssStyle) fade(st css.Style, c canvas.Color) canvas.Color {
 	if c.A() == 0 {
 		return c
 	}
-	return canvas.Fade(c, cs.alpha(st))
+	return fadeColor(c, cs.alpha(st))
 }

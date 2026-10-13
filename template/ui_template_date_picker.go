@@ -21,7 +21,7 @@ func (t *uiTemplate) DatePicker(win *antui.Window, x, y, w, h int, value *Date) 
 	if hovered {
 		win.WidgetHot(id)
 	}
-	g := dateGeomFor(x, y, w, h, Scale(win))
+	g := dateGeomFor(win, x, y, w, h)
 	focused := win.WidgetFocus() == id
 	win.WidgetTabStop(id)
 

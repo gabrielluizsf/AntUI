@@ -16,15 +16,13 @@ func (cs *cssStyle) DatePickerBox(win *antui.Window, s State, x, y, w, h int, va
 	textW := w - padR - 14*u
 	cs.drawText(win, st, x, y, max(textW, 0), h, value)
 
-	aw, ah := 6*u, 4*u
-	ax := x + w - padR - aw
-	ay := y + (h-ah)/2
-	cv := win.Canvas()
+	// The caret that says "there is a calendar below", flipped the way the
+	// dropdown's is while the picker is open.
+	name := IconCaret
 	if open {
-		cv.Line(ax, ay+ah, ax+aw/2, ay, cs.ink(st))
-		cv.Line(ax+aw/2, ay, ax+aw, ay+ah, cs.ink(st))
-	} else {
-		cv.Line(ax, ay, ax+aw/2, ay+ah, cs.ink(st))
-		cv.Line(ax+aw/2, ay+ah, ax+aw, ay, cs.ink(st))
+		name = IconCaretUp
 	}
+	caretBox := 10 * u
+	DrawIcon(win.Canvas(), name,
+		x+w-padR-3*u-caretBox/2, y+(h-caretBox)/2, caretBox, caretBox, cs.ink(st))
 }

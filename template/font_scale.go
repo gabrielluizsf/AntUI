@@ -6,6 +6,9 @@ import "github.com/gabrielluizsf/antui/template/css"
 // with 16 reference pixels as the face's natural size.
 func (cs *cssStyle) fontScale(st css.Style) int {
 	u := cs.u()
+	if cs.textScale > 0 {
+		u = cs.textScale
+	}
 	if !st.Has("font-size") || st.FontSize <= 0 {
 		return u
 	}

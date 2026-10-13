@@ -347,12 +347,13 @@ func TestDatePickerPicksADay(t *testing.T) {
 		t.Fatalf("clicking the box should open the calendar, got %v", e)
 	}
 
-	// With u=1 the popup's grid starts where the geometry helpers say. Sept 1
-	// 2026 is a Tuesday (firstWD=2), so day 10 is at grid index 11: row 1,
-	// col 4. Click its centre — the value starts on day 1, so this must
-	// change it and close the popup.
-	px, py := 10, 10+30
-	cx, cy, cc, _ := dayCellRect(px, py, 1, (2+10-1)%7, (2+10-1)/7)
+	// With the popup centred in the window and grown a step for it, the grid
+	// starts where the geometry helpers say it does. Sept 1 2026 is a Tuesday
+	// (firstWD=2), so day 10 is at grid index 11: row 1, col 4. Click its
+	// centre — the value starts on day 1, so this must change it and close the
+	// popup.
+	g := dateGeomFor(win, 10, 10, 150, 30)
+	cx, cy, cc, _ := dayCellRect(g.px, g.py, g.u, (2+10-1)%7, (2+10-1)/7)
 	win.Begin()
 	testClick(t, win, cx+cc/2, cy+cc/2)
 	e = tpl.DatePicker(win, 10, 10, 150, 30, &value)
@@ -386,8 +387,8 @@ func TestDatePickerMarkerFollowsMouse(t *testing.T) {
 
 	// Wandering over the grid moves the marker along, without clicking.
 	// Sept 1 2026 is a Tuesday (firstWD=2), so day 10 sits at row 1 col 4.
-	px, py := 10, 10+30
-	cx, cy, cc, _ := dayCellRect(px, py, 1, (2+10-1)%7, (2+10-1)/7)
+	g := dateGeomFor(win, 10, 10, 150, 30)
+	cx, cy, cc, _ := dayCellRect(g.px, g.py, g.u, (2+10-1)%7, (2+10-1)/7)
 	win.Begin()
 	win.Push(antui.Event{Type: antui.EventMouseMove, X: cx + cc/2, Y: cy + cc/2})
 	e := tpl.DatePicker(win, 10, 10, 150, 30, &value)
@@ -426,8 +427,8 @@ func TestDatePickerArrowsWorkWhileMouseResting(t *testing.T) {
 	win.End()
 
 	// Rest the pointer over day 10, then walk one day right with the arrow.
-	px, py := 10, 10+30
-	cx, cy, cc, _ := dayCellRect(px, py, 1, (2+10-1)%7, (2+10-1)/7)
+	g := dateGeomFor(win, 10, 10, 150, 30)
+	cx, cy, cc, _ := dayCellRect(g.px, g.py, g.u, (2+10-1)%7, (2+10-1)/7)
 	win.Begin()
 	win.Push(antui.Event{Type: antui.EventMouseMove, X: cx + cc/2, Y: cy + cc/2})
 	tpl.DatePicker(win, 10, 10, 150, 30, &value)

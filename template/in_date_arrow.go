@@ -1,13 +1,16 @@
 package template
 
-// inDateArrow reports whether (mx,my) is on the left (prev, true) or right
-// (next, false) arrow of the header. The arrow is a square under the header
-// text baseline, at either end of the row.
+// inDateArrow reports whether (mx,my) is in the left or right arrow area of
+// the header. The whole gutter is clickable, not only the small SVG square.
 func inDateArrow(x, y, u, mx, my int, prev bool) bool {
-	ax, aw := x+2*u, 8*u
-	if !prev {
-		w, _ := datePickerSize(u)
-		ax = x + w - 2*u - aw
+	header := dateHeaderHeight(u)
+	if my < y || my >= y+header {
+		return false
 	}
-	return mx >= ax && mx < ax+aw && my >= y && my < y+dateHeaderHeight(u)
+	gut := dateArrowGutter(u)
+	if prev {
+		return mx >= x && mx < x+gut
+	}
+	w, _ := datePickerSize(u)
+	return mx >= x+w-gut && mx < x+w
 }

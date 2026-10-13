@@ -26,6 +26,15 @@ func (cs *cssStyle) paintBackgroundLayer(win *antui.Window, st css.Style, i, x, 
 		return cs.paintImageLayer(win, st, i, src, w, h, cr)
 	}
 	if icon := cs.iconImage(img.URL, st); icon != nil {
+		// Resolve background-size against the natural icon once, then ask the
+		// SVG renderer for exactly that final size. paintImageLayer can then
+		// composite it without a second bitmap resample.
+		origin := propAt(st.BackgroundOrigin, i, css.BackPadding)
+		_, _, ow, oh := cs.originRect(st, 0, 0, w, h, origin)
+		dw, dh := cs.backgroundTileSize(st, i, icon, ow, oh)
+		if direct := cs.iconImageAt(img.URL, st, dw, dh); direct != nil {
+			icon = direct
+		}
 		return cs.paintImageLayer(win, st, i, icon, w, h, cr)
 	}
 	return nil

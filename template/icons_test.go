@@ -117,9 +117,9 @@ func restoreIcons(t *testing.T) {
 func TestBuiltinIconsAreRegisteredAndDraw(t *testing.T) {
 	// Every icon the widgets draw has to be registered and to paint something:
 	// an icon that is registered but empty is a widget with a hole in it.
-	win := blankWin(t, 120, 30)
+	win := blankWin(t, 6*30, 30)
 	cv := win.Canvas()
-	for i, name := range []string{IconCheck, IconDot, IconCaret, IconCaretUp} {
+	for i, name := range []string{IconCheck, IconDot, IconCaret, IconCaretUp, IconCaretLeft, IconCaretRight} {
 		if _, ok := IconSource(name); !ok {
 			t.Errorf("the built-in icon %q is not registered", name)
 			continue

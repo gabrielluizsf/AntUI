@@ -12,5 +12,5 @@ func (cs *cssStyle) effectColor(win *antui.Window, st css.Style, c canvas.Color)
 	if c == 0 {
 		c = win.Theme().Text
 	}
-	return canvas.Fade(c, cs.alpha(st))
+	return fadeColor(c, cs.alpha(st))
 }

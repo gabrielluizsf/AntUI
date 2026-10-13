@@ -29,3 +29,13 @@ func (cs *cssStyle) iconImage(name string, st css.Style) *canvas.Canvas {
 	}
 	return IconCanvas(name, w, h, cs.ink(st))
 }
+
+// iconImageAt paints an icon at the size the background layer will use. This
+// keeps SVG edges vector sharp: rendering at the viewBox's natural size and
+// then resizing the bitmap would filter the same drawing a second time.
+func (cs *cssStyle) iconImageAt(name string, st css.Style, w, h int) *canvas.Canvas {
+	if name == "" || w <= 0 || h <= 0 {
+		return nil
+	}
+	return IconCanvas(name, w, h, cs.ink(st))
+}

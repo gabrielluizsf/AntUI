@@ -14,7 +14,7 @@ func (cs *cssStyle) ink(st css.Style) canvas.Color {
 		if st.Color.A() == 0 {
 			return canvas.Transparent
 		}
-		return canvas.Fade(st.Color, cs.alpha(st))
+		return fadeColor(st.Color, cs.alpha(st))
 	}
-	return canvas.Fade(cs.win.Theme().Text, cs.alpha(st))
+	return fadeColor(cs.win.Theme().Text, cs.alpha(st))
 }

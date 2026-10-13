@@ -4,7 +4,7 @@ import "github.com/gabrielluizsf/antui"
 
 func (cyberStyle) DatePicker(win *antui.Window, s State, x, y, w, h int, year, month, firstWD, days, selected, today, hover int) {
 	cv := win.Canvas()
-	u := Scale(win)
+	u := popupScale(w)
 	v := vividFor(win)
 
 	glow(cv, x, y, w, h, 4*u, v.neon, 12, u)

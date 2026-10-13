@@ -16,15 +16,13 @@ func (cs *cssStyle) Select(win *antui.Window, s State, x, y, w, h int, value str
 	textW := w - padR - 14*u
 	cs.drawText(win, st, x, y, max(textW, 0), h, value)
 
-	aw, ah := 6*u, 4*u
-	ax := x + w - padR - aw
-	ay := y + (h-ah)/2
-	cv := win.Canvas()
+	// The arrow that says "there is more below", drawn as the icon the
+	// built-in style draws rather than as two lines, in the box's own ink.
+	name := IconCaret
 	if open {
-		cv.Line(ax, ay+ah, ax+aw/2, ay, cs.ink(st))
-		cv.Line(ax+aw/2, ay, ax+aw, ay+ah, cs.ink(st))
-	} else {
-		cv.Line(ax, ay, ax+aw/2, ay+ah, cs.ink(st))
-		cv.Line(ax+aw/2, ay+ah, ax+aw, ay, cs.ink(st))
+		name = IconCaretUp
 	}
+	caretBox := 10 * u
+	DrawIcon(win.Canvas(), name,
+		x+w-padR-3*u-caretBox/2, y+(h-caretBox)/2, caretBox, caretBox, cs.ink(st))
 }

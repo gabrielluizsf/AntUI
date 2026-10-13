@@ -25,4 +25,12 @@ var builtinIcons = map[string]string{
 		<path d="M5 14.5 L12 8 L19 14.5" fill="none" stroke="currentColor"
 			stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
 	</svg>`,
+	IconCaretLeft: `<svg viewBox="0 0 24 24">
+		<path d="M14.5 5 L8 12 L14.5 19" fill="none" stroke="currentColor"
+			stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+	</svg>`,
+	IconCaretRight: `<svg viewBox="0 0 24 24">
+		<path d="M9.5 5 L16 12 L9.5 19" fill="none" stroke="currentColor"
+			stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+	</svg>`,
 }
