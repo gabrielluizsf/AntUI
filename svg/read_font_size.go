@@ -13,7 +13,7 @@ func readFontSize(was float64, raw string, warn func(string, ...any)) float64 {
 	if was <= 0 {
 		was = defaultFontSize
 	}
-	s := strings.ToLower(strings.TrimSpace(raw))
+	s := keyword(raw)
 	switch s {
 	case "larger":
 		return was * 1.2

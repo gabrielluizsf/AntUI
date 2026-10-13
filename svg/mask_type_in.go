@@ -1,8 +1,6 @@
 package svg
 
 import (
-	"strings"
-
 	"github.com/gabrielluizsf/antui/canvas"
 )
 
@@ -26,7 +24,7 @@ func maskTypeIn(e *element, warn func(string, ...any)) canvas.MaskMode {
 	if !ok {
 		return canvas.MaskLuminance
 	}
-	switch strings.ToLower(strings.TrimSpace(raw)) {
+	switch keyword(raw) {
 	case "alpha":
 		return canvas.MaskAlpha
 	case "luminance", "":

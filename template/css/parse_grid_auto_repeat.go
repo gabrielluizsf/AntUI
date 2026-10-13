@@ -1,10 +1,8 @@
 package css
 
-import "strings"
-
 // parseGridAutoRepeat reads the "auto-fit" or "auto-fill" keyword that introduces an auto-repeated track list.
 func parseGridAutoRepeat(raw string) (fit bool, ok bool) {
-	switch strings.ToLower(strings.TrimSpace(raw)) {
+	switch keyword(raw) {
 	case "auto-fill":
 		return false, true
 	case "auto-fit":

@@ -1,12 +1,8 @@
 package css
 
-import (
-	"strings"
-)
-
 // parseClear reads the sides a box asks to be pushed past.
 func parseClear(raw string) (uint8, bool) {
-	switch strings.ToLower(strings.TrimSpace(raw)) {
+	switch keyword(raw) {
 	case "none":
 		return ClearNone, true
 	case "left":

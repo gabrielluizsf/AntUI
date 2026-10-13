@@ -15,7 +15,7 @@ func readFontWeight(was uint16, raw string, warn func(string, ...any)) uint16 {
 	if was == 0 {
 		was = FontWeightNormal
 	}
-	switch strings.ToLower(strings.TrimSpace(raw)) {
+	switch keyword(raw) {
 	case "normal":
 		return FontWeightNormal
 	case "bold":

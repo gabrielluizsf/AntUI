@@ -1,12 +1,8 @@
 package css
 
-import (
-	"strings"
-)
-
 // parseFloat reads the side a box is taken out of the flow towards.
 func parseFloat(raw string) (uint8, bool) {
-	switch strings.ToLower(strings.TrimSpace(raw)) {
+	switch keyword(raw) {
 	case "none":
 		return FloatNone, true
 	case "left":

@@ -11,7 +11,7 @@ import (
 // computing the whole style. Media queries are read against a window as tall
 // as baseWidth is wide; [Sheet.StyleViewport] reads them against a real one.
 func (sh *Sheet) Property(tag string, classes []string, prop string, baseWidth int) (string, bool) {
-	prop = strings.ToLower(strings.TrimSpace(prop))
+	prop = keyword(prop)
 	var normalRaw string
 	var impRaw string
 	var hasNormal, hasImp bool

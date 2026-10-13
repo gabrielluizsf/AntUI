@@ -9,7 +9,7 @@ import (
 // itself — the fold the cascade runs — so @supports can only claim what the
 // engine will really do with the declaration.
 func supportsDecl(prop, raw string) bool {
-	prop = strings.ToLower(strings.TrimSpace(prop))
+	prop = keyword(prop)
 	raw = strings.TrimSpace(raw)
 	if prop == "" || raw == "" {
 		return false

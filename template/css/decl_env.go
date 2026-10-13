@@ -22,7 +22,7 @@ type declEnv struct {
 // heels on them. The context's Font is updated by a font-size declaration so
 // later em lengths see it. applyDecl returns the warnings it produced.
 func applyDecl(st *Style, set map[string]bool, customs, cascaded map[string]string, d Declaration, ctx *Units) []string {
-	prop := strings.ToLower(strings.TrimSpace(d.Prop))
+	prop := keyword(d.Prop)
 	raw := strings.TrimSpace(d.Raw)
 	if prop == "" || raw == "" {
 		return nil

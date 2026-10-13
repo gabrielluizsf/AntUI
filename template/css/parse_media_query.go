@@ -1,7 +1,5 @@
 package css
 
-import "strings"
-
 // parseMediaQuery parses one comma-separated media query into its alternative
 // width windows, or-separated groups each becoming a query of their own.
 func parseMediaQuery(branch string) ([]MediaQuery, []string) {
@@ -18,7 +16,7 @@ func parseMediaQuery(branch string) ([]MediaQuery, []string) {
 		out = append(out, cur)
 	}
 	for _, tok := range splitQueryTokens(branch) {
-		t := strings.ToLower(strings.TrimSpace(tok))
+		t := keyword(tok)
 		if t == "" {
 			continue
 		}

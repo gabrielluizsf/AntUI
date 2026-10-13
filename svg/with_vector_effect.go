@@ -8,7 +8,7 @@ import "strings"
 // scaled it. Any other value is a vector effect this package does not do, and
 // saying so beats quietly painting a stroke nobody asked for.
 func (s *Style) withVectorEffect(raw string, warn func(string, ...any)) {
-	switch strings.ToLower(strings.TrimSpace(raw)) {
+	switch keyword(raw) {
 	case "none":
 		s.NonScalingStroke = false
 	case "non-scaling-stroke":

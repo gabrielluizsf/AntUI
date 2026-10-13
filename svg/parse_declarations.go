@@ -12,7 +12,7 @@ func parseDeclarations(s string) map[string]string {
 		if !ok {
 			continue
 		}
-		name = strings.ToLower(strings.TrimSpace(name))
+		name = keyword(name)
 		if name == "" {
 			continue
 		}

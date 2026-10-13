@@ -1,7 +1,5 @@
 package css
 
-import "strings"
-
 // faceDecls collects the four properties this engine reads out of a
 // @font-face block, warning on anything else and passing it over.
 func (p *parser) faceDecls(sh *Sheet) (family, src, weight, style string, err error) {
@@ -10,7 +8,7 @@ func (p *parser) faceDecls(sh *Sheet) (family, src, weight, style string, err er
 		if !ok {
 			return nil
 		}
-		switch prop := strings.ToLower(strings.TrimSpace(d.Prop)); prop {
+		switch prop := keyword(d.Prop); prop {
 		case "font-family":
 			family = d.Raw
 		case "src":

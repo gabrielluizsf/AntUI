@@ -28,7 +28,7 @@ func parseTransform(s string) (canvas.Matrix, bool) {
 		if close < 0 {
 			break
 		}
-		name := strings.ToLower(strings.TrimSpace(s[:open]))
+		name := keyword(s[:open])
 		args := splitArgs(s[open+1 : open+close])
 		if op, ok := transformOp(name, args); ok {
 			m = m.Mul(op)

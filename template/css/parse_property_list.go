@@ -17,7 +17,7 @@ func parsePropertyList(raw string) ([]string, bool) {
 	}
 	var out []string
 	for _, p := range splitFields(raw, ',') {
-		p = strings.ToLower(strings.TrimSpace(p))
+		p = keyword(p)
 		if p == "" {
 			return nil, false
 		}

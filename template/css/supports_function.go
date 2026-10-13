@@ -15,7 +15,7 @@ func (r *supportsReader) function(name, inner string) bool {
 		// Only TrueType outlines are read from a file, under either name
 		// the spec gives them; the woff containers and the CFF outlines of
 		// an OpenType file are formats no @font-face here can open.
-		f := unquote(strings.ToLower(strings.TrimSpace(inner)))
+		f := unquote(keyword(inner))
 		return f == "truetype" || f == "ttf"
 	case "font-tech":
 		// One technology is promised: the colour bitmaps of a CBDT
@@ -23,7 +23,7 @@ func (r *supportsReader) function(name, inner string) bool {
 		// rest — the COLR, SVG and sbix colour formats, variations,
 		// layout features — are not read, so no stylesheet is told they
 		// are.
-		f := unquote(strings.ToLower(strings.TrimSpace(inner)))
+		f := unquote(keyword(inner))
 		return f == "color-cbdt"
 	}
 	r.bad = true

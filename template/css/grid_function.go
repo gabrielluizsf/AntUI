@@ -9,6 +9,6 @@ func gridFunction(raw string) (string, string, bool) {
 	if open <= 0 || !strings.HasSuffix(raw, ")") || parenEnd(raw, open) != len(raw)-1 {
 		return "", "", false
 	}
-	name := strings.ToLower(strings.TrimSpace(raw[:open]))
+	name := keyword(raw[:open])
 	return name, strings.TrimSpace(raw[open+1 : len(raw)-1]), true
 }

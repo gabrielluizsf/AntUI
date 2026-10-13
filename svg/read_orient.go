@@ -1,7 +1,5 @@
 package svg
 
-import "strings"
-
 // readOrient is how a marker is turned: an angle, or the keyword that turns it
 // to the direction of the path at the vertex it is drawn on. An angle without a
 // unit is degrees, as everywhere else in SVG. What it does not say is the
@@ -9,7 +7,7 @@ import "strings"
 // keeps that default with one warning, because a marker pointing the wrong way
 // is one an author can see.
 func readOrient(raw string, warn func(string, ...any)) (deg float64, auto, startReverse bool) {
-	switch s := strings.ToLower(strings.TrimSpace(raw)); s {
+	switch s := keyword(raw); s {
 	case "":
 		return 0, false, false
 	case "auto":

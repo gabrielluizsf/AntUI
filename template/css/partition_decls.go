@@ -7,7 +7,7 @@ import "strings"
 func partitionDecls(got []candidate) (normal, imp []Declaration) {
 	for _, cand := range got {
 		for _, d := range cand.decls {
-			prop := strings.ToLower(strings.TrimSpace(d.Prop))
+			prop := keyword(d.Prop)
 			if strings.HasPrefix(prop, "--") {
 				continue
 			}

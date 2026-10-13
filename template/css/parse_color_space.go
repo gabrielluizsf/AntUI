@@ -2,7 +2,6 @@ package css
 
 import (
 	"fmt"
-	"strings"
 
 	"github.com/gabrielluizsf/antui/canvas"
 )
@@ -18,7 +17,7 @@ func parseColorSpace(s string) (canvas.Color, error) {
 	if len(slots) != 4 {
 		return 0, fmt.Errorf("css: %q has the wrong channel count", s)
 	}
-	space := strings.ToLower(strings.TrimSpace(slots[0]))
+	space := keyword(slots[0])
 	r, g, b, err := parseColorComponents(slots[1:])
 	if err != nil {
 		return 0, err

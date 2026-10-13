@@ -19,7 +19,7 @@ func parseTransform(raw string, ctx Units) ([]TransformFunc, bool) {
 		if open < 0 || !strings.HasSuffix(tk, ")") {
 			return nil, false
 		}
-		name := strings.ToLower(strings.TrimSpace(tk[:open]))
+		name := keyword(tk[:open])
 		inner := strings.TrimSpace(tk[open+1 : len(tk)-1])
 		f, ok := parseTransformFunc(name, inner, ctx)
 		if !ok {

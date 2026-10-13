@@ -15,7 +15,7 @@ func readFilter(tok string) (filterOp, bool) {
 	if open < 0 || !strings.HasSuffix(tok, ")") {
 		return filterOp{}, false
 	}
-	name := strings.ToLower(strings.TrimSpace(tok[:open]))
+	name := keyword(tok[:open])
 	args := strings.TrimSpace(tok[open+1 : len(tok)-1])
 	switch name {
 	case "grayscale", "sepia", "invert", "brightness", "contrast":

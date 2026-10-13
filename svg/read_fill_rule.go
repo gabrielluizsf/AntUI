@@ -17,7 +17,7 @@ func readFillRule(raw string) canvas.FillRule {
 
 // readLineCap reads `stroke-linecap`, defaulting to butt.
 func readLineCap(raw string) canvas.LineCap {
-	switch strings.ToLower(strings.TrimSpace(raw)) {
+	switch keyword(raw) {
 	case "round":
 		return canvas.CapRound
 	case "square":
@@ -28,7 +28,7 @@ func readLineCap(raw string) canvas.LineCap {
 
 // readLineJoin reads `stroke-linejoin`, defaulting to miter.
 func readLineJoin(raw string) canvas.LineJoin {
-	switch strings.ToLower(strings.TrimSpace(raw)) {
+	switch keyword(raw) {
 	case "round":
 		return canvas.JoinRound
 	case "bevel":
