@@ -20,6 +20,9 @@ func (img *Image) RenderWith(width, height int, current canvas.Color) *canvas.Ca
 	// call for the same one hands the same canvas back; a caller that draws on
 	// it is drawing on the icon itself, which is the point.
 	img.mu.Lock()
+	if img.refreshBuild() {
+		img.drawn = nil
+	}
 	if img.drawn != nil && img.drawnWidth == width && img.drawnHeight == height && img.drawnColour == current {
 		cv := img.drawn
 		img.mu.Unlock()

@@ -11,6 +11,11 @@ type Node struct {
 	// Path is the shape the node draws, in the drawing's own coordinates. A
 	// group and anything this package cannot draw leave it nil.
 	Path *canvas.Path
+	// sourcePath is the shape before the node's transform. Path is kept in the
+	// transformed coordinates used by the painter, while this copy lets a
+	// caller change dash or marker style after Parse without applying the
+	// transform twice when the derived build is refreshed.
+	sourcePath *canvas.Path
 	// Style is everything the node was told about how to paint itself.
 	Style Style
 	// Runs are the pieces of writing a `<text>` is made of, in the order they
@@ -84,4 +89,9 @@ type Node struct {
 	// shape goes. What the children inherit is the markers themselves rather
 	// than these places; each shape works out its own. See [placeMarkers].
 	markers []markerPlace
+	// rawDash is the dash pattern before pathLength scales it. shapeBuild keeps
+	// it separate because Style.Dash exposes the scaled pattern after the first
+	// build, while a later pathLength change must start from the written one.
+	rawDash    *canvas.Dash
+	shapeBuild shapeBuild
 }
