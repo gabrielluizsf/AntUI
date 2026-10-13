@@ -10,6 +10,8 @@ import (
 	"github.com/gabrielluizsf/antui/backend/android/jni"
 )
 
+const speakerReadyTimeout = 10 * time.Second
+
 func newSpeaker(engine string) (*Speaker, error) {
 	s := &Speaker{waits: map[string]chan error{}}
 
@@ -41,7 +43,7 @@ func newSpeaker(engine string) (*Speaker, error) {
 			s.Close()
 			return nil, ErrNoEngine
 		}
-	case <-time.After(10 * time.Second):
+	case <-time.After(speakerReadyTimeout):
 		s.Close()
 		return nil, errors.New("speech: the engine never said it was ready")
 	}
