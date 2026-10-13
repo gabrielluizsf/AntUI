@@ -12,7 +12,7 @@ func (cs *cssStyle) Radio(win *antui.Window, s State, x, y int, label string, on
 		st = cs.styleFor(css.RoleRadio, State{On: true, Focused: s.Focused, Hovered: s.Hovered})
 	}
 	u := cs.u()
-	size := 18 * u
+	size := boxSize * u
 	half := size / 2
 	cv := win.Canvas()
 	cv.FillCircle(x+half, y+half, half, cs.fill(st))
@@ -30,5 +30,5 @@ func (cs *cssStyle) Radio(win *antui.Window, s State, x, y int, label string, on
 	if on {
 		cv.FillCircle(x+half, y+half, half-4*u, cs.ink(st))
 	}
-	cs.drawText(win, st, x+size+8*u, y, size, size, label)
+	cs.drawText(win, st, x+size+labelGap*u, y, size, size, label)
 }

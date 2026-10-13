@@ -10,8 +10,8 @@ func (t *uiTemplate) Checkbox(win *antui.Window, x, y int, label string, value *
 		return event.Nothing
 	}
 	u := Scale(win)
-	box := 18 * u
-	w := box + 8*u + textWidth(u, label)
+	box := boxSize * u
+	w := box + labelGap*u + textWidth(u, label)
 	id := win.WidgetID("template:checkbox", x, y, box, box, label)
 	hovered := win.Hovered(x, y, w, box)
 	clicked := win.WidgetClick(id, hovered)

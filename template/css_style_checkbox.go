@@ -11,7 +11,7 @@ func (cs *cssStyle) Checkbox(win *antui.Window, s State, x, y int, label string,
 		st = cs.styleFor(css.RoleCheckbox, State{On: true, Focused: s.Focused, Hovered: s.Hovered})
 	}
 	u := cs.u()
-	box := 18 * u
+	box := boxSize * u
 	cs.paintBox(win, st, x, y, box, box)
 	if on {
 		mark := cs.ink(st)
@@ -21,5 +21,5 @@ func (cs *cssStyle) Checkbox(win *antui.Window, s State, x, y int, label string,
 		cv.Line(x+7*u, y+13*u, x+14*u, y+5*u, mark)
 		cv.Line(x+8*u, y+13*u, x+15*u, y+5*u, mark)
 	}
-	cs.drawText(win, st, x+box+8*u, y, box, box, label)
+	cs.drawText(win, st, x+box+labelGap*u, y, box, box, label)
 }

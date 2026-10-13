@@ -13,9 +13,10 @@ func (c *CSS) Switch(label string, value *bool) event.Event {
 		return event.Nothing
 	}
 	u := c.style.u()
-	cy := y + (h-20*u)/2
+	trackW, trackH := switchTrackW*u, switchTrackH*u
+	cy := y + (h-trackH)/2
 	on := value != nil && *value
-	s := c.interactionState("switch", x, cy, 36*u, 20*u, label, 36*u+8*u+textWidth(u, label), 20*u, State{On: on})
+	s := c.interactionState("switch", x, cy, trackW, trackH, label, trackW+labelGap*u+textWidth(u, label), trackH, State{On: on})
 	st = c.style.entryStyle(c.style.cur, css.RoleSwitch, s)
 	if !interactive(st) {
 		c.paint(st, css.RoleSwitch, label, x, y, w, h, func() {

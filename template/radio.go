@@ -6,7 +6,7 @@ func (builtinStyle) Radio(win *antui.Window, s State, x, y int, label string, on
 	cv := win.Canvas()
 	th := win.Theme()
 	u := Scale(win)
-	size := 18 * u
+	size := boxSize * u
 
 	surface := th.Surface
 	if s.Hovered {
@@ -24,5 +24,5 @@ func (builtinStyle) Radio(win *antui.Window, s State, x, y int, label string, on
 	if on {
 		DrawIconIn(cv, IconDot, x+4*u, y+4*u, 10*u, th.Accent)
 	}
-	cv.TextScaled(x+size+8*u, y+(size-textHeight(u))/2, label, th.Text, u)
+	cv.TextScaled(x+size+labelGap*u, y+(size-textHeight(u))/2, label, th.Text, u)
 }

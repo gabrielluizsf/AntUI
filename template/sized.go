@@ -1,7 +1,6 @@
 package template
 
 import (
-	"github.com/gabrielluizsf/antui/canvas"
 	"github.com/gabrielluizsf/antui/template/css"
 )
 
@@ -21,23 +20,23 @@ func (cs *cssStyle) sized(role string, st css.Style, u, labelW int) (w, h int) {
 		return labelW + 2*cs.padding(st, 3) + bx,
 			ph + cs.padding(st, 2) + cs.padding(st, 0) + by
 	case css.RoleCheckbox, css.RoleRadio:
-		return 18*u + 8*u + labelW, 18 * u
+		return boxSize*u + labelGap*u + labelW, boxSize * u
 	case css.RoleSlider:
-		return 24 * canvas.FontWidth * u, 3 * canvas.FontHeight * u
+		return controlW * u, sliderHeight * u
 	case css.RoleInput:
-		return max(labelW+2*cs.padding(st, 3)+bx, 24*canvas.FontWidth*u),
+		return max(labelW+2*cs.padding(st, 3)+bx, controlW*u),
 			ph + cs.padding(st, 2) + cs.padding(st, 0) + by
 	case css.RoleSelect:
-		return max(labelW+2*cs.padding(st, 3)+16*u+bx, 24*canvas.FontWidth*u),
+		return max(labelW+2*cs.padding(st, 3)+caretW*u+bx, controlW*u),
 			ph + cs.padding(st, 2) + cs.padding(st, 0) + by
 	case css.RoleTextArea:
-		return max(24*canvas.FontWidth*u, 32*canvas.FontWidth*u), 3 * canvas.FontHeight * u
+		return max(controlW*u, textAreaMinCols*u), sliderHeight * u
 	case css.RoleSwitch:
-		return 36*u + 8*u + labelW, 20 * u
+		return switchTrackW*u + labelGap*u + labelW, switchTrackH * u
 	case css.RoleProgress:
-		return 24 * canvas.FontWidth * u, 2 * canvas.FontHeight * u
+		return controlW * u, progressHeight * u
 	case css.RoleDatePicker:
-		return max(labelW+2*cs.padding(st, 3)+16*u+bx, 24*canvas.FontWidth*u),
+		return max(labelW+2*cs.padding(st, 3)+caretW*u+bx, controlW*u),
 			ph + cs.padding(st, 2) + cs.padding(st, 0) + by
 	}
 	return labelW, ph

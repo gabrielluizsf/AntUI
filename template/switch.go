@@ -6,7 +6,7 @@ func (builtinStyle) Switch(win *antui.Window, s State, x, y int, label string, o
 	cv := win.Canvas()
 	th := win.Theme()
 	u := Scale(win)
-	trackW, trackH := 36*u, 20*u
+	trackW, trackH := switchTrackW*u, switchTrackH*u
 
 	fill := th.Surface
 	if s.Hovered {
@@ -31,5 +31,5 @@ func (builtinStyle) Switch(win *antui.Window, s State, x, y int, label string, o
 	if s.Focused {
 		cv.Circle(x+trackW/2, y+trackH/2, trackH/2+3*u, th.Accent)
 	}
-	cv.TextScaled(x+trackW+8*u, y+(trackH-textHeight(u))/2, label, th.Text, u)
+	cv.TextScaled(x+trackW+labelGap*u, y+(trackH-textHeight(u))/2, label, th.Text, u)
 }

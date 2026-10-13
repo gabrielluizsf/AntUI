@@ -13,10 +13,10 @@ func (c *CSS) Radio(label string, value *int, option int) event.Event {
 		return event.Nothing
 	}
 	u := c.style.u()
-	size := 18 * u
+	size := boxSize * u
 	cy := y + (h-size)/2
 	on := value != nil && *value == option
-	s := c.interactionState("radio", x, cy, size, option, label, size+8*u+textWidth(u, label), size, State{On: on})
+	s := c.interactionState("radio", x, cy, size, option, label, size+labelGap*u+textWidth(u, label), size, State{On: on})
 	st = c.style.entryStyle(c.style.cur, css.RoleRadio, s)
 	if !interactive(st) {
 		c.paint(st, css.RoleRadio, label, x, y, w, h, func() {

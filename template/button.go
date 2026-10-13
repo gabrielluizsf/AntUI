@@ -19,7 +19,7 @@ func (builtinStyle) Button(win *antui.Window, s State, x, y, w, h int, label str
 	cv.FillRoundRect(x, y, w, h, th.Radius, fill)
 
 	if s.Focused && !s.Pressed {
-		cv.RoundRect(x-2*u, y-2*u, w+4*u, h+4*u, th.Radius+2*u, th.Accent)
+		cv.RoundRect(x-focusRing*u, y-focusRing*u, w+2*focusRing*u, h+2*focusRing*u, th.Radius+focusRing*u, th.Accent)
 	}
 
 	textY := y + (h-textHeight(u))/2

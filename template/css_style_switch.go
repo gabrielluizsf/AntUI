@@ -12,7 +12,7 @@ func (cs *cssStyle) Switch(win *antui.Window, s State, x, y int, label string, o
 		st = cs.styleFor(css.RoleSwitch, State{On: true, Focused: s.Focused, Hovered: s.Hovered})
 	}
 	u := cs.u()
-	trackW, trackH := 36*u, 20*u
+	trackW, trackH := switchTrackW*u, switchTrackH*u
 
 	fill := cs.fill(st)
 	if on {
@@ -35,5 +35,5 @@ func (cs *cssStyle) Switch(win *antui.Window, s State, x, y int, label string, o
 		thumb = cs.ink(st)
 	}
 	cv.FillCircle(cx, y+trackH/2, trackH/2-2*u, thumb)
-	cs.run(cv, st, x+trackW+8*u, y+(trackH-cs.textHeight(st))/2, label)
+	cs.run(cv, st, x+trackW+labelGap*u, y+(trackH-cs.textHeight(st))/2, label)
 }

@@ -13,13 +13,13 @@ func (c *CSS) Checkbox(label string, value *bool) event.Event {
 		return event.Nothing
 	}
 	u := c.style.u()
-	box := 18 * u
+	box := boxSize * u
 	// The box and its label are one line standing in the middle of whatever
 	// height the solver gave the cell, so a row of taller cells still has its
 	// controls on one line.
 	cy := y + (h-box)/2
 	on := value != nil && *value
-	s := c.interactionState("checkbox", x, cy, box, box, label, box+8*u+textWidth(u, label), box, State{On: on})
+	s := c.interactionState("checkbox", x, cy, box, box, label, box+labelGap*u+textWidth(u, label), box, State{On: on})
 	st = c.style.entryStyle(c.style.cur, css.RoleCheckbox, s)
 	if !interactive(st) {
 		c.paint(st, css.RoleCheckbox, label, x, y, w, h, func() {

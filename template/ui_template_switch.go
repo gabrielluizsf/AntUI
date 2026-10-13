@@ -12,9 +12,9 @@ func (t *uiTemplate) Switch(win *antui.Window, x, y int, label string, value *bo
 		return event.Nothing
 	}
 	u := Scale(win)
-	trackW := 36 * u
-	trackH := 20 * u
-	w := trackW + 8*u + textWidth(u, label)
+	trackW := switchTrackW * u
+	trackH := switchTrackH * u
+	w := trackW + labelGap*u + textWidth(u, label)
 	id := win.WidgetID("template:switch", x, y, trackW, trackH, label)
 	hovered := win.Hovered(x, y, w, trackH)
 	clicked := win.WidgetClick(id, hovered)

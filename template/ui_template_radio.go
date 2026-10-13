@@ -10,8 +10,8 @@ func (t *uiTemplate) Radio(win *antui.Window, x, y int, label string, value *int
 		return event.Nothing
 	}
 	u := Scale(win)
-	size := 18 * u
-	w := size + 8*u + textWidth(u, label)
+	size := boxSize * u
+	w := size + labelGap*u + textWidth(u, label)
 	id := win.WidgetID("template:radio", x, y, size, option, label)
 	hovered := win.Hovered(x, y, w, size)
 	clicked := win.WidgetClick(id, hovered)

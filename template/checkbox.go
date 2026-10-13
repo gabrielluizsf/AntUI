@@ -6,7 +6,7 @@ func (builtinStyle) Checkbox(win *antui.Window, s State, x, y int, label string,
 	cv := win.Canvas()
 	th := win.Theme()
 	u := Scale(win)
-	box := 18 * u
+	box := boxSize * u
 
 	fill := th.Surface
 	switch {
@@ -23,7 +23,7 @@ func (builtinStyle) Checkbox(win *antui.Window, s State, x, y int, label string,
 	cv.RoundRect(x, y, box, box, 4*u, border)
 
 	if s.Focused {
-		cv.RoundRect(x-2*u, y-2*u, box+4*u, box+4*u, 6*u, th.Accent)
+		cv.RoundRect(x-focusRing*u, y-focusRing*u, box+2*focusRing*u, box+2*focusRing*u, focusRingRadius*u, th.Accent)
 	}
 
 	if on {
@@ -33,5 +33,5 @@ func (builtinStyle) Checkbox(win *antui.Window, s State, x, y int, label string,
 		// over used to look like.
 		DrawIconIn(cv, IconCheck, x+2*u, y+2*u, 14*u, th.TextOnAccent)
 	}
-	cv.TextScaled(x+box+8*u, y+(box-textHeight(u))/2, label, th.Text, u)
+	cv.TextScaled(x+box+labelGap*u, y+(box-textHeight(u))/2, label, th.Text, u)
 }

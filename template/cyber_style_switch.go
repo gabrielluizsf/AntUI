@@ -9,7 +9,7 @@ func (cyberStyle) Switch(win *antui.Window, s State, x, y int, label string, on 
 	cv := win.Canvas()
 	u := Scale(win)
 	v := vividFor(win)
-	trackW, trackH := 36*u, 20*u
+	trackW, trackH := switchTrackW*u, switchTrackH*u
 
 	if s.Focused || s.Hovered {
 		glow(cv, x, y, trackW, trackH, trackH, v.neon, int(float64(30)*v.glow), u)
@@ -38,5 +38,5 @@ func (cyberStyle) Switch(win *antui.Window, s State, x, y int, label string, on 
 	}
 	cv.FillCircle(cx, y+trackH/2, trackH/2-3*u, colour)
 	cv.Circle(cx, y+trackH/2, trackH/2-4*u, cyberPalette.panelAct)
-	cv.TextScaled(x+trackW+8*u, y+(trackH-textHeight(u))/2, label, v.text, u)
+	cv.TextScaled(x+trackW+labelGap*u, y+(trackH-textHeight(u))/2, label, v.text, u)
 }

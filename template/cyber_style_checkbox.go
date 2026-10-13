@@ -6,7 +6,7 @@ func (cyberStyle) Checkbox(win *antui.Window, s State, x, y int, label string, o
 	cv := win.Canvas()
 	u := Scale(win)
 	v := vividFor(win)
-	box := 18 * u
+	box := boxSize * u
 	radius := 4 * u
 	if s.Focused || s.Hovered {
 		glow(cv, x, y, box, box, radius, v.neon, int(float64(30)*v.glow), u)
@@ -25,5 +25,5 @@ func (cyberStyle) Checkbox(win *antui.Window, s State, x, y int, label string, o
 		cv.FillRect(x+4*u, y+9*u, 3*u, 3*u, v.neon)
 		cv.FillRect(x+6*u, y+9*u, 8*u, 3*u, v.neon)
 	}
-	cv.TextScaled(x+box+8*u, y+(box-textHeight(u))/2, label, v.text, u)
+	cv.TextScaled(x+box+labelGap*u, y+(box-textHeight(u))/2, label, v.text, u)
 }
