@@ -8,9 +8,14 @@ import (
 	"github.com/gabrielluizsf/antui/backend/android/ndk"
 )
 
+const (
+	sensorBatchCapacity = 32
+	sensorPollTimeoutMS = 250
+)
+
 // pollLoop waits on the looper and delivers everything the queue has.
 func pollLoop(s *Stream, looper *ndk.Looper, queue *ndk.SensorQueue) {
-	buf := make([]ndk.SensorEvent, 32)
+	buf := make([]ndk.SensorEvent, sensorBatchCapacity)
 	for {
 		select {
 		case <-s.stop:
@@ -19,7 +24,7 @@ func pollLoop(s *Stream, looper *ndk.Looper, queue *ndk.SensorQueue) {
 		}
 		// A timeout rather than a wait, so that a Close that races with the
 		// poll is noticed even if the wake is missed.
-		looper.Poll(250)
+		looper.Poll(sensorPollTimeoutMS)
 		for {
 			n := queue.Read(buf)
 			if n == 0 {
