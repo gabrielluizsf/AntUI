@@ -2,8 +2,6 @@
 
 package antui
 
-import (
-	"time"
-)
+import "time"
 
 func (d *androidAudio) latency() time.Duration { return d.stream.Latency() }

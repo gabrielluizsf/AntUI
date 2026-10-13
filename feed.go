@@ -2,9 +2,7 @@
 
 package antui
 
-import (
-	"fmt"
-)
+import "fmt"
 
 // feed is the stream's loop: wait to be asked, hand over a block, repeat.
 func (w *wasapi) feed(client, render uintptr, frames uint32, format *waveFormatExtensible) {

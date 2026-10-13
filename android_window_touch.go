@@ -2,9 +2,7 @@
 
 package antui
 
-import (
-	"github.com/gabrielluizsf/antui/backend/android/ndk"
-)
+import "github.com/gabrielluizsf/antui/backend/android/ndk"
 
 // touch turns one motion report into touch events, and drives the mouse from
 // the first finger down.

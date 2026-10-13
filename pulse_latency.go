@@ -2,8 +2,6 @@
 
 package antui
 
-import (
-	"time"
-)
+import "time"
 
 func (p *pulse) latency() time.Duration { return p.delay }

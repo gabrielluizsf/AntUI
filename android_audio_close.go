@@ -2,9 +2,7 @@
 
 package antui
 
-import (
-	"time"
-)
+import "time"
 
 func (d *androidAudio) close() error {
 	d.stopOnce.Do(func() {

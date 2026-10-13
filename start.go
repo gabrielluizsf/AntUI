@@ -2,9 +2,7 @@
 
 package antui
 
-import (
-	"time"
-)
+import "time"
 
 // start opens the default endpoint and gets as far as a running stream. It
 // answers the client, the render interface, how many frames the device's

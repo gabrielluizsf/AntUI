@@ -1,8 +1,6 @@
 package antui
 
-import (
-	"encoding/binary"
-)
+import "encoding/binary"
 
 // writeResourceSection fills a laid-out section: the directory tree and the
 // leaves.

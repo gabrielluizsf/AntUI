@@ -1,8 +1,6 @@
 package antui
 
-import (
-	"github.com/gabrielluizsf/antui/backend"
-)
+import "github.com/gabrielluizsf/antui/backend"
 
 // The remaining special keys: the system's, the media keys, and the gamepad.
 const (

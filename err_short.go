@@ -2,8 +2,6 @@
 
 package antui
 
-import (
-	"errors"
-)
+import "errors"
 
 var errShort = errors.New("antui: the server's answer stopped in the middle")

@@ -1,8 +1,6 @@
 package antui
 
-import (
-	"time"
-)
+import "time"
 
 // Now is the seconds since the library was first asked the time, on a
 // monotonic clock that no change to the system clock can move.

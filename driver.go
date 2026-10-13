@@ -1,8 +1,6 @@
 package antui
 
-import (
-	"time"
-)
+import "time"
 
 // A driver is one platform's way of doing it.
 type driver interface {

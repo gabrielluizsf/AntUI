@@ -1,4 +1,6 @@
 package antui
 
-// SetClip narrows drawing to a rectangle.
-func (win *Window) SetClip(x, y, w, h int) { win.cv.SetClip(x, y, w, h) }
+import "github.com/gabrielluizsf/antui/canvas"
+
+// SetClip narrows drawing to a rectangle, intersected with the window.
+func (win *Window) SetClip(a canvas.Area) { win.cv.SetClip(a) }

@@ -2,9 +2,7 @@
 
 package antui
 
-import (
-	"github.com/gabrielluizsf/antui/backend/android/ndk"
-)
+import "github.com/gabrielluizsf/antui/backend/android/ndk"
 
 // textOf is what a key types, for a hardware keyboard.
 //

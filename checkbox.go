@@ -35,11 +35,11 @@ func (win *Window) Checkbox(x, y int, label string, value *bool) bool {
 	if *value {
 		border = win.theme.Accent
 	}
-	win.cv.FillRoundRect(x, y, box, box, 4, fill)
-	win.cv.RoundRect(x, y, box, box, 4, border)
+	win.cv.FillRoundRect(canvas.Round(canvas.Area{X: x, Y: y, Width: box, Height: box}, 4), fill)
+	win.cv.RoundRect(canvas.Round(canvas.Area{X: x, Y: y, Width: box, Height: box}, 4), border)
 
 	if focused {
-		win.cv.RoundRect(x-2, y-2, box+4, box+4, 6, win.theme.Accent)
+		win.cv.RoundRect(canvas.Round(canvas.Area{X: x - 2, Y: y - 2, Width: box + 4, Height: box + 4}, 6), win.theme.Accent)
 	}
 
 	if *value {

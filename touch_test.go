@@ -1,8 +1,6 @@
 package antui
 
-import (
-	"testing"
-)
+import "testing"
 
 // The touch path keeps one record per finger: where it landed, where it is
 // now, and whether it is still on the screen. Fingers arrive one event at a

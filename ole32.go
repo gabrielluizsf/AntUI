@@ -2,9 +2,7 @@
 
 package antui
 
-import (
-	"syscall"
-)
+import "syscall"
 
 var (
 	ole32    = syscall.NewLazyDLL("ole32.dll")

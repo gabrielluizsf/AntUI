@@ -1,8 +1,6 @@
 package antui
 
-import (
-	"github.com/gabrielluizsf/antui/backend"
-)
+import "github.com/gabrielluizsf/antui/backend"
 
 // Special keys.
 const (

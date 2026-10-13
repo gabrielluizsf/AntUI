@@ -2,8 +2,6 @@
 
 package antui
 
-import (
-	"time"
-)
+import "time"
 
 func (w *wasapi) latency() time.Duration { return w.delay }

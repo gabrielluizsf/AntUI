@@ -1,8 +1,6 @@
 package antui
 
-import (
-	"errors"
-)
+import "errors"
 
 // OpenAudio starts sending sound, and calls fill whenever the device wants
 // more of it.

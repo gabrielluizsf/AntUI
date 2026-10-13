@@ -1,8 +1,6 @@
 package antui
 
-import (
-	"sync"
-)
+import "sync"
 
 // An Audio is one stream of sound going out to the speakers.
 type Audio struct {

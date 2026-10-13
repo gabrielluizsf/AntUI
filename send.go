@@ -2,9 +2,7 @@
 
 package antui
 
-import (
-	"encoding/binary"
-)
+import "encoding/binary"
 
 // send writes one packet: the twenty-byte descriptor, then the payload.
 func (p *pulse) send(channel uint32, payload []byte) error {

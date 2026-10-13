@@ -2,9 +2,7 @@
 
 package antui
 
-import (
-	"math"
-)
+import "math"
 
 // pcm16 is a sample as the older devices want it, clipped rather than wrapped
 // — a sample that overflows into the opposite sign is a click, and a click is

@@ -2,9 +2,7 @@
 
 package antui
 
-import (
-	"time"
-)
+import "time"
 
 // setFrameDeadline tells the driver when the next frame is due, so an idle
 // Pump can sleep on the socket until then instead of spinning on it.

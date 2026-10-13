@@ -2,9 +2,7 @@
 
 package antui
 
-import (
-	"github.com/gabrielluizsf/antui/backend/android/ndk"
-)
+import "github.com/gabrielluizsf/antui/backend/android/ndk"
 
 func toolOf(t int) Tool {
 	switch t {

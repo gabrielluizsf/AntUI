@@ -1,8 +1,6 @@
 package antui
 
-import (
-	"math"
-)
+import "math"
 
 // recognizeTwo watches exactly two fingers for a pinch and a twist. Three or
 // more is nobody's gesture and is left alone.

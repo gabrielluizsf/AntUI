@@ -2,9 +2,7 @@
 
 package antui
 
-import (
-	"encoding/binary"
-)
+import "encoding/binary"
 
 func (t *tags) u32(v uint32) {
 	t.b = append(t.b, tagU32)

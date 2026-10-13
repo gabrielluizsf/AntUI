@@ -256,7 +256,7 @@ func TestDirtyRegion(t *testing.T) {
 	}
 
 	// A rectangle changing sends its bounding box.
-	win.FillRect(4, 6, 5, 3, canvas.Blue)
+	win.FillRect(canvas.Area{X: 4, Y: 6, Width: 5, Height: 3}, canvas.Blue)
 	if got := win.dirtyRegion(); got != (canvas.Area{X: 4, Y: 6, Width: 5, Height: 3}) {
 		t.Errorf("rectangle = %+v, want its bounding box", got)
 	}

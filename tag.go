@@ -2,9 +2,7 @@
 
 package antui
 
-import (
-	"fmt"
-)
+import "fmt"
 
 func (r *read) tag(want byte) error {
 	if r.at >= len(r.b) {

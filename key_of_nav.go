@@ -2,9 +2,7 @@
 
 package antui
 
-import (
-	"github.com/gabrielluizsf/antui/backend/android/ndk"
-)
+import "github.com/gabrielluizsf/antui/backend/android/ndk"
 
 // keyOfNav maps the navigation and editing keys.
 func keyOfNav(code int) Key {

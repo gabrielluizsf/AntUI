@@ -1,8 +1,6 @@
 package antui
 
-import (
-	"errors"
-)
+import "errors"
 
 // ErrNoAudio is what opening gives back where there is no sound at all: a
 // machine with no card, a session with no server, a platform nothing is

@@ -1,8 +1,6 @@
 package antui
 
-import (
-	"errors"
-)
+import "errors"
 
 // ErrNoSystemFont is what [SystemFace] gives back when the system has no
 // answer and nothing on the fallback list is there.

@@ -1,8 +1,6 @@
 package antui
 
-import (
-	"math"
-)
+import "math"
 
 // SizeInPoints is the size the window appears to be, as against the pixels it
 // draws — the two are the same number until the display is scaled.

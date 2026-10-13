@@ -2,9 +2,7 @@
 
 package antui
 
-import (
-	"github.com/gabrielluizsf/antui/backend/android/ndk"
-)
+import "github.com/gabrielluizsf/antui/backend/android/ndk"
 
 // touchAt pushes one finger's event, and the mouse event that shadows it.
 func (b *androidWindow) touchAt(win *Window, e *ndk.InputEvent, index int, kind EventType) {

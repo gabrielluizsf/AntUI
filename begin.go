@@ -1,8 +1,6 @@
 package antui
 
-import (
-	"time"
-)
+import "time"
 
 // Begin starts a frame: it processes system events and refreshes the input
 // state. It returns false once the window has been closed.

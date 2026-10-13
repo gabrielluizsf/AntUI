@@ -2,9 +2,7 @@
 
 package antui
 
-import (
-	"github.com/gabrielluizsf/antui/backend/android/ndk"
-)
+import "github.com/gabrielluizsf/antui/backend/android/ndk"
 
 // mouse handles a real mouse or a trackpad — a Chromebook, a phone in
 // desktop mode, a tablet with a keyboard case.

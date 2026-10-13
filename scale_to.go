@@ -1,8 +1,6 @@
 package antui
 
-import (
-	"math"
-)
+import "math"
 
 // scaleTo multiplies a length by the display scale, for a size given in
 // points. A zero or absurd scale is left alone rather than believed.

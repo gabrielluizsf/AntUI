@@ -2,9 +2,7 @@
 
 package antui
 
-import (
-	"encoding/binary"
-)
+import "encoding/binary"
 
 func (r *read) u32() (uint32, error) {
 	if err := r.tag(tagU32); err != nil {

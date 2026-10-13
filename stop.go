@@ -2,9 +2,7 @@
 
 package antui
 
-import (
-	"fmt"
-)
+import "fmt"
 
 // stop records why the sound stopped, unless it stopped because it was told
 // to.

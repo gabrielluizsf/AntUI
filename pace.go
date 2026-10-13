@@ -1,8 +1,6 @@
 package antui
 
-import (
-	"time"
-)
+import "time"
 
 // pace holds the loop to the budget. The frames land on an absolute grid, so
 // the time a frame took to draw does not add to the wait of the next one: a

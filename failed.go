@@ -2,9 +2,7 @@
 
 package antui
 
-import (
-	"fmt"
-)
+import "fmt"
 
 // failed turns an HRESULT into an error. Anything with the top bit set is a
 // failure; everything else, S_FALSE included, is not.

@@ -2,9 +2,7 @@
 
 package antui
 
-import (
-	"errors"
-)
+import "errors"
 
 // errNotAndroidApp is what an Android *process* gets when it is not an
 // Android *app* — a command-line binary pushed to a device with adb, say,

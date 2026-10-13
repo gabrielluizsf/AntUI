@@ -93,7 +93,7 @@ func TestAFrameIsPresentedWhenSomethingMoves(t *testing.T) {
 			t.Fatal("window closed")
 		}
 		drawTestFrame(win)
-		win.FillRect(10+i, 10, 6, 6, canvas.White)
+		win.FillRect(canvas.Area{X: 10 + i, Y: 10, Width: 6, Height: 6}, canvas.White)
 		if !win.End() {
 			t.Fatalf("frame %d moved a pixel and presented nothing", i)
 		}

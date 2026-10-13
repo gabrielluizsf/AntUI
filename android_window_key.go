@@ -2,9 +2,7 @@
 
 package antui
 
-import (
-	"github.com/gabrielluizsf/antui/backend/android/ndk"
-)
+import "github.com/gabrielluizsf/antui/backend/android/ndk"
 
 // key turns a key event into a key event.
 func (b *androidWindow) key(win *Window, e *ndk.InputEvent) bool {

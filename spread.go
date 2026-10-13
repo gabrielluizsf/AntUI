@@ -2,9 +2,7 @@
 
 package antui
 
-import (
-	"unsafe"
-)
+import "unsafe"
 
 // spread writes a stereo block into the device's buffer, in the device's own
 // layout.

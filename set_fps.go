@@ -1,8 +1,6 @@
 package antui
 
-import (
-	"time"
-)
+import "time"
 
 // SetFPS caps the frame rate. Zero or less — the default — follows the
 // display, so a window is paced by the screen it is on; a positive number is a

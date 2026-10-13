@@ -1,8 +1,6 @@
 package antui
 
-import (
-	"github.com/gabrielluizsf/antui/backend"
-)
+import "github.com/gabrielluizsf/antui/backend"
 
 // The tools. A device that does not say reports ToolUnknown rather than
 // guessing at a finger.

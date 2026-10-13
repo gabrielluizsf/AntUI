@@ -2,9 +2,7 @@
 
 package antui
 
-import (
-	"runtime"
-)
+import "runtime"
 
 func (w *wasapi) run() {
 	runtime.LockOSThread()

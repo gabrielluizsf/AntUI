@@ -2,9 +2,7 @@
 
 package antui
 
-import (
-	"github.com/gabrielluizsf/antui/backend/android/ndk"
-)
+import "github.com/gabrielluizsf/antui/backend/android/ndk"
 
 // motion sorts a pointer event by what produced it. The low bits of every
 // pointer source are the same, so this cannot be a switch on the source: a

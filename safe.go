@@ -18,10 +18,5 @@ func (b *androidWindow) safe(win *Window) {
 	if r.Right <= r.Left || r.Bottom <= r.Top {
 		return
 	}
-	win.SetSafeArea(canvas.Area{
-		X:      int(r.Left),
-		Y:      int(r.Top),
-		Width:  int(r.Right - r.Left),
-		Height: int(r.Bottom - r.Top),
-	})
+	win.SetSafeArea(canvas.Area{X: int(r.Left), Y: int(r.Top), Width: int(r.Right - r.Left), Height: int(r.Bottom - r.Top)})
 }

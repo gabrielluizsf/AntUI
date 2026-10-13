@@ -1,8 +1,6 @@
 package antui
 
-import (
-	"time"
-)
+import "time"
 
 // framePacer is the optional half of a backend, and it is told when the next
 // frame is due rather than how long a frame may take: a platform that has to

@@ -2,9 +2,7 @@
 
 package antui
 
-import (
-	"time"
-)
+import "time"
 
 // A wasapi is one render stream and the thread feeding it.
 type wasapi struct {

@@ -1,8 +1,6 @@
 package antui
 
-import (
-	"sync"
-)
+import "sync"
 
 var (
 	sysOnce sync.Once

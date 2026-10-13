@@ -2,9 +2,7 @@
 
 package antui
 
-import (
-	"time"
-)
+import "time"
 
 func (d *androidAudio) run(a *Audio) {
 	defer close(d.done)

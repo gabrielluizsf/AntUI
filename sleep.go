@@ -1,8 +1,6 @@
 package antui
 
-import (
-	"time"
-)
+import "time"
 
 // Sleep pauses for a number of seconds.
 func Sleep(seconds float64) {

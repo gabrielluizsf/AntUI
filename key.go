@@ -1,8 +1,6 @@
 package antui
 
-import (
-	"github.com/gabrielluizsf/antui/backend"
-)
+import "github.com/gabrielluizsf/antui/backend"
 
 // Key identifies a physical key, independent of the text it produces.
 // Printable keys carry their own uppercase ASCII code, so KeyA is 'A' and

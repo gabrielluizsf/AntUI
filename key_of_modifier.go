@@ -2,9 +2,7 @@
 
 package antui
 
-import (
-	"github.com/gabrielluizsf/antui/backend/android/ndk"
-)
+import "github.com/gabrielluizsf/antui/backend/android/ndk"
 
 // keyOfModifier maps the shift, control, alt and meta keys.
 func keyOfModifier(code int) Key {

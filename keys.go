@@ -1,8 +1,6 @@
 package antui
 
-import (
-	"iter"
-)
+import "iter"
 
 // Keys walks every key that is held or that went down or up this frame.
 func (win *Window) Keys() iter.Seq[Key] {

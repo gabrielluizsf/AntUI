@@ -2,9 +2,7 @@
 
 package antui
 
-import (
-	"github.com/gabrielluizsf/antui/backend/android/app"
-)
+import "github.com/gabrielluizsf/antui/backend/android/app"
 
 // setFullscreen hides the status bar. The navigation bar stays: taking that
 // away is immersive mode, which Android only offers through Java.

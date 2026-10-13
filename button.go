@@ -24,10 +24,10 @@ func (win *Window) Button(x, y, w, h int, label string) bool {
 	case hovered:
 		fill = win.theme.AccentHover
 	}
-	win.cv.FillRoundRect(x, y, w, h, win.theme.Radius, fill)
+	win.cv.FillRoundRect(canvas.Round(canvas.Area{X: x, Y: y, Width: w, Height: h}, win.theme.Radius), fill)
 
 	if focused && !pressed {
-		win.cv.RoundRect(x-2, y-2, w+4, h+4, win.theme.Radius+2, win.theme.Accent)
+		win.cv.RoundRect(canvas.Round(canvas.Area{X: x - 2, Y: y - 2, Width: w + 4, Height: h + 4}, win.theme.Radius+2), win.theme.Accent)
 	}
 
 	textY := y + (h-canvas.TextHeight())/2

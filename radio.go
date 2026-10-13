@@ -37,13 +37,13 @@ func (win *Window) Radio(x, y int, label string, value *int, option int) bool {
 	if selected {
 		border = win.theme.Accent
 	}
-	win.cv.FillCircle(x+size/2, y+size/2, size/2, surface)
-	win.cv.Circle(x+size/2, y+size/2, size/2, border)
+	win.cv.FillCircle(canvas.Circle{X: x + size/2, Y: y + size/2, R: size / 2}, surface)
+	win.cv.Circle(canvas.Circle{X: x + size/2, Y: y + size/2, R: size / 2}, border)
 	if focused {
-		win.cv.Circle(x+size/2, y+size/2, size/2+3, win.theme.Accent)
+		win.cv.Circle(canvas.Circle{X: x + size/2, Y: y + size/2, R: size/2 + 3}, win.theme.Accent)
 	}
 	if selected {
-		win.cv.FillCircle(x+size/2, y+size/2, size/2-4, win.theme.Accent)
+		win.cv.FillCircle(canvas.Circle{X: x + size/2, Y: y + size/2, R: size/2 - 4}, win.theme.Accent)
 	}
 
 	win.cv.Text(x+size+8, y+(size-canvas.TextHeight())/2, label, win.theme.Text)

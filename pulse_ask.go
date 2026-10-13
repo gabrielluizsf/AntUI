@@ -2,9 +2,7 @@
 
 package antui
 
-import (
-	"fmt"
-)
+import "fmt"
 
 // ask sends a command and waits for the answer to that one, letting anything
 // else the server has to say go past. A server talks before it is spoken to

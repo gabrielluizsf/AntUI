@@ -54,7 +54,7 @@ func BenchmarkFrameWithACursor(b *testing.B) {
 		win.Begin()
 		drawTestFrame(win)
 		win.Clear(canvas.RGB(0x10, 0x12, 0x18))
-		win.FillRect(100+i%900, 100, 4, 4, canvas.White)
+		win.FillRect(canvas.Area{X: 100 + i%900, Y: 100, Width: 4, Height: 4}, canvas.White)
 		if !win.End() {
 			b.Fatal("a frame with a cursor on it presented nothing")
 		}
@@ -77,7 +77,7 @@ func BenchmarkFrameAnimated(b *testing.B) {
 	for i := range b.N {
 		win.Begin()
 		drawTestFrame(win)
-		win.FillRect(0, i%700, 1280, 8, canvas.RGB(0xFF, 0x88, 0x00))
+		win.FillRect(canvas.Area{X: 0, Y: i % 700, Width: 1280, Height: 8}, canvas.RGB(0xFF, 0x88, 0x00))
 		win.End()
 	}
 }
@@ -107,11 +107,11 @@ func BenchmarkPace(b *testing.B) {
 // the benchmarks above measure what happens when nothing moves.
 func drawTestFrame(win *Window) {
 	win.Clear(canvas.RGB(0x10, 0x12, 0x18))
-	win.FillRect(20, 20, 300, 180, canvas.RGB(0x1E, 0x24, 0x30))
-	win.FillRoundRect(340, 20, 180, 60, 10, canvas.RGB(0x3E, 0x63, 0xDD))
-	win.RoundRect(20, 220, 300, 40, 8, canvas.RGB(0x6B, 0x74, 0x88))
-	win.Text(40, 50, "AntUI builds desktop apps the simple way.", canvas.White)
-	win.Circle(700, 300, 120, canvas.RGB(0x23, 0x2A, 0x38))
+	win.FillRect(canvas.Area{X: 20, Y: 20, Width: 300, Height: 180}, canvas.RGB(0x1E, 0x24, 0x30))
+	win.FillRoundRect(canvas.Round(canvas.Area{X: 340, Y: 20, Width: 180, Height: 60}, 10), canvas.RGB(0x3E, 0x63, 0xDD))
+	win.RoundRect(canvas.Round(canvas.Area{X: 20, Y: 220, Width: 300, Height: 40}, 8), canvas.RGB(0x6B, 0x74, 0x88))
+	win.Text(canvas.Point{X: 40, Y: 50}, "AntUI builds desktop apps the simple way.", canvas.White)
+	win.Circle(canvas.Circle{X: 700, Y: 300, R: 120}, canvas.RGB(0x23, 0x2A, 0x38))
 	win.Canvas().RingArc(700, 300, 120, 14, 0, 2.0, canvas.RGB(0x3E, 0x63, 0xDD))
-	win.Line(0, 799, 1279, 0, canvas.RGBA(0xFF, 0xFF, 0xFF, 0x40))
+	win.Line(canvas.Point{X: 0, Y: 799}, canvas.Point{X: 1279, Y: 0}, canvas.RGBA(0xFF, 0xFF, 0xFF, 0x40))
 }

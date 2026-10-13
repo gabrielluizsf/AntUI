@@ -2,9 +2,7 @@
 
 package antui
 
-import (
-	"encoding/binary"
-)
+import "encoding/binary"
 
 func (t *tags) volume(channels int, level uint32) {
 	t.b = append(t.b, tagCvolume, byte(channels))

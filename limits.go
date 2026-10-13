@@ -1,8 +1,6 @@
 package antui
 
-import (
-	"github.com/gabrielluizsf/antui/backend"
-)
+import "github.com/gabrielluizsf/antui/backend"
 
 // Limits are what a window may be resized to. The zero value is a window
 // with no bounds at all, which is what a window is without them — so

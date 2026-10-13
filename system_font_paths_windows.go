@@ -1,8 +1,6 @@
 package antui
 
-import (
-	"path/filepath"
-)
+import "path/filepath"
 
 // systemFontPaths is the fallback, for a machine where reg is not on the
 // path — a stripped container, or a program run somewhere odd.

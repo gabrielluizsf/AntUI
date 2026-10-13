@@ -1,8 +1,6 @@
 package antui
 
-import (
-	"time"
-)
+import "time"
 
 // frameBudget is how long one frame may take. The default is the display's own
 // refresh rate, so the loop is paced by the screen rather than by how fast the

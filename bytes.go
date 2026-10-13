@@ -2,9 +2,7 @@
 
 package antui
 
-import (
-	"encoding/binary"
-)
+import "encoding/binary"
 
 func (t *tags) bytes(b []byte) {
 	t.b = append(t.b, tagArbitrary)

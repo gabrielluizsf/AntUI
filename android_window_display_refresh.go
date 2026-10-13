@@ -2,9 +2,7 @@
 
 package antui
 
-import (
-	"github.com/gabrielluizsf/antui/backend/android/display"
-)
+import "github.com/gabrielluizsf/antui/backend/android/display"
 
 // displayRefresh is the panel's rate, asked once and remembered: it comes
 // from Java, and a round trip to the machine for every caller of
