@@ -2,9 +2,7 @@
 
 package speech
 
-import (
-	"github.com/gabrielluizsf/antui/backend/android/jni"
-)
+import "github.com/gabrielluizsf/antui/backend/android/jni"
 
 func (s *Speaker) tune(method string, v float32) error {
 	return jni.Do(func(e *jni.Env) error {

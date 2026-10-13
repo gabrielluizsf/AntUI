@@ -7,9 +7,7 @@ package jni
 */
 import "C"
 
-import (
-	"unsafe"
-)
+import "unsafe"
 
 // StaticMethod finds a static method.
 func (e *Env) StaticMethod(c Class, name, sig string) (Method, error) {

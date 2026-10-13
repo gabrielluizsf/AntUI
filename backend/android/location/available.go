@@ -2,9 +2,7 @@
 
 package location
 
-import (
-	"github.com/gabrielluizsf/antui/backend/android/jni"
-)
+import "github.com/gabrielluizsf/antui/backend/android/jni"
 
 // Available reports whether geocoding will work at all.
 func Available() bool {

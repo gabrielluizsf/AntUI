@@ -2,9 +2,7 @@
 
 package sqlite
 
-import (
-	"github.com/gabrielluizsf/antui/backend/android/jni"
-)
+import "github.com/gabrielluizsf/antui/backend/android/jni"
 
 // Close gives the cursor back. **It has to be called**: a cursor left open
 // holds a window of the database's memory, and the platform complains loudly

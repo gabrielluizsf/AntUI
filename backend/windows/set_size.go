@@ -2,9 +2,7 @@
 
 package windows
 
-import (
-	"github.com/gabrielluizsf/antui/backend"
-)
+import "github.com/gabrielluizsf/antui/backend"
 
 // SetSize asks the platform for a new drawable size, reporting whether the
 // request could be made.

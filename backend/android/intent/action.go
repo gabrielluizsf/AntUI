@@ -2,9 +2,7 @@
 
 package intent
 
-import (
-	"github.com/gabrielluizsf/antui/backend/android/jni"
-)
+import "github.com/gabrielluizsf/antui/backend/android/jni"
 
 // Action is what an intent asks for: [ActionView] for a link that was
 // opened, and so on.

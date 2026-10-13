@@ -2,9 +2,7 @@
 
 package linux
 
-import (
-	"time"
-)
+import "time"
 
 // themeTTL is how long a reading stands before the session's environment and
 // the desktop's files are read again. A second is far inside the time it

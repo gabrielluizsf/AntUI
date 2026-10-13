@@ -2,9 +2,7 @@
 
 package ndk
 
-import (
-	"unsafe"
-)
+import "unsafe"
 
 // Pointer is the raw handle, for passing between packages that each have
 // their own idea of what a C type is.

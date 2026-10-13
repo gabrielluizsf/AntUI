@@ -2,9 +2,7 @@
 
 package linux
 
-import (
-	"time"
-)
+import "time"
 
 // themeNow is SystemDark with every input handed to it — the clock the cache
 // runs on, the environment and directory to read, and the settings helper to

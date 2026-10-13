@@ -2,9 +2,7 @@
 
 package picker
 
-import (
-	"github.com/gabrielluizsf/antui/backend/android/jni"
-)
+import "github.com/gabrielluizsf/antui/backend/android/jni"
 
 // Create asks the user where to put a new file, and gives back its address.
 //

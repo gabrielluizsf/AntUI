@@ -2,9 +2,7 @@
 
 package assets
 
-import (
-	"io/fs"
-)
+import "io/fs"
 
 var (
 	_ fs.FS         = assetFS{}

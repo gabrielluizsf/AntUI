@@ -2,9 +2,7 @@
 
 package dialog
 
-import (
-	"github.com/gabrielluizsf/antui/backend/android/jni"
-)
+import "github.com/gabrielluizsf/antui/backend/android/jni"
 
 // dialogButtons adds the buttons that have a label, each answering through
 // the one listener.

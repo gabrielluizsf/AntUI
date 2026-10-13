@@ -2,9 +2,7 @@
 
 package network
 
-import (
-	"github.com/gabrielluizsf/antui/backend/android/jni"
-)
+import "github.com/gabrielluizsf/antui/backend/android/jni"
 
 // readModern reads the connection from the active network's capabilities,
 // which is the API 23 way.

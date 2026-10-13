@@ -2,9 +2,7 @@
 
 package prefs
 
-import (
-	"github.com/gabrielluizsf/antui/backend/android/jni"
-)
+import "github.com/gabrielluizsf/antui/backend/android/jni"
 
 // String reads a string, or fallback when the key is not there.
 func (p *Prefs) String(key, fallback string) (string, error) {

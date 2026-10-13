@@ -10,9 +10,7 @@ package app
 */
 import "C"
 
-import (
-	"unsafe"
-)
+import "unsafe"
 
 //export antuiOnInputQueueDestroyed
 func antuiOnInputQueueDestroyed(_ *C.ANativeActivity, q *C.AInputQueue) {

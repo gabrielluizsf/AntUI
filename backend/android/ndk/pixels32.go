@@ -2,9 +2,7 @@
 
 package ndk
 
-import (
-	"unsafe"
-)
+import "unsafe"
 
 // Pixels32 is the buffer as 32-bit words, Stride*Height of them. It is the
 // compositor's memory, not Go's, and stops being valid the moment the window

@@ -2,9 +2,7 @@
 
 package assets
 
-import (
-	"io/fs"
-)
+import "io/fs"
 
 // FS is everything packed into the APK, as an ordinary [io/fs.FS].
 //

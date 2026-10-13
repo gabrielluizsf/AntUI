@@ -2,9 +2,7 @@
 
 package prefs
 
-import (
-	"github.com/gabrielluizsf/antui/backend/android/jni"
-)
+import "github.com/gabrielluizsf/antui/backend/android/jni"
 
 // SetString, SetInt, SetBool, SetFloat and SetLong write one value.
 func (p *Prefs) SetString(key, value string) error {

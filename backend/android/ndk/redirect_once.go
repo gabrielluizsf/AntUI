@@ -2,8 +2,6 @@
 
 package ndk
 
-import (
-	"sync"
-)
+import "sync"
 
 var redirectOnce sync.Once

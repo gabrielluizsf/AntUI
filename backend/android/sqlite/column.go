@@ -2,9 +2,7 @@
 
 package sqlite
 
-import (
-	"github.com/gabrielluizsf/antui/backend/android/jni"
-)
+import "github.com/gabrielluizsf/antui/backend/android/jni"
 
 // column is one value of one row, with the cursor it is read from.
 type column struct {

@@ -2,9 +2,7 @@
 
 package camera
 
-import (
-	"github.com/gabrielluizsf/antui/backend/android/ndk"
-)
+import "github.com/gabrielluizsf/antui/backend/android/ndk"
 
 // List is every camera the app may open.
 func List() ([]Info, error) {

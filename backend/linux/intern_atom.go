@@ -2,9 +2,7 @@
 
 package linux
 
-import (
-	"encoding/binary"
-)
+import "encoding/binary"
 
 // internAtom asks the server for the number it knows a name by. Atoms are
 // how everything outside the core protocol — window manager hints, the UTF-8

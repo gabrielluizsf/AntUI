@@ -1,8 +1,6 @@
 package apk
 
-import (
-	"path/filepath"
-)
+import "path/filepath"
 
 func mustAbs(p string) string {
 	abs, err := filepath.Abs(p)

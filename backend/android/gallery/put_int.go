@@ -2,9 +2,7 @@
 
 package gallery
 
-import (
-	"github.com/gabrielluizsf/antui/backend/android/jni"
-)
+import "github.com/gabrielluizsf/antui/backend/android/jni"
 
 // putInt goes through Integer.valueOf because ContentValues.put takes boxed
 // numbers — there is no overload for a plain int.

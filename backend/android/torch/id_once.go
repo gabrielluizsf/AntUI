@@ -2,9 +2,7 @@
 
 package torch
 
-import (
-	"sync"
-)
+import "sync"
 
 var (
 	idOnce  sync.Once

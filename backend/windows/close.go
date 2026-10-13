@@ -2,9 +2,7 @@
 
 package windows
 
-import (
-	"runtime"
-)
+import "runtime"
 
 // Close destroys the window and lets go of everything the platform held.
 func (d *Driver) Close() {

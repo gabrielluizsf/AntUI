@@ -10,9 +10,7 @@ package ndk
 */
 import "C"
 
-import (
-	"errors"
-)
+import "errors"
 
 // Seek moves the read position, as an io.Seeker does.
 func (a *Asset) Seek(offset int64, whence int) (int64, error) {

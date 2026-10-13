@@ -7,9 +7,7 @@ package jni
 */
 import "C"
 
-import (
-	"errors"
-)
+import "errors"
 
 // Len is the length of a Java array.
 func (e *Env) Len(o Object) (int, error) {

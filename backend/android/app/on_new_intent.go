@@ -2,9 +2,7 @@
 
 package app
 
-import (
-	"github.com/gabrielluizsf/antui/backend/android/jni"
-)
+import "github.com/gabrielluizsf/antui/backend/android/jni"
 
 // OnNewIntent registers what to do when an intent reaches an activity that
 // is already running. The Intent handed to f is a **global reference f

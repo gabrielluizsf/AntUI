@@ -2,9 +2,7 @@
 
 package audio
 
-import (
-	"time"
-)
+import "time"
 
 // Close stops recording.
 func (r *Recorder) Close() error {

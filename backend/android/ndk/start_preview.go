@@ -11,9 +11,7 @@ package ndk
 */
 import "C"
 
-import (
-	"errors"
-)
+import "errors"
 
 // StartPreview begins a stream of frames at the given size.
 func (d *CameraDevice) StartPreview(width, height int) error {

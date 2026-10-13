@@ -2,9 +2,7 @@
 
 package windows
 
-import (
-	"unsafe"
-)
+import "unsafe"
 
 // DisplayRefresh is how often the display repaints, in hertz.
 func (d *Driver) DisplayRefresh() int {

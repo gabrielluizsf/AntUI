@@ -2,9 +2,7 @@
 
 package speech
 
-import (
-	"github.com/gabrielluizsf/antui/backend/android/jni"
-)
+import "github.com/gabrielluizsf/antui/backend/android/jni"
 
 // Speaking reports whether anything is being said now.
 func (s *Speaker) Speaking() (bool, error) {

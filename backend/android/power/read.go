@@ -2,9 +2,7 @@
 
 package power
 
-import (
-	"github.com/gabrielluizsf/antui/backend/android/jni"
-)
+import "github.com/gabrielluizsf/antui/backend/android/jni"
 
 // Read asks the battery how it is.
 //

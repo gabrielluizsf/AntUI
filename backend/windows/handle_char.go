@@ -2,9 +2,7 @@
 
 package windows
 
-import (
-	"github.com/gabrielluizsf/antui/backend"
-)
+import "github.com/gabrielluizsf/antui/backend"
 
 // handleChar turns a UTF-16 code unit into a text event, joining the two
 // halves of a surrogate pair into the one character they stand for.

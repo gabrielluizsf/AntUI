@@ -2,9 +2,7 @@
 
 package linux
 
-import (
-	"time"
-)
+import "time"
 
 // SetFrameDeadline tells the driver when the program wants its next frame,
 // which is what an idle Pump waits for. A zero time means the program is not

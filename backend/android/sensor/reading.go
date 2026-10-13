@@ -2,9 +2,7 @@
 
 package sensor
 
-import (
-	"time"
-)
+import "time"
 
 // Reading is one measurement.
 type Reading struct {

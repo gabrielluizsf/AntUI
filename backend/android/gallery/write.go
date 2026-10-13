@@ -2,9 +2,7 @@
 
 package gallery
 
-import (
-	"errors"
-)
+import "errors"
 
 // Write puts bytes in.
 func (w *Writer) Write(p []byte) (int, error) {

@@ -2,9 +2,7 @@
 
 package sensor
 
-import (
-	"sync"
-)
+import "sync"
 
 // Stream is a set of running sensors.
 //

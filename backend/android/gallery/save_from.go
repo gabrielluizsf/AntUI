@@ -2,9 +2,7 @@
 
 package gallery
 
-import (
-	"io"
-)
+import "io"
 
 // SaveFrom copies from a reader, for something too big to hold in memory.
 func SaveFrom(kind Kind, name, mime, album string, r io.Reader) (string, error) {

@@ -2,9 +2,7 @@
 
 package prefs
 
-import (
-	"github.com/gabrielluizsf/antui/backend/android/jni"
-)
+import "github.com/gabrielluizsf/antui/backend/android/jni"
 
 func (p *Prefs) putScalar(key, method, typ string, value jni.Value) error {
 	return p.edit(func(e *jni.Env, ed jni.Object) error {

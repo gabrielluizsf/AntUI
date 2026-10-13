@@ -9,9 +9,7 @@ package ndk
 */
 import "C"
 
-import (
-	"errors"
-)
+import "errors"
 
 // Disable stops one.
 func (q *SensorQueue) Disable(s Sensor) error {

@@ -2,9 +2,7 @@
 
 package app
 
-import (
-	"sync"
-)
+import "sync"
 
 // Listen registers a handler and gives back the token that identifies it, and
 // the function that takes it off again.

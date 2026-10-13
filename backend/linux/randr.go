@@ -2,9 +2,7 @@
 
 package linux
 
-import (
-	"encoding/binary"
-)
+import "encoding/binary"
 
 // randr looks up the RandR extension's opcode, once. The core protocol has
 // no refresh rate, so without the extension the honest answer is that we do

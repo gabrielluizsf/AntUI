@@ -2,9 +2,7 @@
 
 package picker
 
-import (
-	"github.com/gabrielluizsf/antui/backend/android/jni"
-)
+import "github.com/gabrielluizsf/antui/backend/android/jni"
 
 // openDocumentIntent builds the ACTION_OPEN_DOCUMENT intent for one or many
 // files of mime.

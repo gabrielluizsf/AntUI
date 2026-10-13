@@ -7,9 +7,7 @@ package jni
 */
 import "C"
 
-import (
-	"errors"
-)
+import "errors"
 
 // Class finds a class by its name with slashes: "android/os/Build",
 // "java/lang/String".

@@ -2,9 +2,7 @@
 
 package prefs
 
-import (
-	"github.com/gabrielluizsf/antui/backend/android/jni"
-)
+import "github.com/gabrielluizsf/antui/backend/android/jni"
 
 // SetBool writes a true-or-false setting.
 func (p *Prefs) SetBool(key string, value bool) error {

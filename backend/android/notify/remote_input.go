@@ -2,9 +2,7 @@
 
 package notify
 
-import (
-	"github.com/gabrielluizsf/antui/backend/android/jni"
-)
+import "github.com/gabrielluizsf/antui/backend/android/jni"
 
 func remoteInput(e *jni.Env, key, label string) (jni.Object, error) {
 	jkey, err := e.String(key)

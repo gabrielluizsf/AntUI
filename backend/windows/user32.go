@@ -2,9 +2,7 @@
 
 package windows
 
-import (
-	"syscall"
-)
+import "syscall"
 
 var (
 	user32 = syscall.NewLazyDLL("user32.dll")

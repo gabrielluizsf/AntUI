@@ -2,9 +2,7 @@
 
 package app
 
-import (
-	"github.com/gabrielluizsf/antui/backend/android/jni"
-)
+import "github.com/gabrielluizsf/antui/backend/android/jni"
 
 // HasPermission reports whether a permission has already been granted.
 //

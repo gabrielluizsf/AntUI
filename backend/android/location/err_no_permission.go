@@ -2,9 +2,7 @@
 
 package location
 
-import (
-	"errors"
-)
+import "errors"
 
 // ErrNoPermission is asking for a position without having been granted one
 // of the two location permissions.

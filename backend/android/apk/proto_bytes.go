@@ -1,8 +1,6 @@
 package apk
 
-import (
-	"encoding/binary"
-)
+import "encoding/binary"
 
 func protoBytes(field int, body []byte) []byte {
 	var out []byte

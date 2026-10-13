@@ -2,9 +2,7 @@
 
 package location
 
-import (
-	"time"
-)
+import "time"
 
 // Fix is where the device was, and how well it knew.
 type Fix struct {

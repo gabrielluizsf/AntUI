@@ -2,9 +2,7 @@
 
 package notify
 
-import (
-	"github.com/gabrielluizsf/antui/backend/android/jni"
-)
+import "github.com/gabrielluizsf/antui/backend/android/jni"
 
 // replyText reads what the user typed, which the system puts into the intent
 // on its way to the receiver rather than into the notification.

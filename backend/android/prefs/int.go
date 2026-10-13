@@ -2,9 +2,7 @@
 
 package prefs
 
-import (
-	"github.com/gabrielluizsf/antui/backend/android/jni"
-)
+import "github.com/gabrielluizsf/antui/backend/android/jni"
 
 // Int, Bool, Float and Long are String for the other types the store holds.
 func (p *Prefs) Int(key string, fallback int32) (int32, error) {

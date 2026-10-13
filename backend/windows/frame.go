@@ -2,9 +2,7 @@
 
 package windows
 
-import (
-	"unsafe"
-)
+import "unsafe"
 
 // frame is how much wider and taller the whole window is than its drawable
 // area, which every one of these calls is in terms of and none of them says.

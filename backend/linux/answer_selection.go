@@ -2,9 +2,7 @@
 
 package linux
 
-import (
-	"encoding/binary"
-)
+import "encoding/binary"
 
 // answerSelection hands over what was copied. It reports whether the event
 // was one of the selection ones.

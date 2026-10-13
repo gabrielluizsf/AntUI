@@ -2,9 +2,7 @@
 
 package linux
 
-import (
-	"encoding/binary"
-)
+import "encoding/binary"
 
 // request builds a request whose length field it fills in itself. The body
 // is padded to a four-byte boundary, as every request must be.

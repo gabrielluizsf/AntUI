@@ -7,9 +7,7 @@ package app
 */
 import "C"
 
-import (
-	"github.com/gabrielluizsf/antui/backend/android/jni"
-)
+import "github.com/gabrielluizsf/antui/backend/android/jni"
 
 // registerListenerBridge wires the one method every listener comes back
 // through, on the class of its own.

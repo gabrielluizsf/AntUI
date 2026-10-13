@@ -2,9 +2,7 @@
 
 package app
 
-import (
-	"errors"
-)
+import "errors"
 
 // ErrNoShim is what the calls here report when the app was built without the
 // Java shim, so there is nothing to deliver the answer.

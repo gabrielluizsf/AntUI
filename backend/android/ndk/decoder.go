@@ -9,9 +9,7 @@ package ndk
 */
 import "C"
 
-import (
-	"os"
-)
+import "os"
 
 // Decoder is one track being decoded.
 type Decoder struct {

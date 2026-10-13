@@ -2,9 +2,7 @@
 
 package linux
 
-import (
-	"strings"
-)
+import "strings"
 
 // kdeTheme reads the scheme KDE names in kdeglobals: ColorScheme is the
 // theme's name and LookAndFeelPackage is the one a global theme writes

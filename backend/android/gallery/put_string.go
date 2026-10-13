@@ -2,9 +2,7 @@
 
 package gallery
 
-import (
-	"github.com/gabrielluizsf/antui/backend/android/jni"
-)
+import "github.com/gabrielluizsf/antui/backend/android/jni"
 
 func putString(e *jni.Env, values jni.Object, key, value string) error {
 	k, err := e.String(key)

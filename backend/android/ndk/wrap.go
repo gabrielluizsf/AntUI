@@ -8,9 +8,7 @@ package ndk
 */
 import "C"
 
-import (
-	"unsafe"
-)
+import "unsafe"
 
 // Wrap takes the pointer a native-activity callback was given. It does not
 // acquire: the caller owns whatever lifetime the system promised.

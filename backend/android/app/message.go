@@ -2,9 +2,7 @@
 
 package app
 
-import (
-	"unsafe"
-)
+import "unsafe"
 
 type message struct {
 	ev  Event

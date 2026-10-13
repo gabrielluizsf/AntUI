@@ -2,9 +2,7 @@
 
 package windows
 
-import (
-	"syscall"
-)
+import "syscall"
 
 func pickWindowLong(name string, fallback *syscall.LazyProc) *syscall.LazyProc {
 	proc := user32.NewProc(name)

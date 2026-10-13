@@ -7,9 +7,7 @@ package jni
 */
 import "C"
 
-import (
-	"sync"
-)
+import "sync"
 
 var (
 	classMu sync.RWMutex

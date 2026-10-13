@@ -2,9 +2,7 @@
 
 package prefs
 
-import (
-	"github.com/gabrielluizsf/antui/backend/android/jni"
-)
+import "github.com/gabrielluizsf/antui/backend/android/jni"
 
 // Long reads a 64-bit setting, or the fallback when it is not there.
 func (p *Prefs) Long(key string, fallback int64) (int64, error) {

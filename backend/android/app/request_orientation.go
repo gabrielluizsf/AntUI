@@ -2,9 +2,7 @@
 
 package app
 
-import (
-	"github.com/gabrielluizsf/antui/backend/android/jni"
-)
+import "github.com/gabrielluizsf/antui/backend/android/jni"
 
 func requestOrientation(want int) error {
 	var err error

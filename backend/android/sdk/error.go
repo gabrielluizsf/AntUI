@@ -1,8 +1,6 @@
 package sdk
 
-import (
-	"strings"
-)
+import "strings"
 
 // Error says what is not installed and what to run to install it.
 func (m *Missing) Error() string {

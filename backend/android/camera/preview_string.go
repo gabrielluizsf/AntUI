@@ -2,9 +2,7 @@
 
 package camera
 
-import (
-	"fmt"
-)
+import "fmt"
 
 // String describes the running camera: which one, and how its frames are
 // turned to be the right way up.

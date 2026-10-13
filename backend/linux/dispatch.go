@@ -2,9 +2,7 @@
 
 package linux
 
-import (
-	"github.com/gabrielluizsf/antui/backend"
-)
+import "github.com/gabrielluizsf/antui/backend"
 
 // dispatch folds every whole packet in the buffer into the window. A packet
 // half-read is left for the next time: the reply it belongs to may still be

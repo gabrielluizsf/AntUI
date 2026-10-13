@@ -2,9 +2,7 @@
 
 package linux
 
-import (
-	"encoding/binary"
-)
+import "encoding/binary"
 
 // wmState asks the window manager to turn a state on or off.
 //

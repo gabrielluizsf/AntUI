@@ -2,9 +2,7 @@
 
 package sensor
 
-import (
-	"fmt"
-)
+import "fmt"
 
 // String names the sensor, and says the number for one this package has
 // no name for.

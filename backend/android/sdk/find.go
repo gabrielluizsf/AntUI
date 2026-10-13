@@ -1,8 +1,6 @@
 package sdk
 
-import (
-	"strconv"
-)
+import "strconv"
 
 // Find locates everything Require asks for. The error it returns on a
 // partial install is a [*Missing], which names the packages to install and

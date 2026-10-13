@@ -2,9 +2,7 @@
 
 package linux
 
-import (
-	"github.com/gabrielluizsf/antui/backend"
-)
+import "github.com/gabrielluizsf/antui/backend"
 
 func modsFromState(state uint16) backend.Mod {
 	var mods backend.Mod

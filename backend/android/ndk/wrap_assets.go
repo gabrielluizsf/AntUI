@@ -10,9 +10,7 @@ package ndk
 */
 import "C"
 
-import (
-	"unsafe"
-)
+import "unsafe"
 
 // WrapAssets takes the manager the platform handed the activity.
 func WrapAssets(p unsafe.Pointer) *AssetManager {

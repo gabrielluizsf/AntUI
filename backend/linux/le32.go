@@ -2,9 +2,7 @@
 
 package linux
 
-import (
-	"encoding/binary"
-)
+import "encoding/binary"
 
 func le32(values ...uint32) []byte {
 	buf := make([]byte, 4*len(values))

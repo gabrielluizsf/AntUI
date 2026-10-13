@@ -2,9 +2,7 @@
 
 package app
 
-import (
-	"github.com/gabrielluizsf/antui/backend/android/ndk"
-)
+import "github.com/gabrielluizsf/antui/backend/android/ndk"
 
 // Input takes everything waiting in the input queue and hands each event to
 // handle, which reports whether the app dealt with it. An event the app does

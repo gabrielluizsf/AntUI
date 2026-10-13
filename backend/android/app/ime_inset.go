@@ -2,9 +2,7 @@
 
 package app
 
-import (
-	"github.com/gabrielluizsf/antui/backend/android/jni"
-)
+import "github.com/gabrielluizsf/antui/backend/android/jni"
 
 // imeInset reads the keyboard's height on the platforms that report it
 // separately. It answers 0 rather than an error on the ones that do not,

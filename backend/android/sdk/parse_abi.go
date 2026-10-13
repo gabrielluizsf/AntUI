@@ -1,8 +1,6 @@
 package sdk
 
-import (
-	"fmt"
-)
+import "fmt"
 
 // ParseABI reads an ABI name, also accepting the Go architecture that maps
 // onto it so a caller can pass GOARCH through unchanged.

@@ -8,9 +8,7 @@ package ndk
 */
 import "C"
 
-import (
-	"unsafe"
-)
+import "unsafe"
 
 // Lock takes the next buffer to draw into. When dirty is not nil it names
 // the region about to be written, and Lock rewrites it with the region the

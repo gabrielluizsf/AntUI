@@ -2,9 +2,7 @@
 
 package app
 
-import (
-	"github.com/gabrielluizsf/antui/backend/android/jni"
-)
+import "github.com/gabrielluizsf/antui/backend/android/jni"
 
 // Listener makes one of the shim's own listener classes — the ones that had
 // to be written out because Android wanted an abstract class rather than an

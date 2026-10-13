@@ -10,9 +10,7 @@ package ndk
 */
 import "C"
 
-import (
-	"unsafe"
-)
+import "unsafe"
 
 // Bytes is the whole asset, without a copy where the platform can manage it.
 //

@@ -10,9 +10,7 @@ package app
 */
 import "C"
 
-import (
-	"github.com/gabrielluizsf/antui/backend/android/ndk"
-)
+import "github.com/gabrielluizsf/antui/backend/android/ndk"
 
 //export antuiOnContentRectChanged
 func antuiOnContentRectChanged(_ *C.ANativeActivity, r *C.ARect) {

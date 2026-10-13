@@ -2,9 +2,7 @@
 
 package sqlite
 
-import (
-	"github.com/gabrielluizsf/antui/backend/android/jni"
-)
+import "github.com/gabrielluizsf/antui/backend/android/jni"
 
 // Transaction runs f inside one, committing when it returns nil and undoing
 // everything when it does not.

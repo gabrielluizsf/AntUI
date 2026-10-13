@@ -2,9 +2,7 @@
 
 package assets
 
-import (
-	"io/fs"
-)
+import "io/fs"
 
 func (i info) Mode() fs.FileMode {
 	if i.dir {

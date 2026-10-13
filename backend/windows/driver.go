@@ -2,9 +2,7 @@
 
 package windows
 
-import (
-	"github.com/gabrielluizsf/antui/backend"
-)
+import "github.com/gabrielluizsf/antui/backend"
 
 // Driver is one window on Windows. It owns the platform connections the way
 // the window core owns the input state.

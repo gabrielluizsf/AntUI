@@ -7,9 +7,7 @@ package app
 */
 import "C"
 
-import (
-	"unsafe"
-)
+import "unsafe"
 
 // buildApp is the state the app is created with.
 func buildApp(act *C.ANativeActivity, savedState unsafe.Pointer, savedStateSize C.size_t) *App {

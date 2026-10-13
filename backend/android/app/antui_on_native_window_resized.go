@@ -10,9 +10,7 @@ package app
 */
 import "C"
 
-import (
-	"unsafe"
-)
+import "unsafe"
 
 //export antuiOnNativeWindowResized
 func antuiOnNativeWindowResized(_ *C.ANativeActivity, w *C.ANativeWindow) {

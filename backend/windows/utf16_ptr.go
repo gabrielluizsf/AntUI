@@ -2,9 +2,7 @@
 
 package windows
 
-import (
-	"syscall"
-)
+import "syscall"
 
 func utf16Ptr(s string) *uint16 {
 	p, err := syscall.UTF16PtrFromString(s)

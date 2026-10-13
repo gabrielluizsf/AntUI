@@ -2,9 +2,7 @@
 
 package picker
 
-import (
-	"github.com/gabrielluizsf/antui/backend/android/app"
-)
+import "github.com/gabrielluizsf/antui/backend/android/app"
 
 // Many asks for several at once. It comes back with one address per file, in
 // the order the picker gave them.

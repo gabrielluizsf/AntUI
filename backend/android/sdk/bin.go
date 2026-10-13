@@ -1,8 +1,6 @@
 package sdk
 
-import (
-	"path/filepath"
-)
+import "path/filepath"
 
 // Bin is the NDK's toolchain directory, where clang and the llvm tools are.
 func (n NDK) Bin() string {

@@ -2,9 +2,7 @@
 
 package windows
 
-import (
-	"github.com/gabrielluizsf/antui/backend"
-)
+import "github.com/gabrielluizsf/antui/backend"
 
 // SetLimits keeps the limits for the two messages that answer with them, and
 // rewrites the style bits, which is what the frame and the maximise button

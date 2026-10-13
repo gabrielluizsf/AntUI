@@ -2,9 +2,7 @@
 
 package sensor
 
-import (
-	"time"
-)
+import "time"
 
 // Info describes a sensor the device has.
 type Info struct {

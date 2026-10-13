@@ -2,9 +2,7 @@
 
 package app
 
-import (
-	"unsafe"
-)
+import "unsafe"
 
 // post hands an event to the app's goroutine. When wait is set it does not
 // return until the app has acknowledged it, which is what makes it safe for

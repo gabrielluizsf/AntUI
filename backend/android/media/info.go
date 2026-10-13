@@ -2,9 +2,7 @@
 
 package media
 
-import (
-	"time"
-)
+import "time"
 
 // Info is what a file holds.
 type Info struct {

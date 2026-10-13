@@ -2,9 +2,7 @@
 
 package linux
 
-import (
-	"github.com/gabrielluizsf/antui/backend"
-)
+import "github.com/gabrielluizsf/antui/backend"
 
 // Pump handles whatever is waiting on the connection this frame, folding it
 // into the window through win.push.

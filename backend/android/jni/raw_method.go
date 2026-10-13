@@ -7,9 +7,7 @@ package jni
 */
 import "C"
 
-import (
-	"unsafe"
-)
+import "unsafe"
 
 func (e *Env) rawMethod(cls C.jclass, name, sig string) C.jmethodID {
 	cname, csig := C.CString(name), C.CString(sig)

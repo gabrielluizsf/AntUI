@@ -1,8 +1,6 @@
 package sdk
 
-import (
-	"strings"
-)
+import "strings"
 
 // Fix is the one sdkmanager command that installs everything missing, or the
 // empty string when nothing missing can be installed that way.

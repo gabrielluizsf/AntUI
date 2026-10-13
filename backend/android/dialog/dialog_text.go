@@ -2,9 +2,7 @@
 
 package dialog
 
-import (
-	"github.com/gabrielluizsf/antui/backend/android/jni"
-)
+import "github.com/gabrielluizsf/antui/backend/android/jni"
 
 // dialogText sets one text property on the builder, skipping an empty one.
 func dialogText(e *jni.Env, builder jni.Object, method, value string) error {

@@ -2,9 +2,7 @@
 
 package location
 
-import (
-	"github.com/gabrielluizsf/antui/backend/android/jni"
-)
+import "github.com/gabrielluizsf/antui/backend/android/jni"
 
 // Geocode turns an address into places. max bounds how many come back; one
 // is usually right, and more is for offering a choice.

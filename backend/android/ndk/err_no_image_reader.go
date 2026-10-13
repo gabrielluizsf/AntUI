@@ -2,9 +2,7 @@
 
 package ndk
 
-import (
-	"errors"
-)
+import "errors"
 
 // ErrNoImageReader is a device below API 24, where video frames cannot be
 // got at from native code at all.

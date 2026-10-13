@@ -2,9 +2,7 @@
 
 package windows
 
-import (
-	"math"
-)
+import "math"
 
 // sizing keeps the aspect ratio while the window is dragged. lparam points at
 // the rectangle Windows is about to apply, and writing through it before

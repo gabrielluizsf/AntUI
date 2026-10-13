@@ -2,9 +2,7 @@
 
 package sqlite
 
-import (
-	"github.com/gabrielluizsf/antui/backend/android/jni"
-)
+import "github.com/gabrielluizsf/antui/backend/android/jni"
 
 // Close shuts the database. Rows opened from it must be closed first.
 func (db *DB) Close() error {

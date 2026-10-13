@@ -2,9 +2,7 @@
 
 package sqlite
 
-import (
-	"github.com/gabrielluizsf/antui/backend/android/jni"
-)
+import "github.com/gabrielluizsf/antui/backend/android/jni"
 
 func (db *DB) call(method string) error {
 	return jni.Do(func(e *jni.Env) error {

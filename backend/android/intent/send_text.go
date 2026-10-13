@@ -2,9 +2,7 @@
 
 package intent
 
-import (
-	"github.com/gabrielluizsf/antui/backend/android/jni"
-)
+import "github.com/gabrielluizsf/antui/backend/android/jni"
 
 // SendText offers text to any app that takes text: a message, an email, a
 // note, the clipboard of another device.

@@ -2,9 +2,7 @@
 
 package linux
 
-import (
-	"time"
-)
+import "time"
 
 // themeState is what the desktop said the last time it was asked, and when
 // it is due to be asked again.

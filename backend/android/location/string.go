@@ -2,9 +2,7 @@
 
 package location
 
-import (
-	"fmt"
-)
+import "fmt"
 
 // String is the position and how good it is, in one line.
 func (f Fix) String() string {

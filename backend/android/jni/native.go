@@ -7,9 +7,7 @@ package jni
 */
 import "C"
 
-import (
-	"unsafe"
-)
+import "unsafe"
 
 // Native is one native method to attach to a Java class.
 //

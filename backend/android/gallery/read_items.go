@@ -2,9 +2,7 @@
 
 package gallery
 
-import (
-	"github.com/gabrielluizsf/antui/backend/android/jni"
-)
+import "github.com/gabrielluizsf/antui/backend/android/jni"
 
 // readItems walks the cursor, up to limit items when limit is above zero.
 func readItems(e *jni.Env, cursor, collection jni.Object, modern bool, limit int) ([]Item, error) {

@@ -2,9 +2,7 @@
 
 package notify
 
-import (
-	"github.com/gabrielluizsf/antui/backend/android/jni"
-)
+import "github.com/gabrielluizsf/antui/backend/android/jni"
 
 // builderIntent sets what a tap opens, when there is anything.
 func builderIntent(e *jni.Env, builder jni.Object, n Notification) error {

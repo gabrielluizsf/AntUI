@@ -1,8 +1,6 @@
 package apk
 
-import (
-	"os"
-)
+import "os"
 
 // save copies a file into the cache, atomically. Every failure is ignored:
 // the caller has what it needs and the cache is only ever an optimisation.

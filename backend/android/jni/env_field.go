@@ -7,9 +7,7 @@ package jni
 */
 import "C"
 
-import (
-	"unsafe"
-)
+import "unsafe"
 
 // Field finds an instance field.
 func (e *Env) Field(c Class, name, sig string) (Field, error) {

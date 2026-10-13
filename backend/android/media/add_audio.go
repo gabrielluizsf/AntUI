@@ -2,9 +2,7 @@
 
 package media
 
-import (
-	"github.com/gabrielluizsf/antui/backend/android/ndk"
-)
+import "github.com/gabrielluizsf/antui/backend/android/ndk"
 
 // addAudio prepares the audio track, if the file has one.
 func addAudio(p *Player, m *ndk.Media) error {

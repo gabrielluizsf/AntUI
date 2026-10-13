@@ -2,9 +2,7 @@
 
 package network
 
-import (
-	"github.com/gabrielluizsf/antui/backend/android/jni"
-)
+import "github.com/gabrielluizsf/antui/backend/android/jni"
 
 // readOld is the path for API 21 and 22, where NetworkCapabilities does not
 // exist and NetworkInfo says much less.

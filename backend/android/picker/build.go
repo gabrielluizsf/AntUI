@@ -2,9 +2,7 @@
 
 package picker
 
-import (
-	"github.com/gabrielluizsf/antui/backend/android/jni"
-)
+import "github.com/gabrielluizsf/antui/backend/android/jni"
 
 // build makes the intent.
 //

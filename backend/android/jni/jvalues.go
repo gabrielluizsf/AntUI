@@ -7,9 +7,7 @@ package jni
 */
 import "C"
 
-import (
-	"unsafe"
-)
+import "unsafe"
 
 // jvalues lays the arguments out the way the machine expects to read them.
 func jvalues(vals []Value) []C.jvalue {

@@ -1,8 +1,6 @@
 package sdk
 
-import (
-	"runtime"
-)
+import "runtime"
 
 // script adds the extension a *wrapper* has: the SDK ships d8 and apksigner
 // as shell scripts everywhere and as .bat files on Windows, which is not the

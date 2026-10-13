@@ -2,9 +2,7 @@
 
 package ndk
 
-import (
-	"errors"
-)
+import "errors"
 
 // ErrNoBatching is what [SensorQueue.Register] reports on a platform too old
 // to have it.

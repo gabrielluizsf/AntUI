@@ -2,9 +2,7 @@
 
 package speech
 
-import (
-	"github.com/gabrielluizsf/antui/backend/android/jni"
-)
+import "github.com/gabrielluizsf/antui/backend/android/jni"
 
 func buildIntent(e *jni.Env, opt Options) (jni.Object, error) {
 	action, err := e.ConstantString("android/speech/RecognizerIntent", "ACTION_RECOGNIZE_SPEECH")

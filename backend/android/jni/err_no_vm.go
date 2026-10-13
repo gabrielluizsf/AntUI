@@ -2,9 +2,7 @@
 
 package jni
 
-import (
-	"errors"
-)
+import "errors"
 
 // ErrNoVM is what every call reports before [Init] has run — which is every
 // call in a process that Android did not start as an app.

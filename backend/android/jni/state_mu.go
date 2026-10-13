@@ -9,9 +9,7 @@ package jni
 */
 import "C"
 
-import (
-	"sync"
-)
+import "sync"
 
 // The virtual machine and the activity, set once by the app package when
 // Android creates the activity. They are the only globals: everything else

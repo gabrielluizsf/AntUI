@@ -1,8 +1,6 @@
 package apk
 
-import (
-	"fmt"
-)
+import "fmt"
 
 // ErrNoBundletool is a machine without the jar that takes a bundle apart.
 //

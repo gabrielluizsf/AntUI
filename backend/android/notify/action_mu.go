@@ -2,9 +2,7 @@
 
 package notify
 
-import (
-	"sync"
-)
+import "sync"
 
 var (
 	actionMu   sync.Mutex

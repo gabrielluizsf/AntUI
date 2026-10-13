@@ -2,9 +2,7 @@
 
 package linux
 
-import (
-	"strings"
-)
+import "strings"
 
 // parseURIList turns what a drag or a clipboard holds into paths on this
 // machine.

@@ -7,9 +7,7 @@ package jni
 */
 import "C"
 
-import (
-	"unsafe"
-)
+import "unsafe"
 
 func (e *Env) findClass(name string) C.jclass {
 	cname := C.CString(name)

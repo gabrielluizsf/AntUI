@@ -9,9 +9,7 @@ package ndk
 */
 import "C"
 
-import (
-	"errors"
-)
+import "errors"
 
 // Queue makes a stream on the given looper. Like the input queue, it is
 // thread-local: readings arrive only on the thread the looper belongs to.

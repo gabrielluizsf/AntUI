@@ -2,9 +2,7 @@
 
 package ndk
 
-import (
-	"fmt"
-)
+import "fmt"
 
 // DecodeAudio starts decoding a sound track into PCM.
 func (m *Media) DecodeAudio(track Track) (*Decoder, error) {

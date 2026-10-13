@@ -2,9 +2,7 @@
 
 package linux
 
-import (
-	"encoding/binary"
-)
+import "encoding/binary"
 
 // loadKeymap fetches the keycode-to-keysym table. It is read once at startup
 // and again whenever the server reports the layout changed, so that switching

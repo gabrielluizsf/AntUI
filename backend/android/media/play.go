@@ -2,9 +2,7 @@
 
 package media
 
-import (
-	"time"
-)
+import "time"
 
 // Play starts, or carries on after a pause.
 func (p *Player) Play() {

@@ -2,9 +2,7 @@
 
 package picker
 
-import (
-	"github.com/gabrielluizsf/antui/backend/android/jni"
-)
+import "github.com/gabrielluizsf/antui/backend/android/jni"
 
 // allowMultiple asks the picker to accept more than one file.
 func allowMultiple(e *jni.Env, in jni.Object) error {

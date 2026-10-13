@@ -2,9 +2,7 @@
 
 package speech
 
-import (
-	"github.com/gabrielluizsf/antui/backend/android/jni"
-)
+import "github.com/gabrielluizsf/antui/backend/android/jni"
 
 // readResults pulls the guesses out of the bundle the engine answers with.
 func readResults(e *jni.Env, bundle jni.Object, partial bool) (Heard, bool) {

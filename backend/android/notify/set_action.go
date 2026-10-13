@@ -2,9 +2,7 @@
 
 package notify
 
-import (
-	"github.com/gabrielluizsf/antui/backend/android/jni"
-)
+import "github.com/gabrielluizsf/antui/backend/android/jni"
 
 func setAction(e *jni.Env, intent jni.Object, action string) error {
 	js, err := e.String(action)

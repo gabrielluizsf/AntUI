@@ -9,9 +9,7 @@ package ndk
 */
 import "C"
 
-import (
-	"unsafe"
-)
+import "unsafe"
 
 // List is every sensor the device has.
 func (m *SensorManager) List() []Sensor {

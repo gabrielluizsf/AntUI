@@ -2,9 +2,7 @@
 
 package display
 
-import (
-	"github.com/gabrielluizsf/antui/backend/android/jni"
-)
+import "github.com/gabrielluizsf/antui/backend/android/jni"
 
 // readMetrics reads the real size and density out of the display metrics.
 func readMetrics(e *jni.Env, d jni.Object, out *Display) error {

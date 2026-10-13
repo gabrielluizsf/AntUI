@@ -2,9 +2,7 @@
 
 package biometric
 
-import (
-	"errors"
-)
+import "errors"
 
 // The errors a prompt can end in. Cancelled and Refused are the two a caller
 // has to handle; the rest are worth telling apart when reporting.

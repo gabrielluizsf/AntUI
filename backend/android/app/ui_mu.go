@@ -8,9 +8,7 @@ package app
 */
 import "C"
 
-import (
-	"sync"
-)
+import "sync"
 
 // Most of Android's Java API may only be touched from the thread the
 // activity was made on. Reading the window insets from anywhere else throws;

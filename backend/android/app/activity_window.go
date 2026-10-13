@@ -2,9 +2,7 @@
 
 package app
 
-import (
-	"github.com/gabrielluizsf/antui/backend/android/jni"
-)
+import "github.com/gabrielluizsf/antui/backend/android/jni"
 
 // activityWindow is the activity's android.view.Window.
 func activityWindow(e *jni.Env) (jni.Object, error) {

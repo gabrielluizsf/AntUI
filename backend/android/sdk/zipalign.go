@@ -1,8 +1,6 @@
 package sdk
 
-import (
-	"path/filepath"
-)
+import "path/filepath"
 
 // Zipalign is the tool that aligns a package so the loader can map what
 // is inside it.

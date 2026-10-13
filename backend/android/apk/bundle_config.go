@@ -1,8 +1,6 @@
 package apk
 
-import (
-	"bytes"
-)
+import "bytes"
 
 // BundleConfig.pb, encoded by hand.
 //

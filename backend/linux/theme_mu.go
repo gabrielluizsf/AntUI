@@ -2,9 +2,7 @@
 
 package linux
 
-import (
-	"sync"
-)
+import "sync"
 
 var (
 	themeMu sync.Mutex

@@ -9,9 +9,7 @@ package jni
 */
 import "C"
 
-import (
-	"errors"
-)
+import "errors"
 
 // attach finds this thread's connection, joining it to the machine if it is
 // not already, and reports whether it has to be detached again.

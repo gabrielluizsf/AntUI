@@ -2,9 +2,7 @@
 
 package notify
 
-import (
-	"github.com/gabrielluizsf/antui/backend/android/jni"
-)
+import "github.com/gabrielluizsf/antui/backend/android/jni"
 
 // configureBuilder fills the builder in, in the order the properties are
 // read.

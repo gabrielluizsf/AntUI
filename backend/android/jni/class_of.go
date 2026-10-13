@@ -7,9 +7,7 @@ package jni
 */
 import "C"
 
-import (
-	"errors"
-)
+import "errors"
 
 // ClassOf is the class of an object, which is how a returned object's real
 // type is found without knowing its name.

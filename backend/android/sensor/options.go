@@ -2,9 +2,7 @@
 
 package sensor
 
-import (
-	"time"
-)
+import "time"
 
 // Options is how a stream is opened.
 type Options struct {

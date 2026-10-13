@@ -11,9 +11,7 @@ package ndk
 */
 import "C"
 
-import (
-	"unsafe"
-)
+import "unsafe"
 
 // Orientation is how far the camera's own image is rotated from the device's
 // natural orientation, in degrees clockwise: 90 on almost every phone.

@@ -2,9 +2,7 @@
 
 package linux
 
-import (
-	"encoding/binary"
-)
+import "encoding/binary"
 
 func (x *Driver) sendDragMessage(kind uint32, data [5]uint32) {
 	body := make([]byte, 40)

@@ -2,9 +2,7 @@
 
 package jni
 
-import (
-	"sync"
-)
+import "sync"
 
 var (
 	memberMu sync.RWMutex

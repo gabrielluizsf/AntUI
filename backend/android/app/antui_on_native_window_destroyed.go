@@ -10,9 +10,7 @@ package app
 */
 import "C"
 
-import (
-	"unsafe"
-)
+import "unsafe"
 
 //export antuiOnNativeWindowDestroyed
 func antuiOnNativeWindowDestroyed(_ *C.ANativeActivity, w *C.ANativeWindow) {

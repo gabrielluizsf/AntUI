@@ -2,9 +2,7 @@
 
 package linux
 
-import (
-	"os"
-)
+import "os"
 
 // fileStampOf reads a file's identity without opening it — whether it is
 // there, how big it is, when it was last written — which is all it takes to

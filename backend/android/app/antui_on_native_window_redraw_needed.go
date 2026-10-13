@@ -10,9 +10,7 @@ package app
 */
 import "C"
 
-import (
-	"unsafe"
-)
+import "unsafe"
 
 //export antuiOnNativeWindowRedrawNeeded
 func antuiOnNativeWindowRedrawNeeded(_ *C.ANativeActivity, w *C.ANativeWindow) {

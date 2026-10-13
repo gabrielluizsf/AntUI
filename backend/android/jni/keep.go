@@ -7,9 +7,7 @@ package jni
 */
 import "C"
 
-import (
-	"runtime"
-)
+import "runtime"
 
 // keep stops the collector taking the argument array away while the call
 // that is reading it is still running.

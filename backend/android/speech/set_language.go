@@ -2,9 +2,7 @@
 
 package speech
 
-import (
-	"github.com/gabrielluizsf/antui/backend/android/jni"
-)
+import "github.com/gabrielluizsf/antui/backend/android/jni"
 
 // SetLanguage asks for a language by its tag — "pt-BR", "en-GB".
 //

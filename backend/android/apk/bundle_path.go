@@ -1,8 +1,6 @@
 package apk
 
-import (
-	"strings"
-)
+import "strings"
 
 // bundlePath is where something from the proto APK belongs in the bundle, or
 // empty for something that does not belong in one at all.

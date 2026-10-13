@@ -1,8 +1,6 @@
 package backend
 
-import (
-	"math"
-)
+import "math"
 
 // clamp reduces a size to what the limits allow. It is the whole of the
 // arithmetic in this package and is deliberately free of any window: it is

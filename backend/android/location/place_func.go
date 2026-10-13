@@ -2,9 +2,7 @@
 
 package location
 
-import (
-	"github.com/gabrielluizsf/antui/backend/android/jni"
-)
+import "github.com/gabrielluizsf/antui/backend/android/jni"
 
 func place(e *jni.Env, a jni.Object) (Place, error) {
 	var p Place

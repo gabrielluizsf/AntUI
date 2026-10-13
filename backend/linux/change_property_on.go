@@ -2,9 +2,7 @@
 
 package linux
 
-import (
-	"encoding/binary"
-)
+import "encoding/binary"
 
 // changePropertyOn is the same on somebody else's window, which is how a
 // selection is handed over: the asker names a property on their own window

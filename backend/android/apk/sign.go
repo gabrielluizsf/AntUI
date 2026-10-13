@@ -1,8 +1,6 @@
 package apk
 
-import (
-	"github.com/gabrielluizsf/antui/backend/android/sdk"
-)
+import "github.com/gabrielluizsf/antui/backend/android/sdk"
 
 // Sign aligns the package and signs it.
 //

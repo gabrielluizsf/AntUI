@@ -10,9 +10,7 @@ package app
 */
 import "C"
 
-import (
-	"unsafe"
-)
+import "unsafe"
 
 //export antuiOnInputQueueCreated
 func antuiOnInputQueueCreated(_ *C.ANativeActivity, q *C.AInputQueue) {

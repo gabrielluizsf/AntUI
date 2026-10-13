@@ -2,9 +2,7 @@
 
 package prefs
 
-import (
-	"github.com/gabrielluizsf/antui/backend/android/jni"
-)
+import "github.com/gabrielluizsf/antui/backend/android/jni"
 
 // edit opens an editor, runs f, and commits with apply — which writes to
 // memory now and to disk on a background thread. commit would write to disk

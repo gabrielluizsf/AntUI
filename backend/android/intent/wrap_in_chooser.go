@@ -2,9 +2,7 @@
 
 package intent
 
-import (
-	"github.com/gabrielluizsf/antui/backend/android/jni"
-)
+import "github.com/gabrielluizsf/antui/backend/android/jni"
 
 func wrapInChooser(e *jni.Env, in jni.Object, title string) (jni.Object, error) {
 	jtitle, err := e.String(title)

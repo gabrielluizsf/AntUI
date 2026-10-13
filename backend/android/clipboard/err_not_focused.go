@@ -2,9 +2,7 @@
 
 package clipboard
 
-import (
-	"errors"
-)
+import "errors"
 
 // ErrNotFocused is a read refused because the app is not the one the user is
 // looking at.

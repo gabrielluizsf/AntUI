@@ -2,9 +2,7 @@
 
 package torch
 
-import (
-	"github.com/gabrielluizsf/antui/backend/android/jni"
-)
+import "github.com/gabrielluizsf/antui/backend/android/jni"
 
 // cameraWithFlash finds the first camera with a flash, once. The list does
 // not change while an app runs, and asking costs a walk over every camera's

@@ -4,7 +4,6 @@ package linux
 
 import (
 	"encoding/binary"
-
 	"github.com/gabrielluizsf/antui/backend"
 )
 

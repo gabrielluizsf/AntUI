@@ -2,9 +2,7 @@
 
 package audio
 
-import (
-	"time"
-)
+import "time"
 
 func (r *Recorder) run(f func([]float32)) {
 	defer close(r.done)

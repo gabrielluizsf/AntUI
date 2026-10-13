@@ -2,9 +2,7 @@
 
 package app
 
-import (
-	"syscall"
-)
+import "syscall"
 
 // RunOnUI puts f on the UI thread's queue and returns without waiting.
 func RunOnUI(f func()) error {

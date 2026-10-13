@@ -2,9 +2,7 @@
 
 package gallery
 
-import (
-	"errors"
-)
+import "errors"
 
 // ErrNoPermission is saving on a device old enough to need one.
 var ErrNoPermission = errors.New("gallery: below Android 10 an app needs " +

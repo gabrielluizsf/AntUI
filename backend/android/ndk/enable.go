@@ -9,9 +9,7 @@ package ndk
 */
 import "C"
 
-import (
-	"errors"
-)
+import "errors"
 
 // Enable starts a sensor at its default rate.
 func (q *SensorQueue) Enable(s Sensor) error {

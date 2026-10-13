@@ -2,9 +2,7 @@
 
 package media
 
-import (
-	"github.com/gabrielluizsf/antui/backend/android/ndk"
-)
+import "github.com/gabrielluizsf/antui/backend/android/ndk"
 
 // addVideo prepares the video track, if the file has one.
 func addVideo(p *Player, m *ndk.Media) error {

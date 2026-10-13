@@ -11,9 +11,7 @@ package ndk
 */
 import "C"
 
-import (
-	"errors"
-)
+import "errors"
 
 // Cameras opens the camera manager.
 func Cameras() (*CameraManager, error) {

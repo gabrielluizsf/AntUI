@@ -1,8 +1,6 @@
 package apk
 
-import (
-	"github.com/gabrielluizsf/antui/backend/android/sdk"
-)
+import "github.com/gabrielluizsf/antui/backend/android/sdk"
 
 func carries64(abis []sdk.ABI) bool {
 	for _, a := range abis {

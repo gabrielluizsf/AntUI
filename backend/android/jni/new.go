@@ -7,9 +7,7 @@ package jni
 */
 import "C"
 
-import (
-	"errors"
-)
+import "errors"
 
 // New makes an object. The method is a constructor from [Env.Constructor].
 func (e *Env) New(c Class, m Method, args ...Value) (Object, error) {

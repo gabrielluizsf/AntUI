@@ -2,9 +2,7 @@
 
 package prefs
 
-import (
-	"github.com/gabrielluizsf/antui/backend/android/jni"
-)
+import "github.com/gabrielluizsf/antui/backend/android/jni"
 
 // Float reads a float setting, or the fallback when it is not there.
 func (p *Prefs) Float(key string, fallback float32) (float32, error) {

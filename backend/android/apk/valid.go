@@ -1,8 +1,6 @@
 package apk
 
-import (
-	"fmt"
-)
+import "fmt"
 
 // valid reports what is wrong with a link, if anything.
 func (l DeepLink) valid() error {

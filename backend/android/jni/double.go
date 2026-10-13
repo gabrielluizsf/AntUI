@@ -2,9 +2,7 @@
 
 package jni
 
-import (
-	"math"
-)
+import "math"
 
 // Double builds a Java double argument.
 func Double(v float64) Value {

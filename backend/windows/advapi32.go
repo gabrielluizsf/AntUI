@@ -2,9 +2,7 @@
 
 package windows
 
-import (
-	"syscall"
-)
+import "syscall"
 
 // The color scheme Windows paints its own apps in is a registry value rather
 // than a call with a window in it: AppsUseLightTheme, under the Personalize

@@ -8,9 +8,7 @@ package app
 */
 import "C"
 
-import (
-	"unsafe"
-)
+import "unsafe"
 
 // antuiOnSaveInstanceState is called by the framework, on the UI thread,
 // when it wants the app's state written down.

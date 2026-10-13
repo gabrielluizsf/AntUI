@@ -2,9 +2,7 @@
 
 package linux
 
-import (
-	"os"
-)
+import "os"
 
 // configDir is where a desktop keeps the settings it writes at login:
 // XDG_CONFIG_HOME when the session named one, the home directory's .config

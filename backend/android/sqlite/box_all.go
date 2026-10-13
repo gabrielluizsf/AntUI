@@ -2,9 +2,7 @@
 
 package sqlite
 
-import (
-	"github.com/gabrielluizsf/antui/backend/android/jni"
-)
+import "github.com/gabrielluizsf/antui/backend/android/jni"
 
 // boxAll turns Go values into the Objects execSQL binds.
 func boxAll(e *jni.Env, args []any) (jni.Object, error) {

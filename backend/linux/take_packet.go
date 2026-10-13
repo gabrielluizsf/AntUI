@@ -2,9 +2,7 @@
 
 package linux
 
-import (
-	"encoding/binary"
-)
+import "encoding/binary"
 
 // takePacket pulls one whole packet out of the buffer: the fixed 32 bytes,
 // plus the variable tail a reply carries. It reports false when only part of

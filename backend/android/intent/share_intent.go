@@ -2,9 +2,7 @@
 
 package intent
 
-import (
-	"github.com/gabrielluizsf/antui/backend/android/jni"
-)
+import "github.com/gabrielluizsf/antui/backend/android/jni"
 
 // shareIntent builds the ACTION_SEND intent that carries one content://
 // address, with the temporary grant the receiving app needs to read it.

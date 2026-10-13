@@ -2,9 +2,7 @@
 
 package speech
 
-import (
-	"errors"
-)
+import "errors"
 
 // ErrNoRecogniser is a device with nothing installed that can listen. It is
 // common: recognition is a service, usually Google's, and a device without

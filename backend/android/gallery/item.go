@@ -2,9 +2,7 @@
 
 package gallery
 
-import (
-	"time"
-)
+import "time"
 
 // Item is one thing in the device's library.
 type Item struct {

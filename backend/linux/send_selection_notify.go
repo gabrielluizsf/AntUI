@@ -2,9 +2,7 @@
 
 package linux
 
-import (
-	"encoding/binary"
-)
+import "encoding/binary"
 
 // sendSelectionNotify tells the asker the answer is on their window, or that
 // there is no answer.

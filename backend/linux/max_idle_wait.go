@@ -2,9 +2,7 @@
 
 package linux
 
-import (
-	"time"
-)
+import "time"
 
 // maxIdleWait caps how long a Pump will sit on the socket. The program's own
 // frame rate is the usual answer; this is the backstop for a program that has

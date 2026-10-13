@@ -2,9 +2,7 @@
 
 package speech
 
-import (
-	"github.com/gabrielluizsf/antui/backend/android/jni"
-)
+import "github.com/gabrielluizsf/antui/backend/android/jni"
 
 func startListening(e *jni.Env, recogniser, intent jni.Object) error {
 	return e.InvokeVoid(recogniser, "startListening",

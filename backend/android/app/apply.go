@@ -2,9 +2,7 @@
 
 package app
 
-import (
-	"github.com/gabrielluizsf/antui/backend/android/ndk"
-)
+import "github.com/gabrielluizsf/antui/backend/android/ndk"
 
 // apply folds an event into the app's state before the caller sees it — so
 // that on WindowDown the window is already gone, and on WindowUp it is

@@ -9,9 +9,7 @@ package ndk
 */
 import "C"
 
-import (
-	"fmt"
-)
+import "fmt"
 
 // open makes an extractor of this decoder's own and selects its track. Each
 // decoder gets one: an extractor has a single position, and two tracks read

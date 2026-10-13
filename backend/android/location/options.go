@@ -2,9 +2,7 @@
 
 package location
 
-import (
-	"time"
-)
+import "time"
 
 // Options is how a watch is opened.
 type Options struct {

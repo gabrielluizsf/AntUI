@@ -9,9 +9,7 @@ package ndk
 */
 import "C"
 
-import (
-	"errors"
-)
+import "errors"
 
 // SetRate asks for readings no more often than every micros microseconds.
 // It is a request: the platform delivers at that rate or slower, never

@@ -9,9 +9,7 @@ package ndk
 */
 import "C"
 
-import (
-	"unsafe"
-)
+import "unsafe"
 
 func formatInt(f *C.AMediaFormat, key string) (int, bool) {
 	k := C.CString(key)

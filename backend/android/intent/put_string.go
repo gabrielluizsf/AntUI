@@ -2,9 +2,7 @@
 
 package intent
 
-import (
-	"github.com/gabrielluizsf/antui/backend/android/jni"
-)
+import "github.com/gabrielluizsf/antui/backend/android/jni"
 
 func putString(e *jni.Env, in jni.Object, key, value string) error {
 	k, err := e.String(key)

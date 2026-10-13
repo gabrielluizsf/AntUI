@@ -7,9 +7,7 @@ package jni
 */
 import "C"
 
-import (
-	"unsafe"
-)
+import "unsafe"
 
 // StaticField finds a static field, which is where most of the platform's
 // constants live.

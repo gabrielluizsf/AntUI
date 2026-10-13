@@ -11,9 +11,7 @@ package ndk
 */
 import "C"
 
-import (
-	"unsafe"
-)
+import "unsafe"
 
 // Open opens a camera. It needs the CAMERA permission, and fails rather than
 // returning a black picture without it.

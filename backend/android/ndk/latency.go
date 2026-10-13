@@ -2,9 +2,7 @@
 
 package ndk
 
-import (
-	"time"
-)
+import "time"
 
 // Latency is roughly how long it is between writing a sample and hearing it:
 // the buffer over the rate. It is what the device was talked into rather

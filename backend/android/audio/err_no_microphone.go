@@ -2,9 +2,7 @@
 
 package audio
 
-import (
-	"errors"
-)
+import "errors"
 
 // ErrNoMicrophone is recording without the permission having been granted.
 var ErrNoMicrophone = errors.New("audio: this app has not been granted " +

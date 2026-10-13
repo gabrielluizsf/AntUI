@@ -2,9 +2,7 @@
 
 package linux
 
-import (
-	"time"
-)
+import "time"
 
 // need waits until at least count bytes are buffered.
 func (x *Driver) need(count int, timeout time.Duration) bool {

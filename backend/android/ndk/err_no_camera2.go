@@ -2,9 +2,7 @@
 
 package ndk
 
-import (
-	"errors"
-)
+import "errors"
 
 // ErrNoCamera2 is a device too old for the NDK's camera API, which arrived
 // in API 24.

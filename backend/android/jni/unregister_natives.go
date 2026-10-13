@@ -7,9 +7,7 @@ package jni
 */
 import "C"
 
-import (
-	"errors"
-)
+import "errors"
 
 // UnregisterNatives takes every native method off a class. The platform's
 // own documentation calls it a tool for debugging and tool builders, and

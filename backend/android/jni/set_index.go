@@ -7,9 +7,7 @@ package jni
 */
 import "C"
 
-import (
-	"errors"
-)
+import "errors"
 
 // SetIndex writes one element of an object array.
 func (e *Env) SetIndex(o Object, i int, v Object) error {

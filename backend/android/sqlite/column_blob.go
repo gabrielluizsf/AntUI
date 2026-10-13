@@ -2,9 +2,7 @@
 
 package sqlite
 
-import (
-	"github.com/gabrielluizsf/antui/backend/android/jni"
-)
+import "github.com/gabrielluizsf/antui/backend/android/jni"
 
 func (c column) blob() ([]byte, error) {
 	o, err := c.e.Invoke(c.cursor, "getBlob",

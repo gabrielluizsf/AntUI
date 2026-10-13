@@ -2,9 +2,7 @@
 
 package notify
 
-import (
-	"github.com/gabrielluizsf/antui/backend/android/jni"
-)
+import "github.com/gabrielluizsf/antui/backend/android/jni"
 
 // builderIcon sets the small icon, falling back to the platform's own.
 func builderIcon(e *jni.Env, builder jni.Object, n Notification) error {

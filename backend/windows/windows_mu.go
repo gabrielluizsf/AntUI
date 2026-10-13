@@ -2,9 +2,7 @@
 
 package windows
 
-import (
-	"sync"
-)
+import "sync"
 
 // windowsFromHandle maps a window handle back to the Go window it belongs to.
 // Keeping it here rather than in GWLP_USERDATA sidesteps the 32/64-bit split

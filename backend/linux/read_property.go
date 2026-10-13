@@ -2,9 +2,7 @@
 
 package linux
 
-import (
-	"encoding/binary"
-)
+import "encoding/binary"
 
 // readProperty reads a property off our own window and deletes it, which is
 // what a selection's protocol asks of whoever receives one.

@@ -2,9 +2,7 @@
 
 package ndk
 
-import (
-	"fmt"
-)
+import "fmt"
 
 // String names the pixel format the way Android does.
 func (f Format) String() string {

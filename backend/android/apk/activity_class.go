@@ -1,8 +1,6 @@
 package apk
 
-import (
-	"github.com/gabrielluizsf/antui/backend/android/shim"
-)
+import "github.com/gabrielluizsf/antui/backend/android/shim"
 
 // ActivityClass is the activity the manifest names: the shim when there is
 // one, and the platform's own NativeActivity when there is not.

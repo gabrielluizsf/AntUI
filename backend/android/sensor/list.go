@@ -2,9 +2,7 @@
 
 package sensor
 
-import (
-	"time"
-)
+import "time"
 
 // List is every sensor the device has.
 func List() ([]Info, error) {

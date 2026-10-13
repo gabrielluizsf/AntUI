@@ -11,9 +11,7 @@ package ndk
 */
 import "C"
 
-import (
-	"errors"
-)
+import "errors"
 
 // audioError turns AAudio's numbered result into its own words, which are
 // better than anything this package would invent.

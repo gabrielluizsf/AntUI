@@ -2,9 +2,7 @@
 
 package gallery
 
-import (
-	"github.com/gabrielluizsf/antui/backend/android/jni"
-)
+import "github.com/gabrielluizsf/antui/backend/android/jni"
 
 // buildValues is the ContentValues a MediaStore insert takes.
 func buildValues(e *jni.Env, kind Kind, name, mime, album string, modern bool) (jni.Object, error) {

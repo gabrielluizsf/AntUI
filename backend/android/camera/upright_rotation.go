@@ -2,9 +2,7 @@
 
 package camera
 
-import (
-	"github.com/gabrielluizsf/antui/backend/android/display"
-)
+import "github.com/gabrielluizsf/antui/backend/android/display"
 
 // uprightRotation works out how far a frame has to be turned.
 //

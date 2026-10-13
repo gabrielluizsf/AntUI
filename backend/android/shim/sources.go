@@ -1,8 +1,6 @@
 package shim
 
-import (
-	"embed"
-)
+import "embed"
 
 // Sources is the Java it was compiled from — every file, so that [Build] can
 // reproduce the dex without knowing where the repository is.

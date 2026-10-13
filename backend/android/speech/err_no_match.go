@@ -2,9 +2,7 @@
 
 package speech
 
-import (
-	"errors"
-)
+import "errors"
 
 // The reasons recognition stops, translated out of the engine's numbers.
 var (

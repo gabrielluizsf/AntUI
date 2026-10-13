@@ -2,9 +2,7 @@
 
 package power
 
-import (
-	"github.com/gabrielluizsf/antui/backend/android/jni"
-)
+import "github.com/gabrielluizsf/antui/backend/android/jni"
 
 // readExtras reads the values out of the battery intent.
 func readExtras(e *jni.Env, status jni.Object, out *Battery) error {

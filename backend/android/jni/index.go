@@ -7,9 +7,7 @@ package jni
 */
 import "C"
 
-import (
-	"errors"
-)
+import "errors"
 
 // Index reads one element of an object array.
 func (e *Env) Index(o Object, i int) (Object, error) {

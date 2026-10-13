@@ -2,9 +2,7 @@
 
 package media
 
-import (
-	"time"
-)
+import "time"
 
 // position is Position without the lock, which the callers below already
 // hold.

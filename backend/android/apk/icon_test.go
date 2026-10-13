@@ -25,7 +25,7 @@ func source(t *testing.T, dir string, size int) string {
 		t.Fatal(err)
 	}
 	cv.Clear(canvas.Transparent)
-	cv.FillCircle(size/2, size/2, size/2, canvas.Blue)
+	cv.FillCircle(canvas.Circle{X: size / 2, Y: size / 2, R: size / 2}, canvas.Blue)
 	path := filepath.Join(dir, "src.png")
 	if err := writePNG(path, cv); err != nil {
 		t.Fatal(err)

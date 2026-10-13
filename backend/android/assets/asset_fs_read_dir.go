@@ -2,9 +2,7 @@
 
 package assets
 
-import (
-	"io/fs"
-)
+import "io/fs"
 
 func (f assetFS) ReadDir(name string) ([]fs.DirEntry, error) {
 	if !fs.ValidPath(name) {

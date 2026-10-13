@@ -2,9 +2,7 @@
 
 package location
 
-import (
-	"github.com/gabrielluizsf/antui/backend/android/jni"
-)
+import "github.com/gabrielluizsf/antui/backend/android/jni"
 
 // places reads a java.util.List of Address into Go.
 func places(e *jni.Env, list jni.Object) ([]Place, error) {

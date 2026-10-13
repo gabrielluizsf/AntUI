@@ -1,8 +1,6 @@
 package sdk
 
-import (
-	"fmt"
-)
+import "fmt"
 
 // reportFound says what the toolchain has, and what that means for a build.
 func reportFound(d *Doctor, t *Toolchain) {

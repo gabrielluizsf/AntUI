@@ -7,9 +7,7 @@ package jni
 */
 import "C"
 
-import (
-	"errors"
-)
+import "errors"
 
 // findAppLoader reaches the activity's class loader and brings it back as a
 // global reference, with loadClass on it.

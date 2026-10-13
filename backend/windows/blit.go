@@ -2,9 +2,7 @@
 
 package windows
 
-import (
-	"unsafe"
-)
+import "unsafe"
 
 // blit hands the whole canvas to GDI as a top-down 32-bit DIB. The negative
 // height is what "top-down" means to Windows; without it the frame arrives

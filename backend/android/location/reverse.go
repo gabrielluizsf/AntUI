@@ -2,9 +2,7 @@
 
 package location
 
-import (
-	"github.com/gabrielluizsf/antui/backend/android/jni"
-)
+import "github.com/gabrielluizsf/antui/backend/android/jni"
 
 // Reverse turns a position into addresses.
 //

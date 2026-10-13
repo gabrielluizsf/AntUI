@@ -2,9 +2,7 @@
 
 package linux
 
-import (
-	"strings"
-)
+import "strings"
 
 // unquote takes the quotes the settings tool puts around the value it
 // prints, and the whitespace it puts around that.

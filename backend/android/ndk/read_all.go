@@ -2,9 +2,7 @@
 
 package ndk
 
-import (
-	"io"
-)
+import "io"
 
 // ReadAll is the whole asset as Go memory, mapped where it can be and
 // inflated where it cannot.

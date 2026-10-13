@@ -2,9 +2,7 @@
 
 package windows
 
-import (
-	"unsafe"
-)
+import "unsafe"
 
 // SetTitle names the window in the system's decoration.
 func (d *Driver) SetTitle(title string) {

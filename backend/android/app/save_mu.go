@@ -2,9 +2,7 @@
 
 package app
 
-import (
-	"sync"
-)
+import "sync"
 
 var (
 	saveMu sync.Mutex

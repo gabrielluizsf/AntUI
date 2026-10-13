@@ -2,9 +2,7 @@
 
 package speech
 
-import (
-	"fmt"
-)
+import "fmt"
 
 // recogniserError turns the engine's number into something a person could
 // act on.

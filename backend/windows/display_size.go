@@ -2,9 +2,7 @@
 
 package windows
 
-import (
-	"unsafe"
-)
+import "unsafe"
 
 // DisplaySize is the size of the display the window is on.
 func (d *Driver) DisplaySize() (w, h int, ok bool) {

@@ -2,8 +2,6 @@
 
 package jni
 
-import (
-	"errors"
-)
+import "errors"
 
 var errNoFrame = errors.New("jni: cannot open a local reference frame")

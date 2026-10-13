@@ -2,9 +2,7 @@
 
 package ndk
 
-import (
-	"unsafe"
-)
+import "unsafe"
 
 // Row is one row of the buffer as bytes, whatever the format.
 func (b Buffer) Row(y int) []byte {

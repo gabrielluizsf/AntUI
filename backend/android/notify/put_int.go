@@ -2,9 +2,7 @@
 
 package notify
 
-import (
-	"github.com/gabrielluizsf/antui/backend/android/jni"
-)
+import "github.com/gabrielluizsf/antui/backend/android/jni"
 
 func putInt(e *jni.Env, intent jni.Object, key string, value int32) error {
 	k, err := e.String(key)

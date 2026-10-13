@@ -2,9 +2,7 @@
 
 package linux
 
-import (
-	"encoding/binary"
-)
+import "encoding/binary"
 
 // DisplayRefresh is how often the display repaints, in hertz. 0 when it
 // cannot be known, which is any server without RandR.

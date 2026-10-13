@@ -2,9 +2,7 @@
 
 package picker
 
-import (
-	"github.com/gabrielluizsf/antui/backend/android/jni"
-)
+import "github.com/gabrielluizsf/antui/backend/android/jni"
 
 // document builds an OPEN_DOCUMENT or CREATE_DOCUMENT intent.
 func document(e *jni.Env, action, mime, title string, many bool) (jni.Object, error) {

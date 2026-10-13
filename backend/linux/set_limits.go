@@ -2,9 +2,7 @@
 
 package linux
 
-import (
-	"github.com/gabrielluizsf/antui/backend"
-)
+import "github.com/gabrielluizsf/antui/backend"
 
 // SetLimits passes the size constraints on to the window manager as
 // WM_NORMAL_HINTS. A window with no bounds at all still gets the property

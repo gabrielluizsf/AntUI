@@ -2,9 +2,7 @@
 
 package linux
 
-import (
-	"time"
-)
+import "time"
 
 // idleWait is how long to sit on the socket with nothing to do: until the
 // frame the program asked for is due, and no longer. A program whose frames

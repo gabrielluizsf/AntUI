@@ -2,9 +2,7 @@
 
 package notify
 
-import (
-	"github.com/gabrielluizsf/antui/backend/android/jni"
-)
+import "github.com/gabrielluizsf/antui/backend/android/jni"
 
 // builderText sets the title and the body.
 func builderText(e *jni.Env, builder jni.Object, n Notification) error {

@@ -2,9 +2,7 @@
 
 package app
 
-import (
-	"github.com/gabrielluizsf/antui/backend/android/jni"
-)
+import "github.com/gabrielluizsf/antui/backend/android/jni"
 
 // HasShim reports whether this app was built with the Java shim, and so
 // whether permission results, activity results and arriving intents can be

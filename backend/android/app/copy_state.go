@@ -10,9 +10,7 @@ package app
 */
 import "C"
 
-import (
-	"unsafe"
-)
+import "unsafe"
 
 // copyState takes a copy of what a previous run saved. The block belongs to
 // the framework and is freed when onCreate returns, so it cannot simply be

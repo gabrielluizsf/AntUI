@@ -2,9 +2,7 @@
 
 package location
 
-import (
-	"github.com/gabrielluizsf/antui/backend/android/permission"
-)
+import "github.com/gabrielluizsf/antui/backend/android/permission"
 
 // held reports whether either location permission has been granted.
 func held() (bool, error) {

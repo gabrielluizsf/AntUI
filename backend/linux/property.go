@@ -2,9 +2,7 @@
 
 package linux
 
-import (
-	"encoding/binary"
-)
+import "encoding/binary"
 
 // property reads a property off a window. maxBytes bounds what is asked for
 // in one go: a property longer than that is read short rather than in

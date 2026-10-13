@@ -11,9 +11,7 @@ package ndk
 */
 import "C"
 
-import (
-	"unsafe"
-)
+import "unsafe"
 
 // Facing is which way a camera points: [CameraBack], [CameraFront] or
 // [CameraExternal].

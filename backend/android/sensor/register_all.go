@@ -2,9 +2,7 @@
 
 package sensor
 
-import (
-	"github.com/gabrielluizsf/antui/backend/android/ndk"
-)
+import "github.com/gabrielluizsf/antui/backend/android/ndk"
 
 // registerAll subscribes to every chosen sensor.
 func registerAll(queue *ndk.SensorQueue, chosen []ndk.Sensor, rate int, latency int64) error {

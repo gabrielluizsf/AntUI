@@ -7,9 +7,7 @@ package jni
 */
 import "C"
 
-import (
-	"unsafe"
-)
+import "unsafe"
 
 // Method finds an instance method. The signature is built with [Sig].
 func (e *Env) Method(c Class, name, sig string) (Method, error) {

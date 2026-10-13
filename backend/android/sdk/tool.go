@@ -1,8 +1,6 @@
 package sdk
 
-import (
-	"path/filepath"
-)
+import "path/filepath"
 
 // Tool is one of the llvm programs beside clang — llvm-strip, llvm-objcopy,
 // llvm-readelf — named without its "llvm-" prefix.

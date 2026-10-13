@@ -1,8 +1,6 @@
 package apk
 
-import (
-	"github.com/gabrielluizsf/antui/backend/android/sdk"
-)
+import "github.com/gabrielluizsf/antui/backend/android/sdk"
 
 // BuildLibs compiles the Go package once per ABI, writing each shared
 // library into dir. The compiler is the NDK's clang for that ABI at the

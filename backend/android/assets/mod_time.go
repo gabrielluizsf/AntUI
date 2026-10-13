@@ -2,8 +2,6 @@
 
 package assets
 
-import (
-	"time"
-)
+import "time"
 
 func (i info) ModTime() time.Time { return time.Time{} }

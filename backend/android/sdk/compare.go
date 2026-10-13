@@ -1,8 +1,6 @@
 package sdk
 
-import (
-	"cmp"
-)
+import "cmp"
 
 // Compare orders two versions: by their numbers, then by whether they are a
 // release, so 37.0.0 sorts above 37.0.0-rc2. A version with fewer parts is

@@ -2,9 +2,7 @@
 
 package linux
 
-import (
-	"strings"
-)
+import "strings"
 
 // canAskSettings reports whether there is a tool worth asking, and a desktop
 // worth asking it about. The tool reads GNOME's settings, which is what a

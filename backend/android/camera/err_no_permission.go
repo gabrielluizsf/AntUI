@@ -2,9 +2,7 @@
 
 package camera
 
-import (
-	"errors"
-)
+import "errors"
 
 // ErrNoPermission is opening a camera without having been granted one.
 var ErrNoPermission = errors.New("camera: this app has not been granted CAMERA; " +

@@ -2,9 +2,7 @@
 
 package app
 
-import (
-	"github.com/gabrielluizsf/antui/backend/android/jni"
-)
+import "github.com/gabrielluizsf/antui/backend/android/jni"
 
 // SetBrightness overrides the screen's brightness while this app is in
 // front: 0 for as dark as the device allows, 1 for full, and a negative

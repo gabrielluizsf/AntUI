@@ -2,9 +2,7 @@
 
 package linux
 
-import (
-	"strings"
-)
+import "strings"
 
 // themeInName reads a theme's name, which is where a desktop spells its side
 // out: a theme that is dark says so in its name or in the variant after a

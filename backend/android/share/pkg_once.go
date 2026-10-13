@@ -2,9 +2,7 @@
 
 package share
 
-import (
-	"sync"
-)
+import "sync"
 
 var (
 	pkgOnce sync.Once

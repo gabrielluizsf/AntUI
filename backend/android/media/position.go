@@ -2,9 +2,7 @@
 
 package media
 
-import (
-	"time"
-)
+import "time"
 
 // Position is where the file is up to.
 func (p *Player) Position() time.Duration {

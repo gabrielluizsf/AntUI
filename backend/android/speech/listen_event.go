@@ -2,9 +2,7 @@
 
 package speech
 
-import (
-	"github.com/gabrielluizsf/antui/backend/android/jni"
-)
+import "github.com/gabrielluizsf/antui/backend/android/jni"
 
 // onEvent is the recogniser's callbacks. It runs on the UI thread, which is
 // where startListening has to be called from.

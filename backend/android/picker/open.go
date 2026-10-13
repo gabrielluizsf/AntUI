@@ -2,9 +2,7 @@
 
 package picker
 
-import (
-	"os"
-)
+import "os"
 
 // Open reads a file the user chose.
 //

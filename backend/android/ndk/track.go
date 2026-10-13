@@ -2,9 +2,7 @@
 
 package ndk
 
-import (
-	"time"
-)
+import "time"
 
 // Track is one stream inside a media file: a picture, a sound, a subtitle.
 type Track struct {

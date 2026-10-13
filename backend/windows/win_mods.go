@@ -2,9 +2,7 @@
 
 package windows
 
-import (
-	"github.com/gabrielluizsf/antui/backend"
-)
+import "github.com/gabrielluizsf/antui/backend"
 
 func winMods() backend.Mod {
 	var mods backend.Mod

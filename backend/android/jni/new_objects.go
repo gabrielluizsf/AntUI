@@ -7,9 +7,7 @@ package jni
 */
 import "C"
 
-import (
-	"errors"
-)
+import "errors"
 
 // NewObjects makes an array of n objects of class c, all null.
 func (e *Env) NewObjects(c Class, n int) (Object, error) {

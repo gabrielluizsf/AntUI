@@ -2,9 +2,7 @@
 
 package ndk
 
-import (
-	"unsafe"
-)
+import "unsafe"
 
 // Buffer is a locked window buffer: memory owned by the compositor that the
 // app may write to until it posts.

@@ -2,9 +2,7 @@
 
 package notify
 
-import (
-	"github.com/gabrielluizsf/antui/backend/android/jni"
-)
+import "github.com/gabrielluizsf/antui/backend/android/jni"
 
 // builderFlags sets the two boolean properties a notification has.
 func builderFlags(e *jni.Env, builder jni.Object, n Notification) error {

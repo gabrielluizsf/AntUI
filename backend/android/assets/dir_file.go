@@ -2,9 +2,7 @@
 
 package assets
 
-import (
-	"io/fs"
-)
+import "io/fs"
 
 // dirFile is a directory opened as a file, which fs.WalkDir does.
 type dirFile struct {

@@ -1,8 +1,6 @@
 package sdk
 
-import (
-	"errors"
-)
+import "errors"
 
 // ErrNoSDK is what [Find] reports when it cannot even locate the SDK, as
 // distinct from finding one with pieces missing.

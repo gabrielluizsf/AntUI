@@ -2,9 +2,7 @@
 
 package linux
 
-import (
-	"strings"
-)
+import "strings"
 
 // gtkTheme reads a GTK settings.ini: the theme's name, and the flag that
 // asks for dark whatever that name is. The flag on wins over the name,

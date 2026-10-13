@@ -10,9 +10,7 @@ package app
 */
 import "C"
 
-import (
-	"sync"
-)
+import "sync"
 
 // There is exactly one activity in a process, so it is a package variable
 // rather than something threaded through every callback. It is written on

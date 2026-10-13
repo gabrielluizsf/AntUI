@@ -1,8 +1,6 @@
 package apk
 
-import (
-	"sort"
-)
+import "sort"
 
 func keys(m map[string]bool) []string {
 	out := make([]string, 0, len(m))

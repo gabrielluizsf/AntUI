@@ -10,9 +10,7 @@ package ndk
 */
 import "C"
 
-import (
-	"unsafe"
-)
+import "unsafe"
 
 // WrapQueue takes the pointer a native-activity callback was given.
 func WrapQueue(p unsafe.Pointer) *InputQueue {

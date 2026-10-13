@@ -2,9 +2,7 @@
 
 package display
 
-import (
-	"github.com/gabrielluizsf/antui/backend/android/jni"
-)
+import "github.com/gabrielluizsf/antui/backend/android/jni"
 
 // read fills in everything about one Display.
 func read(e *jni.Env, d jni.Object) (Display, error) {

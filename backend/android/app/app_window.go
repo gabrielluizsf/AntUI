@@ -2,9 +2,7 @@
 
 package app
 
-import (
-	"github.com/gabrielluizsf/antui/backend/android/ndk"
-)
+import "github.com/gabrielluizsf/antui/backend/android/ndk"
 
 // Window is the surface to draw on, or nil when there is none. It is only
 // valid between WindowUp and WindowDown, and the whole point of Next's

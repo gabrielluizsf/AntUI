@@ -1,8 +1,6 @@
 package sdk
 
-import (
-	"runtime"
-)
+import "runtime"
 
 // exe adds the extension a program has on this machine.
 func exe(name string) string {

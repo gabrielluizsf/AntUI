@@ -2,9 +2,7 @@
 
 package app
 
-import (
-	"github.com/gabrielluizsf/antui/backend/android/jni"
-)
+import "github.com/gabrielluizsf/antui/backend/android/jni"
 
 // FontScale is how much bigger the user has asked text to be: 1 is the
 // default, and it goes past 2 on a device set up for poor eyesight. An app

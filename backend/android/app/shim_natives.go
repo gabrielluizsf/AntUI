@@ -7,9 +7,7 @@ package app
 */
 import "C"
 
-import (
-	"github.com/gabrielluizsf/antui/backend/android/jni"
-)
+import "github.com/gabrielluizsf/antui/backend/android/jni"
 
 // shimNatives is the activity's native methods and the Go functions that
 // answer them.

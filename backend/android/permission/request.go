@@ -2,9 +2,7 @@
 
 package permission
 
-import (
-	"github.com/gabrielluizsf/antui/backend/android/app"
-)
+import "github.com/gabrielluizsf/antui/backend/android/app"
 
 // Request asks the user and waits.
 //
