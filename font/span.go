@@ -1,8 +1,6 @@
 package font
 
-import (
-	"math"
-)
+import "math"
 
 // span puts one scanline's worth of an edge into the accumulator: the edge
 // crosses this row between xa and xb and covers height of it.

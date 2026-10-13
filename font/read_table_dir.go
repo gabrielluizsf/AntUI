@@ -1,8 +1,6 @@
 package font
 
-import (
-	"fmt"
-)
+import "fmt"
 
 // readTableDir maps each table tag in a font's directory to its bytes.
 //

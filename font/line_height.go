@@ -1,8 +1,6 @@
 package font
 
-import (
-	"math"
-)
+import "math"
 
 // LineHeight is ascent + descent + gap, in pixels, rounded away from zero so
 // that two lines never overlap by a fraction.

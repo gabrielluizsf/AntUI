@@ -1,8 +1,6 @@
 package font
 
-import (
-	"fmt"
-)
+import "fmt"
 
 // readTTFTables fills the tables a face needs out of a font's directory.
 func readTTFTables(f *TTF, tables map[string][]byte) error {

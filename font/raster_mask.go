@@ -1,8 +1,6 @@
 package font
 
-import (
-	"math"
-)
+import "math"
 
 // mask reads the accumulator off as coverage, summing along each row.
 func (r *raster) mask() []uint8 {

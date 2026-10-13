@@ -1,8 +1,6 @@
 package font
 
-import (
-	"fmt"
-)
+import "fmt"
 
 func parseTTFAt(data []byte, base int) (*TTF, error) {
 	if base+12 > len(data) {

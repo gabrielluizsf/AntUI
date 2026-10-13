@@ -1,8 +1,6 @@
 package font
 
-import (
-	"math"
-)
+import "math"
 
 // quad flattens a quadratic curve into lines.
 //

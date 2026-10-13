@@ -1,8 +1,6 @@
 package font
 
-import (
-	"fmt"
-)
+import "fmt"
 
 // readCmapSubtable prepares a cmap subtable: the format, the data, and the
 // segment or group count its own format carries.

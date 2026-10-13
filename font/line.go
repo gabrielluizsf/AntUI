@@ -1,8 +1,6 @@
 package font
 
-import (
-	"math"
-)
+import "math"
 
 // line adds one edge, in pixels, with y downwards.
 //

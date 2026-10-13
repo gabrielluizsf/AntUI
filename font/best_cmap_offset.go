@@ -1,8 +1,6 @@
 package font
 
-import (
-	"fmt"
-)
+import "fmt"
 
 // bestCmapOffset is where the best Unicode subtable in a cmap begins.
 func bestCmapOffset(data []byte) (int, error) {

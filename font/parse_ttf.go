@@ -1,8 +1,6 @@
 package font
 
-import (
-	"fmt"
-)
+import "fmt"
 
 // ParseTTF reads the tables a face needs out of a font file.
 func ParseTTF(data []byte) (*TTF, error) {

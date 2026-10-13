@@ -1,8 +1,6 @@
 package font
 
-import (
-	"fmt"
-)
+import "fmt"
 
 // parseCmap picks the best subtable in a cmap and prepares it.
 //
