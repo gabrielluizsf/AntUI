@@ -31,7 +31,7 @@ func (cs *cssStyle) paintDateDay(cv *canvas.Canvas, st css.Style, p datePaint, d
 		cv.FillRoundRect(c.x, c.y, c.w, c.h, 2*p.u, canvas.Fade(cs.ink(st), cs.alpha(st)))
 		cs.runOn(cv, st, cs.surface(st), c.tx, c.ty, num)
 	case p.hover:
-		cv.FillRoundRect(c.x, c.y, c.w, c.h, 2*p.u, cs.fade(st, canvas.Shade(cs.fill(st), -0.15)))
+		cv.FillRoundRect(c.x, c.y, c.w, c.h, 2*p.u, cs.fade(st, canvas.Shade(cs.fill(st), hoverFillShade)))
 		cs.run(cv, st, c.tx, c.ty, num)
 	default:
 		cs.run(cv, st, c.tx, c.ty, num)

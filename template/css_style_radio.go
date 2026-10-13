@@ -16,9 +16,9 @@ func (cs *cssStyle) Radio(win *antui.Window, s State, x, y int, label string, on
 	half := size / 2
 	cv := win.Canvas()
 	cv.FillCircle(x+half, y+half, half, cs.fill(st))
-	border := st.BoxColor[0]
+	border := st.BoxColor[css.SideTop]
 	if !st.BorderOn() {
-		border = canvas.Shade(cs.fill(st), -0.3)
+		border = canvas.Shade(cs.fill(st), hoverBorderShade)
 	}
 	if border.A() == 0 {
 		// The ring is the widget's: a sheet that gave the radio neither a border

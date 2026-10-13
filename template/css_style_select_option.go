@@ -13,7 +13,7 @@ func (cs *cssStyle) SelectOption(win *antui.Window, s State, x, y, w, h int, lab
 	}
 	fill := cs.fill(st)
 	if selected || s.Hovered {
-		fill = canvas.Shade(fill, -0.15)
+		fill = canvas.Shade(fill, hoverFillShade)
 	}
 	u := cs.u()
 	cv := win.Canvas()

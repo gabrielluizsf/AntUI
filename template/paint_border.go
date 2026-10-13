@@ -16,7 +16,7 @@ func (cs *cssStyle) paintBorder(cv *canvas.Canvas, st css.Style, x, y, w, h, rx,
 		if bw <= 0 {
 			bw = u
 		}
-		col := cs.fade(st, st.BoxColor[0])
+		col := cs.fade(st, st.BoxColor[css.SideTop])
 		if fill.A() == 0 {
 			// There is no surface to paint over the middle of the ring, so the
 			// ring is stroked instead of filled and left covered: one outline

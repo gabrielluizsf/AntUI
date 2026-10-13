@@ -24,7 +24,7 @@ func (cs *cssStyle) Switch(win *antui.Window, s State, x, y int, label string, o
 	if on {
 		cx = x + trackW - trackH/2
 	}
-	thumb := canvas.Shade(fill, -0.2)
+	thumb := canvas.Shade(fill, thumbShade)
 	if on {
 		thumb = cs.fill(st)
 	}

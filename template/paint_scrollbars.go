@@ -15,7 +15,7 @@ func (cs *cssStyle) paintScrollbars(win *antui.Window, st css.Style, x, y, w, h,
 	inset := max(1, u)
 	cv := win.Canvas()
 	theme := win.Theme()
-	track := canvas.Fade(theme.Surface, 128)
+	track := canvas.Fade(theme.Surface, trackAlpha)
 	thumb := canvas.Shade(theme.Surface, -0.4)
 
 	vScroll := st.Overflow[1] == css.OverflowScroll || st.Overflow[1] == css.OverflowAuto

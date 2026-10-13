@@ -22,9 +22,9 @@ func (cs *cssStyle) progressRing(win *antui.Window, st css.Style, x, y, w, h int
 	if st.Has("border-width") {
 		thickness = max(st.BorderWidth[css.SideTop]*u, 1)
 	}
-	track := canvas.Shade(cs.fill(st), -0.25)
-	if st.Has("border-color") && st.BoxColor[0].A() != 0 {
-		track = canvas.Fade(st.BoxColor[0], cs.alpha(st))
+	track := canvas.Shade(cs.fill(st), trackShade)
+	if st.Has("border-color") && st.BoxColor[css.SideTop].A() != 0 {
+		track = canvas.Fade(st.BoxColor[css.SideTop], cs.alpha(st))
 	}
 	cv.RingArc(cx, cy, radius, thickness, -math.Pi/2, 2*math.Pi, track)
 	if value > 0 {
