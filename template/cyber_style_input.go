@@ -14,7 +14,7 @@ func (cyberStyle) Input(win *antui.Window, s State, x, y, w, h int, text string,
 	body, border := cyberPalette.panel, v.edge
 	if s.Focused {
 		border = v.neon
-		glow(cv, x, y, w, h, radius, v.neon, int(float64(20)*v.glow), u)
+		glow(cv, halo{x: x, y: y, w: w, h: h, radius: radius, colour: v.neon, strength: int(float64(20) * v.glow), u: u})
 	} else if s.Hovered {
 		body, border = cyberPalette.panelHov, v.neon
 	}

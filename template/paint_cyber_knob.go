@@ -7,18 +7,18 @@ import (
 // paintCyberKnob draws the thumb: a glow that swells with the hover and press
 // state, a neon shell, a dark body and a bright core.
 func paintCyberKnob(cv *canvas.Canvas, v vivid, s State, knobX, cy, knobRadius, u int) {
-	halo := 22
+	reach := 22
 
 	if s.Hovered {
-		halo = 40
+		reach = 40
 	}
 
 	if s.Active {
-		halo = 70
+		reach = 70
 	}
 
 	// Large but soft glow around the knob.
-	glow(cv, knobX-knobRadius-3*u, cy-knobRadius-3*u, knobRadius*2+6*u, knobRadius*2+6*u, knobRadius+2*u, v.neon, int(float64(halo)*v.glow), u)
+	glow(cv, halo{x: knobX - knobRadius - 3*u, y: cy - knobRadius - 3*u, w: knobRadius*2 + 6*u, h: knobRadius*2 + 6*u, radius: knobRadius + 2*u, colour: v.neon, strength: int(float64(reach) * v.glow), u: u})
 
 	// Outer neon shell.
 	cv.FillCircle(knobX, cy, knobRadius+2*u, v.neon)

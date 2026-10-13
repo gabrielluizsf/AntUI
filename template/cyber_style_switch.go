@@ -12,7 +12,7 @@ func (cyberStyle) Switch(win *antui.Window, s State, x, y int, label string, on 
 	trackW, trackH := switchTrackW*u, switchTrackH*u
 
 	if s.Focused || s.Hovered {
-		glow(cv, x, y, trackW, trackH, trackH, v.neon, int(float64(30)*v.glow), u)
+		glow(cv, halo{x: x, y: y, w: trackW, h: trackH, radius: trackH, colour: v.neon, strength: int(float64(30) * v.glow), u: u})
 	}
 	body := cyberPalette.panel
 	if s.Hovered {

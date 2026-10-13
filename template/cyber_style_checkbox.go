@@ -9,7 +9,7 @@ func (cyberStyle) Checkbox(win *antui.Window, s State, x, y int, label string, o
 	box := boxSize * u
 	radius := 4 * u
 	if s.Focused || s.Hovered {
-		glow(cv, x, y, box, box, radius, v.neon, int(float64(30)*v.glow), u)
+		glow(cv, halo{x: x, y: y, w: box, h: box, radius: radius, colour: v.neon, strength: int(float64(30) * v.glow), u: u})
 	}
 	body := cyberPalette.panel
 	if s.Hovered {

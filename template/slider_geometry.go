@@ -13,13 +13,12 @@ type sliderGeo struct {
 
 // sliderGeometry derives the knob's geometry from the box, the value range and
 // the scale, with the current value normalized into a knob position.
-func sliderGeometry(x, y, w, h int, value *float32, minValue, maxValue float32, u int) sliderGeo {
+func sliderGeometry(x, y, w, h int, r sliderRange, u int) sliderGeo {
 	knobRadius := max(h/2, 6*u)
-	span := maxValue - minValue
 	usable := max(w-2*knobRadius, 1)
-	position := min(max((*value-minValue)/span, 0), 1)
+	position := r.position()
 	return sliderGeo{
-		span:       span,
+		span:       r.max - r.min,
 		knobRadius: knobRadius,
 		usable:     usable,
 		trackX:     x + knobRadius,

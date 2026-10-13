@@ -13,7 +13,7 @@ func (cyberStyle) Progress(win *antui.Window, x, y, w, h int, value float32) {
 	cv.FillRoundRect(x, y, w, h, h/2, cyberPalette.panelAct)
 	cv.RoundRect(x, y, w, h, h/2, v.edge)
 	if filled > 0 {
-		glow(cv, x, y, filled, h, h/2, v.neon, 5, u)
+		glow(cv, halo{x: x, y: y, w: filled, h: h, radius: h / 2, colour: v.neon, strength: 5, u: u})
 		cv.FillRoundRect(x, y, filled, h, h/2, v.neon)
 	}
 }

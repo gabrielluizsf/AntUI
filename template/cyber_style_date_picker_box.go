@@ -9,15 +9,15 @@ func (cyberStyle) DatePickerBox(win *antui.Window, s State, x, y, w, h int, valu
 	radius := buttonRadius(h, u)
 
 	body, border := cyberPalette.panel, v.edge
-	halo := 0
+	reach := 0
 	if s.Focused || open {
-		body, border, halo = cyberPalette.panel, v.neon, 18
+		body, border, reach = cyberPalette.panel, v.neon, 18
 	}
 	if s.Hovered {
 		body = cyberPalette.panelHov
 	}
-	if halo > 0 {
-		glow(cv, x, y, w, h, radius, v.neon, int(float64(halo)*v.glow), u)
+	if reach > 0 {
+		glow(cv, halo{x: x, y: y, w: w, h: h, radius: radius, colour: v.neon, strength: int(float64(reach) * v.glow), u: u})
 	}
 	neonFill(cv, x, y, w, h, radius, body, border)
 

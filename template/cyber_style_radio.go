@@ -9,7 +9,7 @@ func (cyberStyle) Radio(win *antui.Window, s State, x, y int, label string, on b
 	size := boxSize * u
 	cx, cy := x+size/2, y+size/2
 	if s.Focused || s.Hovered {
-		glow(cv, x, y, size, size, size/2, v.neon, int(float64(30)*v.glow), u)
+		glow(cv, halo{x: x, y: y, w: size, h: size, radius: size / 2, colour: v.neon, strength: int(float64(30) * v.glow), u: u})
 	}
 	body := cyberPalette.panel
 	if s.Hovered {

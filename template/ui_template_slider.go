@@ -11,7 +11,7 @@ func (t *uiTemplate) Slider(win *antui.Window, x, y, w, h int, value *float32, m
 	}
 
 	id := win.WidgetID("template:slider", x, y, w, h, "")
-	g := sliderGeometry(x, y, w, h, value, minValue, maxValue, Scale(win))
+	g := sliderGeometry(x, y, w, h, sliderRange{value, minValue, maxValue}, Scale(win))
 	mouseX, mouseY := win.MouseX(), win.MouseY()
 
 	// The knob is the only clickable part; a hit warms it.

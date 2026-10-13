@@ -7,7 +7,7 @@ func (cyberStyle) DatePicker(win *antui.Window, s State, x, y, w, h int, year, m
 	u := popupScale(w)
 	v := vividFor(win)
 
-	glow(cv, x, y, w, h, 4*u, v.neon, 12, u)
+	glow(cv, halo{x: x, y: y, w: w, h: h, radius: 4 * u, colour: v.neon, strength: 12, u: u})
 	body := cyberPalette.panel
 	if s.Hovered {
 		body = cyberPalette.panelHov
