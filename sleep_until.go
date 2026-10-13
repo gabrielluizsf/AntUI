@@ -9,5 +9,5 @@ func (win *Window) sleepUntil(d time.Duration) {
 		win.sleep(d)
 		return
 	}
-	time.Sleep(d)
+	sleepFor(d)
 }
