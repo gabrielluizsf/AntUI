@@ -6,8 +6,9 @@ import (
 )
 
 // paintShadow draws one shadow, scaling its lengths with the window.
-func (cs *cssStyle) paintShadow(win *antui.Window, st css.Style, sh css.Shadow, x, y, w, h, rx, ry int, inset bool) {
+func (cs *cssStyle) paintShadow(win *antui.Window, sh css.Shadow, b shadowBox) {
 	u := cs.u()
-	col := cs.effectColor(win, st, sh.Color)
-	win.Canvas().BoxShadow(x, y, w, h, rx, ry, sh.X*u, sh.Y*u, sh.Blur*u, sh.Spread*u, col, inset)
+	col := cs.effectColor(win, b.st, sh.Color)
+	win.Canvas().BoxShadow(b.x, b.y, b.w, b.h, b.rx, b.ry,
+		sh.X*u, sh.Y*u, sh.Blur*u, sh.Spread*u, col, b.inset)
 }

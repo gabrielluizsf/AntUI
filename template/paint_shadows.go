@@ -1,24 +1,21 @@
 package template
 
-import (
-	"github.com/gabrielluizsf/antui"
-	"github.com/gabrielluizsf/antui/template/css"
-)
+import "github.com/gabrielluizsf/antui"
 
 // paintShadows paints the box's shadows on the given side of the surface. A
 // drop-shadow filter is painted with the outer shadows, since both fall
 // behind the box.
-func (cs *cssStyle) paintShadows(win *antui.Window, st css.Style, x, y, w, h, rx, ry int, inset bool) {
-	if !inset {
-		for i := range st.Filters {
-			if st.Filters[i].Drop != nil {
-				cs.paintShadow(win, st, *st.Filters[i].Drop, x, y, w, h, rx, ry, false)
+func (cs *cssStyle) paintShadows(win *antui.Window, b shadowBox) {
+	if !b.inset {
+		for i := range b.st.Filters {
+			if b.st.Filters[i].Drop != nil {
+				cs.paintShadow(win, *b.st.Filters[i].Drop, b)
 			}
 		}
 	}
-	for i := range st.BoxShadow {
-		if st.BoxShadow[i].Inset == inset {
-			cs.paintShadow(win, st, st.BoxShadow[i], x, y, w, h, rx, ry, inset)
+	for i := range b.st.BoxShadow {
+		if b.st.BoxShadow[i].Inset == b.inset {
+			cs.paintShadow(win, b.st.BoxShadow[i], b)
 		}
 	}
 }

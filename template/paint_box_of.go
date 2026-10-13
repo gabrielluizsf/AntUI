@@ -17,14 +17,16 @@ func (cs *cssStyle) paintBoxOf(win *antui.Window, st css.Style, x, y, w, h int, 
 		cs.applyFilters(cv, st.BackdropFilters, x, y, w, h)
 	}
 
-	cs.paintShadows(win, st, x, y, w, h, rx, ry, false)
+	box := shadowBox{st: st, x: x, y: y, w: w, h: h, rx: rx, ry: ry}
+	cs.paintShadows(win, box)
 
 	hasBg := surface && cs.backgroundOn(st)
 	if hasBg {
 		cs.paintBackground(win, st, x, y, w, h, rx, ry)
 	}
 
-	cs.paintShadows(win, st, x, y, w, h, rx, ry, true)
+	box.inset = true
+	cs.paintShadows(win, box)
 
 	if st.BorderOn() {
 		cs.paintBorder(cv, st, x, y, w, h, rx, ry, cs.interior(st, hasBg))
