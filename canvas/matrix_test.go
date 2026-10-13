@@ -71,13 +71,13 @@ func bwin(t *testing.T, w, h int) *Canvas {
 	if err != nil {
 		t.Fatal(err)
 	}
-	cv.FillRect(0, 0, w, h, RGBA(30, 40, 50, 255))
+	cv.FillRect(Area{0, 0, w, h}, RGBA(30, 40, 50, 255))
 	return cv
 }
 
 func TestBlitMatrixTranslate(t *testing.T) {
 	src, _ := NewCanvas(5, 5)
-	src.FillRect(0, 0, 5, 5, Red)
+	src.FillRect(Area{0, 0, 5, 5}, Red)
 	dst := bwin(t, 40, 40)
 	dst.BlitMatrix(src, Translate(10, 10), Area{0, 0, 5, 5})
 
@@ -91,7 +91,7 @@ func TestBlitMatrixTranslate(t *testing.T) {
 
 func TestBlitMatrixScaleKeepsCrisp(t *testing.T) {
 	src, _ := NewCanvas(5, 5)
-	src.FillRect(0, 0, 5, 5, Red)
+	src.FillRect(Area{0, 0, 5, 5}, Red)
 	dst := bwin(t, 40, 40)
 	dst.BlitMatrix(src, Scale(2, 2), Area{0, 0, 5, 5})
 
@@ -107,7 +107,7 @@ func TestBlitMatrixScaleKeepsCrisp(t *testing.T) {
 
 func TestBlitMatrixRotate(t *testing.T) {
 	src, _ := NewCanvas(20, 20)
-	src.FillRect(0, 0, 20, 20, Red)
+	src.FillRect(Area{0, 0, 20, 20}, Red)
 	dst := bwin(t, 40, 40)
 	// Rotate the square about its own centre, then slide it until its new
 	// centre sits at (15,15): the vertices land at the four cardinal points
@@ -134,7 +134,7 @@ func TestBlitMatrixRotate(t *testing.T) {
 
 func TestBlitMatrixRegionRestrictsSource(t *testing.T) {
 	src, _ := NewCanvas(10, 10)
-	src.FillRect(0, 0, 10, 10, Red)
+	src.FillRect(Area{0, 0, 10, 10}, Red)
 	dst := bwin(t, 40, 40)
 	// Only the left half of the source is in the region, so the composited
 	// footprint stops at half the scale.
@@ -150,7 +150,7 @@ func TestBlitMatrixRegionRestrictsSource(t *testing.T) {
 
 func TestBlitMatrixSingularCompositesNothing(t *testing.T) {
 	src, _ := NewCanvas(5, 5)
-	src.FillRect(0, 0, 5, 5, Red)
+	src.FillRect(Area{0, 0, 5, 5}, Red)
 	dst := bwin(t, 40, 40)
 	dst.BlitMatrix(src, Scale(0, 0), Area{0, 0, 5, 5})
 	if got := dst.At(2, 2); got != RGBA(30, 40, 50, 255) {
@@ -161,7 +161,7 @@ func TestBlitMatrixSingularCompositesNothing(t *testing.T) {
 func TestBlitBackdropReadsForward(t *testing.T) {
 	dst, _ := NewCanvas(20, 20)
 	src, _ := NewCanvas(20, 20)
-	src.FillRect(10, 0, 4, 4, Blue)
+	src.FillRect(Area{10, 0, 4, 4}, Blue)
 
 	dst.BlitBackdrop(src, Translate(5, 0), Area{0, 0, 20, 20})
 
@@ -183,7 +183,7 @@ func TestDirtyTracksWrites(t *testing.T) {
 		t.Errorf("a fresh canvas must be undirty, got %+v", cv.Dirty)
 	}
 
-	cv.FillRect(2, 3, 10, 4, Red)
+	cv.FillRect(Area{2, 3, 10, 4}, Red)
 	if got := cv.Dirty; got != (Area{X: 2, Y: 3, Width: 10, Height: 4}) {
 		t.Errorf("FillRect dirty = %+v, want the clipped fill", got)
 	}

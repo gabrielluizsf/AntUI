@@ -8,8 +8,8 @@ func (cv *Canvas) strokeCell(x, y, scale int, c Color, bold bool) {
 		}
 		return
 	}
-	cv.FillRect(x, y, scale, scale, c)
+	cv.FillRect(Area{x, y, scale, scale}, c)
 	if bold {
-		cv.FillRect(x+scale, y, scale, scale, c)
+		cv.FillRect(Area{x + scale, y, scale, scale}, c)
 	}
 }

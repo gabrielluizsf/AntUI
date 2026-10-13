@@ -90,7 +90,7 @@ func TestBlurKeepsTheEdgesHonest(t *testing.T) {
 	if err != nil {
 		t.Fatalf("NewCanvas: %v", err)
 	}
-	cv.FillRect(0, 0, 24, 24, RGB(200, 200, 200))
+	cv.FillRect(Area{0, 0, 24, 24}, RGB(200, 200, 200))
 	cv.Blur(4, 4, 16, 16, 6)
 	for _, p := range [][2]int{{4, 4}, {19, 4}, {4, 19}, {19, 19}, {12, 12}} {
 		if c := cv.At(p[0], p[1]); c != RGB(200, 200, 200) {
@@ -131,7 +131,7 @@ func BenchmarkBoxShadow(b *testing.B) {
 			if err != nil {
 				b.Fatalf("NewCanvas: %v", err)
 			}
-			cv.FillRect(0, 0, 520, 620, RGB(0x10, 0x12, 0x18))
+			cv.FillRect(Area{0, 0, 520, 620}, RGB(0x10, 0x12, 0x18))
 			b.ReportAllocs()
 			b.ResetTimer()
 			for range b.N {

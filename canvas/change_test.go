@@ -14,15 +14,15 @@ func TestDamageCoversEveryDrawing(t *testing.T) {
 	}
 	paints := map[string]func(){
 		"clear":        func() { cv.Clear(RGB(0x10, 0x12, 0x18)) },
-		"fill rect":    func() { cv.FillRect(20, 20, 200, 120, RGB(0x3E, 0x63, 0xDD)) },
-		"rect":         func() { cv.Rect(4, 4, 300, 220, RGBA(0xFF, 0xFF, 0xFF, 0x80)) },
+		"fill rect":    func() { cv.FillRect(Area{20, 20, 200, 120}, RGB(0x3E, 0x63, 0xDD)) },
+		"rect":         func() { cv.Rect(Area{4, 4, 300, 220}, RGBA(0xFF, 0xFF, 0xFF, 0x80)) },
 		"line":         func() { cv.Line(0, 239, 319, 0, Red) },
-		"circle":       func() { cv.Circle(160, 120, 60, White) },
-		"fill circle":  func() { cv.FillCircle(80, 80, 40, Green) },
-		"fill ellipse": func() { cv.FillEllipse(240, 80, 40, 20, Blue) },
+		"circle":       func() { cv.Circle(Circle{160, 120, 60}, White) },
+		"fill circle":  func() { cv.FillCircle(Circle{80, 80, 40}, Green) },
+		"fill ellipse": func() { cv.FillEllipse(Ellipse{240, 80, 40, 20}, Blue) },
 		"round rect": func() {
-			cv.FillRoundRect(20, 150, 120, 60, 12, Yellow)
-			cv.RoundRect(160, 150, 120, 60, 12, Black)
+			cv.FillRoundRect(Round(Area{20, 150, 120, 60}, 12), Yellow)
+			cv.RoundRect(Round(Area{160, 150, 120, 60}, 12), Black)
 		},
 		"triangle": func() { cv.FillTriangle(10, 220, 60, 220, 35, 180, Cyan) },
 		"ring arc": func() { cv.RingArc(160, 120, 70, 8, 0.3, 2.0, RGB(0xFF, 0x88, 0x00)) },
@@ -34,12 +34,12 @@ func TestDamageCoversEveryDrawing(t *testing.T) {
 				{Offset: 0, Color: Red}, {Offset: 1, Color: Blue}}})
 		},
 		"mask rect": func() {
-			cv.FillRect(0, 100, 320, 40, RGB(0x22, 0x44, 0x66))
-			cv.MaskRect(10, 100, 100, 40)
+			cv.FillRect(Area{0, 100, 320, 40}, RGB(0x22, 0x44, 0x66))
+			cv.MaskRect(Area{10, 100, 100, 40})
 		},
 		"mask round rect": func() {
-			cv.FillRect(200, 100, 100, 40, RGB(0x66, 0x44, 0x22))
-			cv.MaskRoundRect(200, 100, 100, 40, 16, 16)
+			cv.FillRect(Area{200, 100, 100, 40}, RGB(0x66, 0x44, 0x22))
+			cv.MaskRoundRect(Rounded{Area{200, 100, 100, 40}, 16, 16})
 		},
 		"blur":        func() { cv.Blur(10, 10, 80, 60, 3) },
 		"filter":      func() { cv.FilterRegion(100, 10, 60, 40, FilterBlur, 2) },
@@ -62,7 +62,7 @@ func TestDamageCoversEveryDrawing(t *testing.T) {
 		// A frame of its own for every paint, so one cannot hide another.
 		cv.ResetClip()
 		cv.Clear(RGB(0x10, 0x12, 0x18))
-		cv.FillRect(20, 20, 200, 120, RGB(0x3E, 0x63, 0xDD))
+		cv.FillRect(Area{20, 20, 200, 120}, RGB(0x3E, 0x63, 0xDD))
 		copy(base, cv.Pixels)
 		cv.Compare(base)
 
@@ -112,9 +112,9 @@ func TestDamageIgnoresPaintThatWasPaintedOver(t *testing.T) {
 	// A shadow, then the card that covers it, then a border on top: three
 	// writes over the same pixels that finish where they started.
 	overdraw := func() {
-		cv.FillRect(10, 10, 40, 40, RGBA(0, 0, 0, 0x40))
-		cv.FillRect(12, 12, 36, 36, White)
-		cv.Rect(12, 12, 36, 36, Black)
+		cv.FillRect(Area{10, 10, 40, 40}, RGBA(0, 0, 0, 0x40))
+		cv.FillRect(Area{12, 12, 36, 36}, White)
+		cv.Rect(Area{12, 12, 36, 36}, Black)
 	}
 	overdraw()
 	if dirty := cv.PresentChanges(); dirty.Width == 0 {
@@ -161,6 +161,6 @@ func layer(t *testing.T) *Canvas {
 		t.Fatalf("new layer: %v", err)
 	}
 	l.Clear(RGB(0x33, 0x99, 0x66))
-	l.Circle(16, 16, 12, Yellow)
+	l.Circle(Circle{16, 16, 12}, Yellow)
 	return l
 }

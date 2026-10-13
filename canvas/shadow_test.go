@@ -53,7 +53,7 @@ func TestInsetShadowHugsTheEdges(t *testing.T) {
 
 func TestShadowAlphaScalesWithColour(t *testing.T) {
 	cv, _ := NewCanvas(20, 20)
-	cv.FillRect(0, 0, 20, 20, White)
+	cv.FillRect(Area{0, 0, 20, 20}, White)
 	cv.BoxShadow(5, 5, 10, 10, 0, 0, 0, 0, 0, 0, Fade(Black, 128), false)
 	got := cv.At(10, 10)
 	if got.R() < 120 || got.R() > 136 {

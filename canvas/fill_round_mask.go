@@ -11,12 +11,12 @@ func fillRoundMask(layer *Canvas, x, y, w, h, rx, ry int, c Color) {
 	rx = min(rx, w/2)
 	ry = min(ry, h/2)
 	if rx <= 0 || ry <= 0 {
-		layer.FillRect(x, y, w, h, rgb|0xFF000000)
+		layer.FillRect(Area{x, y, w, h}, rgb|0xFF000000)
 		return
 	}
-	layer.FillRect(x+rx, y, w-2*rx, h, rgb|0xFF000000)
-	layer.FillRect(x, y+ry, rx, h-2*ry, rgb|0xFF000000)
-	layer.FillRect(x+w-rx, y+ry, rx, h-2*ry, rgb|0xFF000000)
+	layer.FillRect(Area{x + rx, y, w - 2*rx, h}, rgb|0xFF000000)
+	layer.FillRect(Area{x, y + ry, rx, h - 2*ry}, rgb|0xFF000000)
+	layer.FillRect(Area{x + w - rx, y + ry, rx, h - 2*ry}, rgb|0xFF000000)
 	for iy := y; iy < y+h; iy++ {
 		if iy >= y+ry && iy < y+h-ry {
 			continue

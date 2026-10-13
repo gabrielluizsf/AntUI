@@ -7,7 +7,7 @@ func TestFilterGrayscaleAndInvert(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	cv.FillRect(0, 0, 4, 4, Red)
+	cv.FillRect(Area{0, 0, 4, 4}, Red)
 	cv.FilterRegion(0, 0, 4, 4, FilterGrayscale, 1)
 	g := cv.At(2, 2)
 	if g.R() != g.G() || g.G() != g.B() {
@@ -21,12 +21,12 @@ func TestFilterGrayscaleAndInvert(t *testing.T) {
 
 func TestFilterBrightnessContrast(t *testing.T) {
 	cv, _ := NewCanvas(2, 2)
-	cv.FillRect(0, 0, 2, 2, RGBA(100, 100, 100, 255))
+	cv.FillRect(Area{0, 0, 2, 2}, RGBA(100, 100, 100, 255))
 	cv.FilterRegion(0, 0, 2, 2, FilterBrightness, 0)
 	if got := cv.At(0, 0); got.R() != 0 {
 		t.Fatalf("brightness 0: %v", got)
 	}
-	cv.FillRect(0, 0, 2, 2, RGBA(100, 100, 100, 255))
+	cv.FillRect(Area{0, 0, 2, 2}, RGBA(100, 100, 100, 255))
 	cv.FilterRegion(0, 0, 2, 2, FilterContrast, 2)
 	if got := cv.At(0, 0); got.R() != 73 {
 		t.Fatalf("contrast 2: got %d want 73", got.R())
@@ -35,7 +35,7 @@ func TestFilterBrightnessContrast(t *testing.T) {
 
 func TestFilterHueRotateFullTurnIsIdentity(t *testing.T) {
 	cv, _ := NewCanvas(2, 2)
-	cv.FillRect(0, 0, 2, 2, RGB(200, 40, 90))
+	cv.FillRect(Area{0, 0, 2, 2}, RGB(200, 40, 90))
 	before := cv.At(0, 0)
 	cv.FilterRegion(0, 0, 2, 2, FilterHueRotate, 360)
 	after := cv.At(0, 0)

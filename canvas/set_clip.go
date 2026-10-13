@@ -1,7 +1,8 @@
 package canvas
 
 // SetClip narrows drawing to a rectangle, intersected with the canvas.
-func (cv *Canvas) SetClip(x, y, w, h int) {
+func (cv *Canvas) SetClip(a Area) {
+	x, y, w, h := a.X, a.Y, a.Width, a.Height
 	x0 := clampInt(x, 0, cv.Width)
 	y0 := clampInt(y, 0, cv.Height)
 	x1 := clampInt(x+w, 0, cv.Width)

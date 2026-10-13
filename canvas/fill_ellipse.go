@@ -1,8 +1,8 @@
 package canvas
 
-// FillEllipse draws a filled, antialiased ellipse centred on cx, cy with the
-// given horizontal and vertical radii.
-func (cv *Canvas) FillEllipse(cx, cy, rx, ry int, c Color) {
+// FillEllipse draws a filled, antialiased ellipse.
+func (cv *Canvas) FillEllipse(e Ellipse, c Color) {
+	cx, cy, rx, ry := e.X, e.Y, e.RX, e.RY
 	if rx <= 0 || ry <= 0 {
 		return
 	}

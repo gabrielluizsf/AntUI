@@ -327,7 +327,7 @@ func TestStrokePathNoHolesAtJoins(t *testing.T) {
 
 func TestStrokePathHonoursClip(t *testing.T) {
 	cv := newTestCanvas(t, 40, 40)
-	cv.SetClip(10, 10, 10, 10)
+	cv.SetClip(Area{X: 10, Y: 10, Width: 10, Height: 10})
 	p := NewPath()
 	p.MoveTo(0, 15)
 	p.LineTo(40, 15)

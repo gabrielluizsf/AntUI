@@ -1,7 +1,8 @@
 package canvas
 
 // FillRect fills a rectangle, blending when the colour is translucent.
-func (cv *Canvas) FillRect(x, y, w, h int, c Color) {
+func (cv *Canvas) FillRect(a Area, c Color) {
+	x, y, w, h := a.X, a.Y, a.Width, a.Height
 	if w <= 0 || h <= 0 {
 		return
 	}

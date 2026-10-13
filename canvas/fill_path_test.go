@@ -166,7 +166,7 @@ func TestFillPathSelfCrossing(t *testing.T) {
 
 func TestFillPathHonoursClip(t *testing.T) {
 	cv := newTestCanvas(t, 16, 16)
-	cv.SetClip(4, 4, 8, 8)
+	cv.SetClip(Area{X: 4, Y: 4, Width: 8, Height: 8})
 	p := NewPath()
 	p.AddRect(0, 0, 16, 16)
 	cv.FillPath(p, RGB(255, 255, 255), FillNonZero)

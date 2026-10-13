@@ -1,7 +1,8 @@
 package canvas
 
 // Circle draws a one-pixel circle outline.
-func (cv *Canvas) Circle(cx, cy, radius int, c Color) {
+func (cv *Canvas) Circle(ci Circle, c Color) {
+	cx, cy, radius := ci.X, ci.Y, ci.R
 	if radius <= 0 {
 		return
 	}

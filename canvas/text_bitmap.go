@@ -49,7 +49,7 @@ func (cv *Canvas) textBitmap(x, y int, text string, c Color, unit float64) int {
 					if right-left == 1 && bottom-top == 1 {
 						cv.Pixel(left, top, c)
 					} else {
-						cv.FillRect(left, top, right-left, bottom-top, c)
+						cv.FillRect(Area{left, top, right - left, bottom - top}, c)
 					}
 				}
 			}

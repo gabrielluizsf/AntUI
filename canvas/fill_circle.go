@@ -1,6 +1,6 @@
 package canvas
 
 // FillCircle draws a filled, antialiased disc.
-func (cv *Canvas) FillCircle(cx, cy, radius int, c Color) {
-	cv.FillEllipse(cx, cy, radius, radius, c)
+func (cv *Canvas) FillCircle(c Circle, col Color) {
+	cv.FillEllipse(Ellipse{X: c.X, Y: c.Y, RX: c.R, RY: c.R}, col)
 }

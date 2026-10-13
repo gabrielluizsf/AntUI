@@ -3,14 +3,14 @@ package canvas
 // MaskRoundRect zeros everything outside a rounded rectangle, the clip a
 // background layer gets so the corner transparency of the box shows through
 // to what lies behind. A radius of zero makes it exactly [Canvas.MaskRect].
-func (cv *Canvas) MaskRoundRect(x, y, w, h, rx, ry int) {
+func (cv *Canvas) MaskRoundRect(b Rounded) {
+	x, y, w, h := b.X, b.Y, b.Width, b.Height
+	rx, ry := min(b.RX, w/2), min(b.vertical(), h/2)
 	if w <= 0 || h <= 0 {
 		return
 	}
-	rx = min(rx, w/2)
-	ry = min(ry, h/2)
 	if rx <= 0 || ry <= 0 {
-		cv.MaskRect(x, y, w, h)
+		cv.MaskRect(b.Area)
 		return
 	}
 	for py := cv.Clip.Y; py < cv.Clip.Y+cv.Clip.Height; py++ {

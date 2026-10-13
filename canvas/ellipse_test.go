@@ -6,7 +6,7 @@ func TestFillEllipseSpansEachRadius(t *testing.T) {
 	cv := newCanvas(t, 60, 40)
 	cv.Clear(Black)
 
-	cv.FillEllipse(30, 20, 20, 8, White)
+	cv.FillEllipse(Ellipse{30, 20, 20, 8}, White)
 
 	// Along the horizontal axis out to rx and along the vertical out to ry.
 	if got := cv.At(30+18, 20); got != White {
@@ -30,8 +30,8 @@ func TestFillEllipseMatchesCircleWhenRadiiEqual(t *testing.T) {
 	ellipse.Clear(Black)
 	circle.Clear(Black)
 
-	ellipse.FillEllipse(20, 20, 11, 11, White)
-	circle.FillCircle(20, 20, 11, White)
+	ellipse.FillEllipse(Ellipse{20, 20, 11, 11}, White)
+	circle.FillCircle(Circle{20, 20, 11}, White)
 
 	for i := range ellipse.Pixels {
 		if ellipse.Pixels[i] != circle.Pixels[i] {
@@ -41,11 +41,11 @@ func TestFillEllipseMatchesCircleWhenRadiiEqual(t *testing.T) {
 	}
 }
 
-func TestFillRoundRectXYFillsAsymmetricCorners(t *testing.T) {
+func TestFillRoundRectFillsAsymmetricCorners(t *testing.T) {
 	cv := newCanvas(t, 60, 40)
 	cv.Clear(Black)
 
-	cv.FillRoundRectXY(10, 10, 40, 20, 12, 4, White)
+	cv.FillRoundRect(Rounded{Area{10, 10, 40, 20}, 12, 4}, White)
 
 	if got := cv.At(30, 20); got != White {
 		t.Errorf("centre = %08X, want white", uint32(got))
@@ -60,11 +60,11 @@ func TestFillRoundRectXYFillsAsymmetricCorners(t *testing.T) {
 	}
 }
 
-func TestRoundRectXYDrawsOutlineOnly(t *testing.T) {
+func TestRoundRectDrawsOutlineOnly(t *testing.T) {
 	cv := newCanvas(t, 60, 40)
 	cv.Clear(Black)
 
-	cv.RoundRectXY(10, 10, 40, 20, 10, 5, White)
+	cv.RoundRect(Rounded{Area{10, 10, 40, 20}, 10, 5}, White)
 
 	if got := cv.At(30, 10); got != White {
 		t.Errorf("top edge = %08X, want white", uint32(got))

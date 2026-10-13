@@ -16,7 +16,7 @@ import "testing"
 func filledLayer(t *testing.T, w, h int) *Canvas {
 	t.Helper()
 	cv := newLayer(t, w, h)
-	cv.FillRect(0, 0, w, h, RGB(255, 0, 0))
+	cv.FillRect(Area{0, 0, w, h}, RGB(255, 0, 0))
 	return cv
 }
 
@@ -176,7 +176,7 @@ func TestMaskShapesHonoursTheRule(t *testing.T) {
 // canvas.
 func TestMaskShapesOnlyReachesInsideTheClip(t *testing.T) {
 	cv := filledLayer(t, 8, 8)
-	cv.SetClip(0, 0, 4, 4)
+	cv.SetClip(Area{X: 0, Y: 0, Width: 4, Height: 4})
 	// A shape covering everything: inside the clip there is nowhere it does
 	// not reach, and outside the clip the mask has no say at all.
 	cv.MaskShapes(MaskShape{Path: pathAt(0, 0, 8, 8), Rule: FillNonZero})
@@ -303,9 +303,9 @@ func maskedLayers(t *testing.T, w, h int) (cv, pic *Canvas) {
 	cv = filledLayer(t, w, h)
 	pic = newLayer(t, w, h)
 	band := w / 3
-	pic.FillRect(0, 0, band, h, RGB(255, 255, 255))
-	pic.FillRect(band, 0, band, h, RGB(128, 128, 128))
-	pic.FillRect(2*band, 0, w-2*band, h, RGB(0, 0, 0))
+	pic.FillRect(Area{0, 0, band, h}, RGB(255, 255, 255))
+	pic.FillRect(Area{band, 0, band, h}, RGB(128, 128, 128))
+	pic.FillRect(Area{2 * band, 0, w - 2*band, h}, RGB(0, 0, 0))
 	return cv, pic
 }
 
@@ -335,9 +335,9 @@ func TestMaskByTakesTheAlphaDownToWhatThePictureKeeps(t *testing.T) {
 func TestMaskByKeepsByHowMuchOfThePictureIsThere(t *testing.T) {
 	cv := filledLayer(t, 6, 2)
 	pic := newLayer(t, 6, 2)
-	pic.FillRect(0, 0, 2, 2, RGB(0, 0, 0))
-	pic.FillRect(2, 0, 2, 2, RGB(255, 255, 255))
-	pic.FillRect(4, 0, 2, 2, RGBA(255, 255, 255, 128))
+	pic.FillRect(Area{0, 0, 2, 2}, RGB(0, 0, 0))
+	pic.FillRect(Area{2, 0, 2, 2}, RGB(255, 255, 255))
+	pic.FillRect(Area{4, 0, 2, 2}, RGBA(255, 255, 255, 128))
 	cv.MaskBy(pic, MaskAlpha)
 
 	if got := cv.At(0, 0).A(); got != 255 {
@@ -379,7 +379,7 @@ func TestMaskByLeavesTheColourAlone(t *testing.T) {
 // over the rest of the canvas either.
 func TestMaskByOnlyReachesInsideTheClip(t *testing.T) {
 	cv, pic := maskedLayers(t, 9, 3)
-	cv.SetClip(0, 0, 4, 3)
+	cv.SetClip(Area{X: 0, Y: 0, Width: 4, Height: 3})
 	cv.MaskBy(pic, MaskLuminance)
 
 	if got := cv.At(7, 1); got != RGB(255, 0, 0) {
@@ -397,7 +397,7 @@ func TestMaskByOnlyReachesInsideTheClip(t *testing.T) {
 func TestMaskByOfAPixelThePictureDoesNotCoverKeepsNothing(t *testing.T) {
 	cv := filledLayer(t, 8, 8)
 	pic := newLayer(t, 4, 4)
-	pic.FillRect(0, 0, 4, 4, RGB(255, 255, 255))
+	pic.FillRect(Area{0, 0, 4, 4}, RGB(255, 255, 255))
 	cv.MaskBy(pic, MaskLuminance)
 
 	if got := cv.At(1, 1).A(); got != 255 {
@@ -427,7 +427,7 @@ func TestMaskByOnNarrowCanvasIsNoOp(t *testing.T) {
 	// And a mask with no picture behind it is not a mask that empties
 	// everything: there is nothing to measure by, so nothing is changed.
 	layer := newLayer(t, 2, 2)
-	layer.FillRect(0, 0, 2, 2, RGB(0, 255, 0))
+	layer.FillRect(Area{0, 0, 2, 2}, RGB(0, 255, 0))
 	layer.MaskBy(nil, MaskLuminance)
 	if got := layer.At(0, 0); got != RGB(0, 255, 0) {
 		t.Errorf("with no picture to measure by the pixel came out %#08x, want it as it was", uint32(got))

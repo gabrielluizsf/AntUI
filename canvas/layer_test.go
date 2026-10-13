@@ -79,13 +79,13 @@ func TestLayerAddsUpWhereItIsDrawnTwice(t *testing.T) {
 // the ones along its edge in part; on a layer that part survives.
 func TestLayerKeepsTheSoftEdgeOfAShape(t *testing.T) {
 	layer := newLayer(t, 20, 20)
-	layer.FillCircle(10, 10, 7, White)
+	layer.FillCircle(Circle{10, 10, 7}, White)
 
 	// A disc of an even radius has no edge pixel: either a pixel is inside the
 	// radius or it is not, because the radius lands between pixel centres. An
 	// odd radius puts the circle's boundary through a column of pixel centres,
 	// and that column is where the greys are.
-	layer.FillCircle(10, 10, 6, White)
+	layer.FillCircle(Circle{10, 10, 6}, White)
 
 	var partial int
 	for y := range layer.Height {
@@ -104,10 +104,10 @@ func TestLayerKeepsTheSoftEdgeOfAShape(t *testing.T) {
 // surface has to show what was behind it, which is what its alpha is for.
 func TestBlittingALayerShowsWhatIsBehindIt(t *testing.T) {
 	back := newCanvas(t, 8, 8)
-	back.FillRect(0, 0, 8, 8, Blue)
+	back.FillRect(Area{0, 0, 8, 8}, Blue)
 
 	half := newLayer(t, 8, 8)
-	half.FillRect(0, 0, 8, 8, RGBA(255, 255, 255, 128))
+	half.FillRect(Area{0, 0, 8, 8}, RGBA(255, 255, 255, 128))
 	back.BlitOver(0, 0, half)
 
 	// Blue is (0, 0, 255) and white is (255, 255, 255); half of each is a grey

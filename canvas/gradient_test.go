@@ -104,8 +104,8 @@ func TestConicStartsPointingUp(t *testing.T) {
 
 func TestMaskRoundRectKeepsInsideZerosOutside(t *testing.T) {
 	cv, _ := NewCanvas(30, 30)
-	cv.FillRect(0, 0, 30, 30, White)
-	cv.MaskRoundRect(5, 5, 20, 20, 6, 6)
+	cv.FillRect(Area{0, 0, 30, 30}, White)
+	cv.MaskRoundRect(Rounded{Area{5, 5, 20, 20}, 6, 6})
 	if got := cv.At(2, 2).A(); got != 0 {
 		t.Errorf("outside the mask should be cleared, got alpha %d", got)
 	}
@@ -119,8 +119,8 @@ func TestMaskRoundRectKeepsInsideZerosOutside(t *testing.T) {
 
 func TestMaskRectKeepsInsideZerosOutside(t *testing.T) {
 	cv, _ := NewCanvas(10, 10)
-	cv.FillRect(0, 0, 10, 10, White)
-	cv.MaskRect(3, 3, 4, 4)
+	cv.FillRect(Area{0, 0, 10, 10}, White)
+	cv.MaskRect(Area{3, 3, 4, 4})
 	if got := cv.At(1, 1).A(); got != 0 {
 		t.Errorf("outside should be cleared, got alpha %d", got)
 	}

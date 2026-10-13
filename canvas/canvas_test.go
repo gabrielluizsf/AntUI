@@ -30,7 +30,7 @@ func TestCanvasBasics(t *testing.T) {
 		t.Errorf("painted pixel = %08X, want blue", uint32(got))
 	}
 
-	cv.FillRect(0, 0, 4, 4, Green)
+	cv.FillRect(Area{0, 0, 4, 4}, Green)
 	if got := cv.At(3, 3); got != Green {
 		t.Errorf("inside the rectangle = %08X, want green", uint32(got))
 	}
@@ -54,7 +54,7 @@ func TestDrawingOutOfBoundsIsClipped(t *testing.T) {
 	// None of these may panic, and none may paint outside the canvas.
 	cv.Pixel(-5, -5, White)
 	cv.Pixel(100, 100, White)
-	cv.FillRect(-20, -20, 5, 5, White)
+	cv.FillRect(Area{-20, -20, 5, 5}, White)
 	cv.Line(-50, -50, 60, 60, White)
 	cv.Text(-100, -100, "outside", White)
 
@@ -69,8 +69,8 @@ func TestDrawingOutOfBoundsIsClipped(t *testing.T) {
 func TestClipping(t *testing.T) {
 	cv := newCanvas(t, 10, 10)
 	cv.Clear(Black)
-	cv.SetClip(2, 2, 4, 4)
-	cv.FillRect(0, 0, 10, 10, White)
+	cv.SetClip(Area{X: 2, Y: 2, Width: 4, Height: 4})
+	cv.FillRect(Area{0, 0, 10, 10}, White)
 
 	if got := cv.At(1, 1); got != Black {
 		t.Errorf("outside the clip = %08X, want it untouched", uint32(got))
@@ -83,7 +83,7 @@ func TestClipping(t *testing.T) {
 	}
 
 	cv.ResetClip()
-	cv.FillRect(0, 0, 10, 10, White)
+	cv.FillRect(Area{0, 0, 10, 10}, White)
 	if got := cv.At(9, 9); got != White {
 		t.Errorf("after ResetClip = %08X, want everything painted", uint32(got))
 	}
@@ -91,11 +91,11 @@ func TestClipping(t *testing.T) {
 
 func TestClipIsIntersectedWithTheCanvas(t *testing.T) {
 	cv := newCanvas(t, 10, 10)
-	cv.SetClip(-5, -5, 100, 100)
+	cv.SetClip(Area{X: -5, Y: -5, Width: 100, Height: 100})
 	if cv.Clip != (Area{0, 0, 10, 10}) {
 		t.Errorf("clip = %+v, want it trimmed to the canvas", cv.Clip)
 	}
-	cv.SetClip(20, 20, 5, 5)
+	cv.SetClip(Area{X: 20, Y: 20, Width: 5, Height: 5})
 	if cv.Clip.Width != 0 || cv.Clip.Height != 0 {
 		t.Errorf("clip = %+v, want it empty when it falls off the canvas", cv.Clip)
 	}
@@ -174,7 +174,7 @@ func TestShapes(t *testing.T) {
 
 	t.Run("filled circle", func(t *testing.T) {
 		cv.Clear(Black)
-		cv.FillCircle(20, 20, 10, White)
+		cv.FillCircle(Circle{20, 20, 10}, White)
 		if got := cv.At(20, 20); got != White {
 			t.Errorf("centre = %08X, want it filled", uint32(got))
 		}
@@ -196,7 +196,7 @@ func TestShapes(t *testing.T) {
 
 	t.Run("filled rounded rectangle", func(t *testing.T) {
 		cv.Clear(Black)
-		cv.FillRoundRect(0, 0, 40, 40, 8, White)
+		cv.FillRoundRect(Round(Area{0, 0, 40, 40}, 8), White)
 		if got := cv.At(20, 20); got != White {
 			t.Errorf("middle = %08X, want it filled", uint32(got))
 		}
@@ -220,9 +220,9 @@ func TestNarrowFormats(t *testing.T) {
 				t.Error("Pixels should be nil on a narrow canvas, so that code reaching into it draws nothing rather than corrupting the buffer")
 			}
 			cv.Clear(Black)
-			cv.FillRect(0, 0, 32, 32, Black)
-			cv.FillCircle(16, 16, 8, White)
-			cv.FillRoundRect(2, 2, 12, 12, 4, White)
+			cv.FillRect(Area{0, 0, 32, 32}, Black)
+			cv.FillCircle(Circle{16, 16, 8}, White)
+			cv.FillRoundRect(Round(Area{2, 2, 12, 12}, 4), White)
 			cv.Text(0, 0, "hi", White)
 
 			if got := cv.At(16, 16); got.R() < 200 || got.G() < 200 || got.B() < 200 {
