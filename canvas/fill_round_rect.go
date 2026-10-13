@@ -24,44 +24,7 @@ func (cv *Canvas) FillRoundRect(b Rounded, c Color) {
 	cv.FillRect(Area{x, y + ry, rx, h - 2*ry}, c)
 	cv.FillRect(Area{x + w - rx, y + ry, rx, h - 2*ry}, c)
 
-	// Equal radii are a disc and get the disc's arithmetic, which is the
-	// cheaper of the two; only a corner that is genuinely wider one way than
-	// the other pays for the ellipse.
-	cover := func(dx, dy int) int { return ellipseCoverage(dx, dy, rx-1, ry-1) }
-	if rx == ry {
-		cover = func(dx, dy int) int { return discCoverage(dx, dy, rx-1) }
-	}
-
-	x0 := max(x, cv.Clip.X)
-	y0 := max(y, cv.Clip.Y)
-	x1 := min(x+w, cv.Clip.X+cv.Clip.Width)
-	y1 := min(y+h, cv.Clip.Y+cv.Clip.Height)
-
-	for iy := y0; iy < y1; iy++ {
-		if iy >= y+ry && iy < y+h-ry {
-			continue
-		}
-		var dy int
-		if iy < y+ry {
-			dy = iy - (y + ry - 1)
-		} else {
-			dy = iy - (y + h - ry)
-		}
-		for ix := x0; ix < x1; ix++ {
-			if ix >= x+rx && ix < x+w-rx {
-				continue
-			}
-			var dx int
-			if ix < x+rx {
-				dx = ix - (x + rx - 1)
-			} else {
-				dx = ix - (x + w - rx)
-			}
-			alpha := cover(dx, dy)
-			if alpha == 0 {
-				continue
-			}
-			cv.Pixel(ix, iy, Fade(c, alpha*baseAlpha/255))
-		}
-	}
+	fillRoundRectCorners{
+		cv: cv, c: c, x: x, y: y, w: w, h: h, rx: rx, ry: ry, alpha: baseAlpha,
+	}.draw()
 }
