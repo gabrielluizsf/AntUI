@@ -42,7 +42,7 @@ func primPicture(p filterPrim, in, in2, src *canvas.Canvas, s scale2, current ca
 		if p.floodCurrent {
 			c = current
 		}
-		out.FillRect(0, 0, out.Width, out.Height, fade(c, p.floodOpacity))
+		out.FillRect(canvas.Area{X: 0, Y: 0, Width: out.Width, Height: out.Height}, fade(c, p.floodOpacity))
 		return out
 	case primComposite:
 		out := pictureOf(in)

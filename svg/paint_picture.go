@@ -39,6 +39,6 @@ func paintPicture(cv *canvas.Canvas, n *Node, m canvas.Matrix) {
 	}
 	layer.BlitMatrix(pic, matrix, sliceRegion(p.Box, ox, oy, sx, sy, pic))
 	x0, y0, x1, y1 := regionArea(p.Box[0], p.Box[1], bw, bh, total)
-	layer.MaskRect(x0, y0, x1-x0, y1-y0)
+	layer.MaskRect(canvas.Area{X: x0, Y: y0, Width: x1 - x0, Height: y1 - y0})
 	cv.BlitOver(0, 0, layer)
 }

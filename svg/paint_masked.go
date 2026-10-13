@@ -46,7 +46,7 @@ func paintMasked(layer *canvas.Canvas, n *Node, m canvas.Matrix, current canvas.
 	}
 	if md.cuts {
 		x0, y0, x1, y1 := regionArea(md.x, md.y, md.w, md.h, m)
-		layer.MaskRect(x0, y0, x1-x0, y1-y0)
+		layer.MaskRect(canvas.Area{X: x0, Y: y0, Width: x1 - x0, Height: y1 - y0})
 	}
 	layer.MaskBy(ml, md.def.measure)
 }
