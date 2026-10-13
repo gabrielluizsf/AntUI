@@ -9,4 +9,5 @@ type windowClock struct {
 	targetFPS int       // 0 follows the display, see SetFPS
 	refreshHz int       // the display's rate, 0 until asked, -1 when unknown
 	sleep     func(time.Duration)
+	clock     func() time.Time // test seam; nil uses the monotonic system clock
 }

@@ -7,23 +7,33 @@ import (
 	"github.com/gabrielluizsf/antui/canvas"
 )
 
-// TestTheLoopWaitsForItsOwnFrameRate is the half of "does not spin" that lives
-// in the window: a program that asked for 60 frames a second gets 60 frames a
-// second, and the wait between them is what makes it so. Before the loop had a
-// budget it went round Begin/End as fast as the drawing took, which on a fast
-// frame is several hundred times a second and is heard as a fan.
+// TestTheLoopWaitsForItsOwnFrameRate checks the deadlines requested by the
+// window. The clock and sleeper are virtual here: wall-clock timing belongs to
+// the platform timer, and making it part of this unit test makes it flaky on
+// Windows and under load.
 func TestTheLoopWaitsForItsOwnFrameRate(t *testing.T) {
 	win, _ := newTestWindow(t, 64, 64)
 	win.SetFPS(60)
 
-	start := time.Now()
+	clock := time.Unix(0, 0)
+	win.clock = func() time.Time { return clock }
+	var waits []time.Duration
+	win.sleep = func(d time.Duration) {
+		waits = append(waits, d)
+		clock = clock.Add(d)
+	}
 	for range 10 {
 		win.pace()
 	}
-	elapsed := time.Since(start)
 
-	if want := 9 * time.Second / 60; elapsed < want*3/4 || elapsed > want*5/4 {
-		t.Errorf("ten frames at 60 Hz took %v, want about %v", elapsed, want)
+	want := time.Second / 60
+	if len(waits) != 10 {
+		t.Fatalf("pace requested %d waits, want 10", len(waits))
+	}
+	for i, got := range waits {
+		if got < want-100*time.Microsecond || got > want+100*time.Microsecond {
+			t.Errorf("frame %d requested a %v wait, want about %v", i, got, want)
+		}
 	}
 }
 
