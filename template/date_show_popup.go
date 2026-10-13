@@ -2,10 +2,11 @@ package template
 
 import "github.com/gabrielluizsf/antui"
 
-// dateShowPopup draws the calendar dead last, above every widget the flow
+// showDatePopup draws the calendar dead last, above every widget the flow
 // painted under it, so an open calendar never hides behind fields below.
-func dateShowPopup(style Style, win *antui.Window, state State, g dateGeom, year, month, firstWD, days, sel, today, hover int) {
+func (t *uiTemplate) showDatePopup(win *antui.Window, state State, p datePaint) {
 	win.WidgetFrontmost(func() {
-		style.DatePicker(win, state, g.px, g.py, g.dw, g.dh, year, month, firstWD, days, sel, today, hover)
+		t.style.DatePicker(win, state, p.x, p.y, p.w, p.h,
+			p.year, p.month, p.firstWD, p.days, p.selected, p.today, p.hover)
 	})
 }
