@@ -104,7 +104,7 @@ func TestLeftRightArrowsStepFocusedSlider(t *testing.T) {
 	value := float32(5)
 
 	tabFrame(win)
-	win.Slider(20, 30, 200, 20, &value, 0, 10)
+	win.Slider(canvas.Area{X: 20, Y: 30, Width: 200, Height: 20}, SliderParams{Value: &value, Min: 0, Max: 10})
 	win.End()
 	if win.uiFocus == 0 {
 		t.Fatal("Tab should have focused the slider")
@@ -112,7 +112,7 @@ func TestLeftRightArrowsStepFocusedSlider(t *testing.T) {
 
 	win.Begin()
 	win.Push(Event{Type: EventKeyDown, Key: KeyRight})
-	changed := win.Slider(20, 30, 200, 20, &value, 0, 10)
+	changed := win.Slider(canvas.Area{X: 20, Y: 30, Width: 200, Height: 20}, SliderParams{Value: &value, Min: 0, Max: 10})
 	win.End()
 	if !changed || value != 6 {
 		t.Errorf("right arrow should step up by 1/10, got value=%v changed=%v", value, changed)

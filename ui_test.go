@@ -100,9 +100,9 @@ func TestSliderDragsAndClamps(t *testing.T) {
 
 	// Grab the knob, then drag past the right-hand end.
 	click(win, 150, 40)
-	win.Slider(20, 30, 200, 20, &value, 0, 10)
+	win.Slider(canvas.Area{X: 20, Y: 30, Width: 200, Height: 20}, SliderParams{Value: &value, Min: 0, Max: 10})
 	win.Push(Event{Type: EventMouseMove, X: 400, Y: 40})
-	if !win.Slider(20, 30, 200, 20, &value, 0, 10) {
+	if !win.Slider(canvas.Area{X: 20, Y: 30, Width: 200, Height: 20}, SliderParams{Value: &value, Min: 0, Max: 10}) {
 		t.Fatal("dragging should report a change")
 	}
 	if value != 10 {
@@ -111,7 +111,7 @@ func TestSliderDragsAndClamps(t *testing.T) {
 
 	// Dragging past the left-hand end clamps the other way.
 	win.Push(Event{Type: EventMouseMove, X: -100, Y: 40})
-	win.Slider(20, 30, 200, 20, &value, 0, 10)
+	win.Slider(canvas.Area{X: 20, Y: 30, Width: 200, Height: 20}, SliderParams{Value: &value, Min: 0, Max: 10})
 	if value != 0 {
 		t.Errorf("value = %v, want it clamped to the minimum", value)
 	}
@@ -122,7 +122,7 @@ func TestSliderCorrectsAnOutOfRangeValue(t *testing.T) {
 	win.Begin()
 
 	value := float32(99)
-	win.Slider(20, 30, 200, 20, &value, 0, 10)
+	win.Slider(canvas.Area{X: 20, Y: 30, Width: 200, Height: 20}, SliderParams{Value: &value, Min: 0, Max: 10})
 	if value != 10 {
 		t.Errorf("value = %v, want it brought into range", value)
 	}
@@ -132,7 +132,7 @@ func TestSliderRejectsAnEmptyRange(t *testing.T) {
 	win, _ := newTestWindow(t, 300, 100)
 	win.Begin()
 	value := float32(5)
-	if win.Slider(20, 30, 200, 20, &value, 10, 10) {
+	if win.Slider(canvas.Area{X: 20, Y: 30, Width: 200, Height: 20}, SliderParams{Value: &value, Min: 10, Max: 10}) {
 		t.Error("a range with no span cannot be dragged")
 	}
 	if value != 5 {

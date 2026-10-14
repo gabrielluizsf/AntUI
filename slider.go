@@ -4,12 +4,14 @@ import "github.com/gabrielluizsf/antui/canvas"
 
 // Slider draws a horizontal slider and reports whether the value changed
 // this frame.
-func (win *Window) Slider(x, y, w, h int, value *float32, minValue, maxValue float32) bool {
-	if value == nil || w <= 0 || h <= 0 || maxValue <= minValue {
+func (win *Window) Slider(area canvas.Area, params SliderParams) bool {
+	if params.Value == nil || area.Width <= 0 || area.Height <= 0 || params.Max <= params.Min {
 		return false
 	}
+	value, minValue, maxValue := params.Value, params.Min, params.Max
+	x, y, w, h := area.X, area.Y, area.Width, area.Height
 	id := widgetID("slider", x, y, w, h, "")
-	hovered := win.Hovered(canvas.Area{X: x, Y: y, Width: w, Height: h})
+	hovered := win.Hovered(area)
 	focused := win.uiFocus == id
 	win.uiTab = append(win.uiTab, id)
 
