@@ -9,7 +9,7 @@ import "github.com/gabrielluizsf/antui/canvas"
 // checked box included.
 func (c *CSS) interactionState(b widgetBox, extra State) State {
 	s := extra
-	id := c.win.WidgetID("template:"+b.kind, b.x, b.y, b.idW, b.idH, b.label)
+	id := c.win.WidgetID("template:"+b.kind, canvas.Area{X: b.x, Y: b.y, Width: b.idW, Height: b.idH}, b.label)
 	hovered := c.win.Hovered(canvas.Area{X: b.x, Y: b.y, Width: b.hitW, Height: b.hitH})
 	s.Hovered = hovered
 	s.Focused = c.win.WidgetFocus() == id

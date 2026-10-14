@@ -17,7 +17,7 @@ func (t *uiTemplate) selectMenu(win *antui.Window, x, y, w, h int, index *int, o
 	picked := false
 	for i, opt := range options {
 		oy := y + h*(i+1)
-		oid := win.WidgetID("template:option", x, oy, w, h, opt)
+		oid := win.WidgetID("template:option", canvas.Area{X: x, Y: oy, Width: w, Height: h}, opt)
 		oh := win.Hovered(canvas.Area{X: x, Y: oy, Width: w, Height: h})
 		sel := i == *index
 		if win.WidgetClick(oid, oh) && !picked {

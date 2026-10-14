@@ -7,7 +7,7 @@ import (
 )
 
 func (t *uiTemplate) Button(win *antui.Window, x, y, w, h int, label string) event.Event {
-	id := win.WidgetID("template:button", x, y, w, h, label)
+	id := win.WidgetID("template:button", canvas.Area{X: x, Y: y, Width: w, Height: h}, label)
 	hovered := win.Hovered(canvas.Area{X: x, Y: y, Width: w, Height: h})
 	clicked := win.WidgetClick(id, hovered)
 	focused := win.WidgetFocus() == id

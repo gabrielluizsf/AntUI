@@ -16,7 +16,7 @@ func (t *uiTemplate) Select(win *antui.Window, x, y, w, h int, index *int, optio
 	}
 	clampSelectIndex(index, options)
 
-	id := win.WidgetID("template:select", x, y, w, h, "")
+	id := win.WidgetID("template:select", canvas.Area{X: x, Y: y, Width: w, Height: h}, "")
 	hovered := win.Hovered(canvas.Area{X: x, Y: y, Width: w, Height: h})
 	open := t.selectOpen == id
 	wasOpen := open

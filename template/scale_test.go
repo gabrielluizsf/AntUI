@@ -1,6 +1,7 @@
 package template
 
 import (
+	"github.com/gabrielluizsf/antui/canvas"
 	"testing"
 
 	"github.com/gabrielluizsf/antui"
@@ -101,11 +102,11 @@ func TestTemplateTabMovesBetweenInputs(t *testing.T) {
 	if title != "A" {
 		t.Errorf("title = %q, want it to hold the typed text", title)
 	}
-	titleFocused := win.WidgetFocus() == win.WidgetID("template:input", 24, 80, 472, 32, "")
+	titleFocused := win.WidgetFocus() == win.WidgetID("template:input", canvas.Area{X: 24, Y: 80, Width: 472, Height: 32}, "")
 	if titleFocused {
 		t.Error("Tab should have left the title field")
 	}
-	if win.WidgetFocus() != win.WidgetID("template:input", 24, 154, 472, 32, "") {
+	if win.WidgetFocus() != win.WidgetID("template:input", canvas.Area{X: 24, Y: 154, Width: 472, Height: 32}, "") {
 		t.Errorf("Tab should have focused the body field, got %d", win.WidgetFocus())
 	}
 	if bodyErr := checkNothing(bodyEv); bodyErr != "" {

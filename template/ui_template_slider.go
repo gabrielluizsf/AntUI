@@ -1,5 +1,7 @@
 package template
 
+import "github.com/gabrielluizsf/antui/canvas"
+
 import (
 	"github.com/gabrielluizsf/antui"
 	"github.com/gabrielluizsf/antui/template/event"
@@ -10,7 +12,7 @@ func (t *uiTemplate) Slider(win *antui.Window, x, y, w, h int, value *float32, m
 		return event.Nothing
 	}
 
-	id := win.WidgetID("template:slider", x, y, w, h, "")
+	id := win.WidgetID("template:slider", canvas.Area{X: x, Y: y, Width: w, Height: h}, "")
 	g := sliderGeometry(x, y, w, h, sliderRange{value, minValue, maxValue}, Scale(win))
 	mouseX, mouseY := win.MouseX(), win.MouseY()
 

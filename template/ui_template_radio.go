@@ -13,7 +13,7 @@ func (t *uiTemplate) Radio(win *antui.Window, x, y int, label string, value *int
 	u := Scale(win)
 	size := boxSize * u
 	w := size + labelGap*u + textWidth(u, label)
-	id := win.WidgetID("template:radio", x, y, size, option, label)
+	id := win.WidgetID("template:radio", canvas.Area{X: x, Y: y, Width: size, Height: option}, label)
 	hovered := win.Hovered(canvas.Area{X: x, Y: y, Width: w, Height: size})
 	clicked := win.WidgetClick(id, hovered)
 	focused := win.WidgetFocus() == id

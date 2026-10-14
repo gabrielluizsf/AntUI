@@ -17,7 +17,7 @@ func (t *uiTemplate) DatePicker(win *antui.Window, x, y, w, h int, value *Date) 
 		return event.Nothing
 	}
 	normalizeDate(value)
-	id := win.WidgetID("template:date", x, y, w, h, "")
+	id := win.WidgetID("template:date", canvas.Area{X: x, Y: y, Width: w, Height: h}, "")
 	hovered := win.Hovered(canvas.Area{X: x, Y: y, Width: w, Height: h})
 	if hovered {
 		win.WidgetHot(id)

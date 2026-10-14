@@ -14,7 +14,7 @@ func (t *uiTemplate) TextArea(win *antui.Window, x, y, w, h int, text *string) e
 	if text == nil {
 		return event.Nothing
 	}
-	id := win.WidgetID("template:textarea", x, y, w, h, "")
+	id := win.WidgetID("template:textarea", canvas.Area{X: x, Y: y, Width: w, Height: h}, "")
 	hovered := win.Hovered(canvas.Area{X: x, Y: y, Width: w, Height: h})
 	if hovered {
 		win.WidgetHot(id)

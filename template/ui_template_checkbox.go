@@ -13,7 +13,7 @@ func (t *uiTemplate) Checkbox(win *antui.Window, x, y int, label string, value *
 	u := Scale(win)
 	box := boxSize * u
 	w := box + labelGap*u + textWidth(u, label)
-	id := win.WidgetID("template:checkbox", x, y, box, box, label)
+	id := win.WidgetID("template:checkbox", canvas.Area{X: x, Y: y, Width: box, Height: box}, label)
 	hovered := win.Hovered(canvas.Area{X: x, Y: y, Width: w, Height: box})
 	clicked := win.WidgetClick(id, hovered)
 	focused := win.WidgetFocus() == id

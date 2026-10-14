@@ -16,7 +16,7 @@ func (t *uiTemplate) Switch(win *antui.Window, x, y int, label string, value *bo
 	trackW := switchTrackW * u
 	trackH := switchTrackH * u
 	w := trackW + labelGap*u + textWidth(u, label)
-	id := win.WidgetID("template:switch", x, y, trackW, trackH, label)
+	id := win.WidgetID("template:switch", canvas.Area{X: x, Y: y, Width: trackW, Height: trackH}, label)
 	hovered := win.Hovered(canvas.Area{X: x, Y: y, Width: w, Height: trackH})
 	clicked := win.WidgetClick(id, hovered)
 	focused := win.WidgetFocus() == id
