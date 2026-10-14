@@ -7,7 +7,11 @@ import (
 )
 
 func (cs *cssStyle) Background(win *antui.Window) canvas.Color {
-	st := cs.classes.GetStyleViewport(css.RoleBody, nil, css.StateNone, cs.viewport())
+	st := cs.classes.GetStyleViewport(css.StyleQuery{
+		Tag:      css.RoleBody,
+		State:    css.StateNone,
+		Viewport: cs.viewport(),
+	})
 	if st.Has("background-color") || st.Has("background") {
 		return fadeColor(st.Background, cs.alpha(st))
 	}
