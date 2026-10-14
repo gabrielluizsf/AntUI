@@ -1,6 +1,7 @@
 package template
 
 import (
+	"github.com/gabrielluizsf/antui/canvas"
 	"github.com/gabrielluizsf/antui"
 	"github.com/gabrielluizsf/antui/template/event"
 )
@@ -16,7 +17,7 @@ func (t *uiTemplate) Switch(win *antui.Window, x, y int, label string, value *bo
 	trackH := switchTrackH * u
 	w := trackW + labelGap*u + textWidth(u, label)
 	id := win.WidgetID("template:switch", x, y, trackW, trackH, label)
-	hovered := win.Hovered(x, y, w, trackH)
+	hovered := win.Hovered(canvas.Area{X: x, Y: y, Width: w, Height: trackH})
 	clicked := win.WidgetClick(id, hovered)
 	focused := win.WidgetFocus() == id
 	win.WidgetTabStop(id)

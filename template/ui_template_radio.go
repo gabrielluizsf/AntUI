@@ -1,6 +1,7 @@
 package template
 
 import (
+	"github.com/gabrielluizsf/antui/canvas"
 	"github.com/gabrielluizsf/antui"
 	"github.com/gabrielluizsf/antui/template/event"
 )
@@ -13,7 +14,7 @@ func (t *uiTemplate) Radio(win *antui.Window, x, y int, label string, value *int
 	size := boxSize * u
 	w := size + labelGap*u + textWidth(u, label)
 	id := win.WidgetID("template:radio", x, y, size, option, label)
-	hovered := win.Hovered(x, y, w, size)
+	hovered := win.Hovered(canvas.Area{X: x, Y: y, Width: w, Height: size})
 	clicked := win.WidgetClick(id, hovered)
 	focused := win.WidgetFocus() == id
 	win.WidgetTabStop(id)

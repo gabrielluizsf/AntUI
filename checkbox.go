@@ -13,7 +13,7 @@ func (win *Window) Checkbox(x, y int, label string, value *bool) bool {
 	const box = 18
 	w := box + 8 + canvas.TextWidth(label)
 	id := widgetID("checkbox", x, y, box, box, label)
-	hovered := win.Hovered(x, y, w, box)
+	hovered := win.Hovered(canvas.Area{X: x, Y: y, Width: w, Height: box})
 	clicked := win.widgetClick(id, hovered)
 	focused := win.uiFocus == id
 	win.uiTab = append(win.uiTab, id)

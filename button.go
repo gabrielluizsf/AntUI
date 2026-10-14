@@ -7,7 +7,7 @@ import (
 // Button draws a button and reports whether it was clicked this frame.
 func (win *Window) Button(x, y, w, h int, label string) bool {
 	id := widgetID("button", x, y, w, h, label)
-	hovered := win.Hovered(x, y, w, h)
+	hovered := win.Hovered(canvas.Area{X: x, Y: y, Width: w, Height: h})
 	clicked := win.widgetClick(id, hovered)
 	focused := win.uiFocus == id
 	win.uiTab = append(win.uiTab, id)

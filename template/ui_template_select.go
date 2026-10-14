@@ -1,6 +1,7 @@
 package template
 
 import (
+	"github.com/gabrielluizsf/antui/canvas"
 	"github.com/gabrielluizsf/antui"
 	"github.com/gabrielluizsf/antui/template/event"
 )
@@ -16,12 +17,12 @@ func (t *uiTemplate) Select(win *antui.Window, x, y, w, h int, index *int, optio
 	clampSelectIndex(index, options)
 
 	id := win.WidgetID("template:select", x, y, w, h, "")
-	hovered := win.Hovered(x, y, w, h)
+	hovered := win.Hovered(canvas.Area{X: x, Y: y, Width: w, Height: h})
 	open := t.selectOpen == id
 	wasOpen := open
 
 	// A press anywhere outside the box and its menu closes it.
-	if open && win.MousePressed(antui.MouseLeft) && !win.Hovered(x, y, w, h+h*len(options)) {
+	if open && win.MousePressed(antui.MouseLeft) && !win.Hovered(canvas.Area{X: x, Y: y, Width: w, Height: h + h*len(options)}) {
 		open = false
 	}
 

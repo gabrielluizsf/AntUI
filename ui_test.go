@@ -1,5 +1,7 @@
 package antui
 
+import "github.com/gabrielluizsf/antui/canvas"
+
 import "testing"
 
 // click drives one full press-and-release over a point, one frame each, which
@@ -143,15 +145,15 @@ func TestHovered(t *testing.T) {
 	win.Begin()
 	win.Push(Event{Type: EventMouseMove, X: 50, Y: 50})
 
-	if !win.Hovered(40, 40, 20, 20) {
+	if !win.Hovered(canvas.Area{X: 40, Y: 40, Width: 20, Height: 20}) {
 		t.Error("the pointer is inside the rectangle")
 	}
 	// The right and bottom edges are outside, so neighbouring widgets that
 	// share an edge cannot both be hovered.
-	if win.Hovered(30, 30, 20, 20) {
+	if win.Hovered(canvas.Area{X: 30, Y: 30, Width: 20, Height: 20}) {
 		t.Error("the far edge of a rectangle is not inside it")
 	}
-	if win.Hovered(51, 51, 10, 10) {
+	if win.Hovered(canvas.Area{X: 51, Y: 51, Width: 10, Height: 10}) {
 		t.Error("the pointer is outside the rectangle")
 	}
 }

@@ -1,5 +1,7 @@
 package template
 
+import "github.com/gabrielluizsf/antui/canvas"
+
 import "github.com/gabrielluizsf/antui"
 
 // selectMenu draws the open menu, one clickable row per option, and reports
@@ -16,7 +18,7 @@ func (t *uiTemplate) selectMenu(win *antui.Window, x, y, w, h int, index *int, o
 	for i, opt := range options {
 		oy := y + h*(i+1)
 		oid := win.WidgetID("template:option", x, oy, w, h, opt)
-		oh := win.Hovered(x, oy, w, h)
+		oh := win.Hovered(canvas.Area{X: x, Y: oy, Width: w, Height: h})
 		sel := i == *index
 		if win.WidgetClick(oid, oh) && !picked {
 			*index = i

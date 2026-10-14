@@ -1,5 +1,7 @@
 package template
 
+import "github.com/gabrielluizsf/antui/canvas"
+
 import "github.com/gabrielluizsf/antui"
 
 // dateMouse applies a press inside an open calendar: outside the box and popup
@@ -10,7 +12,7 @@ func (t *uiTemplate) dateMouse(win *antui.Window, value *Date, v dateView, g dat
 	}
 	mx, my := win.MouseX(), win.MouseY()
 	switch {
-	case !win.Hovered(g.x, g.y, g.w, g.h) && !win.Hovered(g.px, g.py, g.dw, g.dh):
+	case !win.Hovered(canvas.Area{X: g.x, Y: g.y, Width: g.w, Height: g.h}) && !win.Hovered(canvas.Area{X: g.px, Y: g.py, Width: g.dw, Height: g.dh}):
 		v.open = false
 	case inDateArrow(g.px, g.py, g.u, mx, my, true):
 		v.year, v.month, v.day = shiftDateMonth(v.year, v.month, v.day, -1)

@@ -1,6 +1,7 @@
 package template
 
 import (
+	"github.com/gabrielluizsf/antui/canvas"
 	"github.com/gabrielluizsf/antui"
 	"github.com/gabrielluizsf/antui/template/event"
 )
@@ -14,7 +15,7 @@ func (t *uiTemplate) TextArea(win *antui.Window, x, y, w, h int, text *string) e
 		return event.Nothing
 	}
 	id := win.WidgetID("template:textarea", x, y, w, h, "")
-	hovered := win.Hovered(x, y, w, h)
+	hovered := win.Hovered(canvas.Area{X: x, Y: y, Width: w, Height: h})
 	if hovered {
 		win.WidgetHot(id)
 	}

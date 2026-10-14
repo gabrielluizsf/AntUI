@@ -1,5 +1,7 @@
 package template
 
+import "github.com/gabrielluizsf/antui/canvas"
+
 import "github.com/gabrielluizsf/antui"
 
 // dateCalendar is what the popup needs to draw: the weekday it starts on, its
@@ -8,7 +10,7 @@ func dateCalendar(win *antui.Window, v dateView, g dateGeom) (firstWD, days, sel
 	firstWD = firstWeekday(v.year, v.month)
 	days = daysInMonth(v.year, v.month)
 	sel = clampInt(v.day, 1, days)
-	if v.open && win.Hovered(g.px, g.py, g.dw, g.dh) {
+	if v.open && win.Hovered(canvas.Area{X: g.px, Y: g.py, Width: g.dw, Height: g.dh}) {
 		hover = dayAt(g.px, g.py, g.u, win.MouseX(), win.MouseY(), v.year, v.month)
 	}
 	return firstWD, days, sel, hover

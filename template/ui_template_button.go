@@ -1,13 +1,14 @@
 package template
 
 import (
+	"github.com/gabrielluizsf/antui/canvas"
 	"github.com/gabrielluizsf/antui"
 	"github.com/gabrielluizsf/antui/template/event"
 )
 
 func (t *uiTemplate) Button(win *antui.Window, x, y, w, h int, label string) event.Event {
 	id := win.WidgetID("template:button", x, y, w, h, label)
-	hovered := win.Hovered(x, y, w, h)
+	hovered := win.Hovered(canvas.Area{X: x, Y: y, Width: w, Height: h})
 	clicked := win.WidgetClick(id, hovered)
 	focused := win.WidgetFocus() == id
 	win.WidgetTabStop(id)

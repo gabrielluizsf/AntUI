@@ -13,7 +13,7 @@ func (win *Window) Radio(x, y int, label string, value *int, option int) bool {
 	const size = 18
 	w := size + 8 + canvas.TextWidth(label)
 	id := widgetID("radio", x, y, size, option, label)
-	hovered := win.Hovered(x, y, w, size)
+	hovered := win.Hovered(canvas.Area{X: x, Y: y, Width: w, Height: size})
 	clicked := win.widgetClick(id, hovered)
 	focused := win.uiFocus == id
 	win.uiTab = append(win.uiTab, id)

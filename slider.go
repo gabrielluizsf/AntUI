@@ -1,5 +1,7 @@
 package antui
 
+import "github.com/gabrielluizsf/antui/canvas"
+
 // Slider draws a horizontal slider and reports whether the value changed
 // this frame.
 func (win *Window) Slider(x, y, w, h int, value *float32, minValue, maxValue float32) bool {
@@ -7,7 +9,7 @@ func (win *Window) Slider(x, y, w, h int, value *float32, minValue, maxValue flo
 		return false
 	}
 	id := widgetID("slider", x, y, w, h, "")
-	hovered := win.Hovered(x, y, w, h)
+	hovered := win.Hovered(canvas.Area{X: x, Y: y, Width: w, Height: h})
 	focused := win.uiFocus == id
 	win.uiTab = append(win.uiTab, id)
 

@@ -1,6 +1,7 @@
 package template
 
 import (
+	"github.com/gabrielluizsf/antui/canvas"
 	"github.com/gabrielluizsf/antui"
 	"github.com/gabrielluizsf/antui/template/event"
 )
@@ -10,7 +11,7 @@ func (t *uiTemplate) Input(win *antui.Window, x, y, w, h int, text *string) even
 		return event.Nothing
 	}
 	id := win.WidgetID("template:input", x, y, w, h, "")
-	hovered := win.Hovered(x, y, w, h)
+	hovered := win.Hovered(canvas.Area{X: x, Y: y, Width: w, Height: h})
 	if hovered {
 		win.WidgetHot(id)
 	}
