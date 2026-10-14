@@ -170,7 +170,11 @@ func TestMultiColumnRuleFoldsIntoTheStyle(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	st := sh.Style("body", nil, StateNone, 800)
+	st := sh.Style(StyleQuery{
+		Tag:      "body",
+		State:    StateNone,
+		Viewport: Viewport{Width: 800, Height: 800},
+	})
 	if st.ColumnCount != 2 {
 		t.Errorf("column-count = %d want 2", st.ColumnCount)
 	}
@@ -217,7 +221,11 @@ func TestFloatAndClearWarnWithoutBeingSpelledWrong(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	st := sh.Style("label", nil, StateNone, 800)
+	st := sh.Style(StyleQuery{
+		Tag:      "label",
+		State:    StateNone,
+		Viewport: Viewport{Width: 800, Height: 800},
+	})
 	if st.Float != FloatRight || st.Clear != ClearBoth {
 		t.Errorf("float/clear = %d/%d want right/both", st.Float, st.Clear)
 	}
@@ -239,7 +247,11 @@ func TestFloatAndClearNoneIsTheInitialAndSaysNothing(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	st := sh.Style("label", nil, StateNone, 800)
+	st := sh.Style(StyleQuery{
+		Tag:      "label",
+		State:    StateNone,
+		Viewport: Viewport{Width: 800, Height: 800},
+	})
 	if st.Float != FloatNone || st.Clear != ClearNone {
 		t.Errorf("float/clear = %d/%d want none/none", st.Float, st.Clear)
 	}

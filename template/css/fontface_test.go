@@ -126,12 +126,20 @@ func TestFontFamilyIsReadAndInherited(t *testing.T) {
 		body  { font-family: "Roboto", "DejaVu Sans Mono", sans-serif; }
 		button { color: red; }
 	`)
-	st := sh.Style("button", nil, StateNone, 800)
+	st := sh.Style(StyleQuery{
+		Tag:      "button",
+		State:    StateNone,
+		Viewport: Viewport{Width: 800, Height: 800},
+	})
 	if want := "roboto, dejavu sans mono, sans-serif"; st.FontFamily != want {
 		t.Errorf("font-family = %q, want %q", st.FontFamily, want)
 	}
 	sh2 := parseOK(t, `button { font-family: initial; }`)
-	if got := sh2.Style("button", nil, StateNone, 800).FontFamily; got != "" {
+	if got := sh2.Style(StyleQuery{
+		Tag:      "button",
+		State:    StateNone,
+		Viewport: Viewport{Width: 800, Height: 800},
+	}).FontFamily; got != "" {
 		t.Errorf("font-family after initial = %q, want empty", got)
 	}
 }
@@ -234,7 +242,12 @@ func TestFontFaceReadsItsFileBesideTheSheet(t *testing.T) {
 	if sh.Font("roboto", FontWeightNormal, false) == nil {
 		t.Error("Font(roboto) = nil, want the face read beside the sheet")
 	}
-	if got := sh.Style("div", []string{"a"}, StateNone, 800).FontFamily; got != "roboto" {
+	if got := sh.Style(StyleQuery{
+		Tag:      "div",
+		Classes:  []string{"a"},
+		State:    StateNone,
+		Viewport: Viewport{Width: 800, Height: 800},
+	}).FontFamily; got != "roboto" {
 		t.Errorf("font-family = %q, want roboto", got)
 	}
 }

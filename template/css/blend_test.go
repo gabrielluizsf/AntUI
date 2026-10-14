@@ -8,8 +8,16 @@ import (
 // TestBlendColors colours interpolate channel by channel across the blend,
 // red into cyan meeting in the middle as the colour between them.
 func TestBlendColors(t *testing.T) {
-	a := mustParse(t, `button { background-color: #111111; }`).Style("button", nil, StateNone, 800)
-	b := mustParse(t, `button { background-color: #333333; }`).Style("button", nil, StateNone, 800)
+	a := mustParse(t, `button { background-color: #111111; }`).Style(StyleQuery{
+		Tag:      "button",
+		State:    StateNone,
+		Viewport: Viewport{Width: 800, Height: 800},
+	})
+	b := mustParse(t, `button { background-color: #333333; }`).Style(StyleQuery{
+		Tag:      "button",
+		State:    StateNone,
+		Viewport: Viewport{Width: 800, Height: 800},
+	})
 	out := BlendStyles(a, b, 0.5, map[string]bool{"background-color": true}, Units{})
 	if out.Background != 0xFF222222 {
 		t.Errorf("blend = %v, want 0xFF222222", out.Background)
@@ -19,8 +27,16 @@ func TestBlendColors(t *testing.T) {
 // TestBlendStylesOnlyListed a blend only touches the properties it is asked
 // for; everything else stays the target style's values.
 func TestBlendStylesOnlyListed(t *testing.T) {
-	a := mustParse(t, `button { opacity: 0; }`).Style("button", nil, StateNone, 800)
-	b := mustParse(t, `button { opacity: 1; color: lime; }`).Style("button", nil, StateNone, 800)
+	a := mustParse(t, `button { opacity: 0; }`).Style(StyleQuery{
+		Tag:      "button",
+		State:    StateNone,
+		Viewport: Viewport{Width: 800, Height: 800},
+	})
+	b := mustParse(t, `button { opacity: 1; color: lime; }`).Style(StyleQuery{
+		Tag:      "button",
+		State:    StateNone,
+		Viewport: Viewport{Width: 800, Height: 800},
+	})
 	out := BlendStyles(a, b, 0.5, map[string]bool{"opacity": true}, Units{})
 	if out.Opacity != 0.5 {
 		t.Errorf("opacity = %v, want 0.5", out.Opacity)
@@ -42,8 +58,16 @@ func TestBlendOpacity(t *testing.T) {
 // TestBlendLengthSameUnit two widths written in the same unit stay in that
 // unit all the way, so a 50%-to-75% width reads 62.5% at the middle.
 func TestBlendLengthSameUnit(t *testing.T) {
-	a := mustParse(t, `button { width: 50%; }`).Style("button", nil, StateNone, 800)
-	b := mustParse(t, `button { width: 75%; }`).Style("button", nil, StateNone, 800)
+	a := mustParse(t, `button { width: 50%; }`).Style(StyleQuery{
+		Tag:      "button",
+		State:    StateNone,
+		Viewport: Viewport{Width: 800, Height: 800},
+	})
+	b := mustParse(t, `button { width: 75%; }`).Style(StyleQuery{
+		Tag:      "button",
+		State:    StateNone,
+		Viewport: Viewport{Width: 800, Height: 800},
+	})
 	out := BlendStyles(a, b, 0.5, map[string]bool{"width": true}, Units{Width: 800})
 	if !out.Width.IsPct() {
 		t.Fatalf("width unit = %v, want percent", out.Width.Unit())
@@ -78,10 +102,10 @@ func TestBlendLengthKeywordsDiscrete(t *testing.T) {
 // TestBlendTransitionDelayedDelay a transition holds the entry value until
 // its delay has passed, walks the easing between, and lands on the target.
 func TestBlendTransitionDelayedDelay(t *testing.T) {
-	from := mustParse(t, `button { background-color: #111111; }`).Style("button", nil, StateNone, 800)
+	from := mustParse(t, `button { background-color: #111111; }`).Style(StyleQuery{Tag: "button", State: StateNone, Viewport: Viewport{Width: 800, Height: 800}})
 	to := mustParse(t, `
 		button { background-color: #333333; transition: background-color 1s 0.5s; }
-	`).Style("button", nil, StateNone, 800)
+	`).Style(StyleQuery{Tag: "button", State: StateNone, Viewport: Viewport{Width: 800, Height: 800}})
 	if hold := BlendTransition(from, to, 300, Units{}); hold.Background != 0xFF111111 {
 		t.Errorf("during the delay = %v, want the entry colour", hold.Background)
 	}
@@ -99,10 +123,10 @@ func TestBlendTransitionDelayedDelay(t *testing.T) {
 // TestBlendTransitionAll property "all" transitions everything the engine can
 // interpolate, holding even unlisted properties of the target.
 func TestBlendTransitionAll(t *testing.T) {
-	from := mustParse(t, `button { background-color: #111111; }`).Style("button", nil, StateNone, 800)
+	from := mustParse(t, `button { background-color: #111111; }`).Style(StyleQuery{Tag: "button", State: StateNone, Viewport: Viewport{Width: 800, Height: 800}})
 	to := mustParse(t, `
 		button { background-color: #333333; transition: 0.5s; }
-	`).Style("button", nil, StateNone, 800)
+	`).Style(StyleQuery{Tag: "button", State: StateNone, Viewport: Viewport{Width: 800, Height: 800}})
 	if len(to.Transitions) != 1 || to.Transitions[0].Prop != "all" {
 		t.Fatalf("transitions = %+v", to.Transitions)
 	}
@@ -115,8 +139,8 @@ func TestBlendTransitionAll(t *testing.T) {
 // TestBlendTransitionNoTransition a style with no transitions hands the
 // target back untouched, whatever the clock says.
 func TestBlendTransitionNoTransition(t *testing.T) {
-	from := mustParse(t, `button { background-color: #111111; }`).Style("button", nil, StateNone, 800)
-	to := mustParse(t, `button { background-color: #333333; }`).Style("button", nil, StateNone, 800)
+	from := mustParse(t, `button { background-color: #111111; }`).Style(StyleQuery{Tag: "button", State: StateNone, Viewport: Viewport{Width: 800, Height: 800}})
+	to := mustParse(t, `button { background-color: #333333; }`).Style(StyleQuery{Tag: "button", State: StateNone, Viewport: Viewport{Width: 800, Height: 800}})
 	if got := BlendTransition(from, to, 1000, Units{}); got.Background != 0xFF333333 {
 		t.Errorf("no transition = %v, want the target", got.Background)
 	}
@@ -157,7 +181,7 @@ func TestBlendShadowDiscrete(t *testing.T) {
 // TestCopyStyleOwnsSet a copied style has its own Set map, so marking a value
 // in the copy can never reach back into the cascade's cached style.
 func TestCopyStyleOwnsSet(t *testing.T) {
-	a := mustParse(t, `button { opacity: 0; }`).Style("button", nil, StateNone, 800)
+	a := mustParse(t, `button { opacity: 0; }`).Style(StyleQuery{Tag: "button", State: StateNone, Viewport: Viewport{Width: 800, Height: 800}})
 	b := CopyStyle(a)
 	b.Set["opacity"] = true
 	b.Opacity = 1
@@ -177,7 +201,7 @@ func TestCopyStyleOwnsSet(t *testing.T) {
 // TestBlendKeyframesBaseFallback a frame that omitted a property the other
 // frame set travels from the base style's value, not from emptiness.
 func TestBlendKeyframesBaseFallback(t *testing.T) {
-	base := mustParse(t, `button { background-color: #222222; }`).Style("button", nil, StateNone, 800)
+	base := mustParse(t, `button { background-color: #222222; }`).Style(StyleQuery{Tag: "button", State: StateNone, Viewport: Viewport{Width: 800, Height: 800}})
 	kf := mustParse(t, `
 		@keyframes fade { from { background-color: #111111; } to { opacity: 1; } }
 	`).Keyframes("fade")

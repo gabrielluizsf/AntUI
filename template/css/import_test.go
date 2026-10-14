@@ -93,7 +93,11 @@ func TestImportWithoutAFileToResolveToIsReported(t *testing.T) {
 	if !hasWarn(sh, "no file to resolve it against") {
 		t.Errorf("warnings = %v, want one about the URL having nowhere to go", sh.Warn)
 	}
-	if st := sh.Style("button", nil, StateNone, 800); !st.Has("color") {
+	if st := sh.Style(StyleQuery{
+		Tag:      "button",
+		State:    StateNone,
+		Viewport: Viewport{Width: 800, Height: 800},
+	}); !st.Has("color") {
 		t.Error("the rule after the @import should still be read")
 	}
 }

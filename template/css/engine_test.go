@@ -19,7 +19,11 @@ func TestParseClassSelector(t *testing.T) {
 	sh := mustParse(t, `
 		button { background-color: #3E63DD; border-radius: 8px; }
 	`)
-	st := sh.Style("button", nil, StateNone, 800)
+	st := sh.Style(StyleQuery{
+		Tag:      "button",
+		State:    StateNone,
+		Viewport: Viewport{Width: 800, Height: 800},
+	})
 	if !st.Has("background-color") {
 		t.Error("background-color not recorded as set")
 	}
@@ -39,7 +43,11 @@ func TestUniversalAndElement(t *testing.T) {
 		* { box-sizing: border-box; padding: 4px; }
 		input { padding: 8px; }
 	`)
-	st := sh.Style("input", nil, StateNone, 800)
+	st := sh.Style(StyleQuery{
+		Tag:      "input",
+		State:    StateNone,
+		Viewport: Viewport{Width: 800, Height: 800},
+	})
 	if !st.BoxSizing {
 		t.Error("* box-sizing did not apply")
 	}
@@ -54,15 +62,28 @@ func TestPseudoClasses(t *testing.T) {
 		button:hover { background-color: red; }
 		button:hover.fancy { background-color: green; }
 	`)
-	base := sh.Style("button", nil, StateNone, 800)
+	base := sh.Style(StyleQuery{
+		Tag:      "button",
+		State:    StateNone,
+		Viewport: Viewport{Width: 800, Height: 800},
+	})
 	if base.Background != 0xFF0000FF {
 		t.Errorf("base background = %v, want CSS blue #0000FF", base.Background)
 	}
-	hover := sh.Style("button", nil, StateHover, 800)
+	hover := sh.Style(StyleQuery{
+		Tag:      "button",
+		State:    StateHover,
+		Viewport: Viewport{Width: 800, Height: 800},
+	})
 	if hover.Background != 0xFFFF0000 {
 		t.Errorf("hover background = %v, want CSS red #FF0000", hover.Background)
 	}
-	both := sh.Style("button", []string{"fancy"}, StateHover, 800)
+	both := sh.Style(StyleQuery{
+		Tag:      "button",
+		Classes:  []string{"fancy"},
+		State:    StateHover,
+		Viewport: Viewport{Width: 800, Height: 800},
+	})
 	if both.Background != 0xFF008000 {
 		t.Errorf("hover+fancy background = %v, want CSS green #008000", both.Background)
 	}
@@ -75,7 +96,12 @@ func TestSpecificityAndOrder(t *testing.T) {
 		button.foo { color: gray; }
 		button.foo { color: red; }
 	`)
-	st := sh.Style("button", []string{"foo"}, StateNone, 800)
+	st := sh.Style(StyleQuery{
+		Tag:      "button",
+		Classes:  []string{"foo"},
+		State:    StateNone,
+		Viewport: Viewport{Width: 800, Height: 800},
+	})
 	// The later rule of equal specificity wins.
 	if st.Color != 0xFFFF0000 {
 		t.Errorf("color = %v, want red (later equal-specificity rule wins)", st.Color)
@@ -89,11 +115,19 @@ func TestMediaQueriesSwitchByWidth(t *testing.T) {
 			button { font-size: 24px; }
 		}
 	`)
-	small := sh.Style("button", nil, StateNone, 480)
+	small := sh.Style(StyleQuery{
+		Tag:      "button",
+		State:    StateNone,
+		Viewport: Viewport{Width: 480, Height: 480},
+	})
 	if small.FontSize != 16 {
 		t.Errorf("small width font = %d, want 16", small.FontSize)
 	}
-	big := sh.Style("button", nil, StateNone, 1000)
+	big := sh.Style(StyleQuery{
+		Tag:      "button",
+		State:    StateNone,
+		Viewport: Viewport{Width: 1000, Height: 1000},
+	})
 	if big.FontSize != 24 {
 		t.Errorf("big width font = %d, want 24", big.FontSize)
 	}
@@ -103,17 +137,30 @@ func TestMediaMaxWidth(t *testing.T) {
 	sh := mustParse(t, `
 		@media (max-width: 600px) { input { width: 100px; } }
 	`)
-	if w := sh.Style("input", nil, StateNone, 400); w.Width.Px(0) != 100 {
+	if w := sh.Style(StyleQuery{
+		Tag:      "input",
+		State:    StateNone,
+		Viewport: Viewport{Width: 400, Height: 400},
+	}); w.Width.Px(0) != 100 {
 		t.Errorf("max-width query should apply at 400, got %d", w.Width.Px(0))
 	}
-	if w := sh.Style("input", nil, StateNone, 900); w.Has("width") && w.Width.Px(0) == 100 {
+	if w := sh.Style(StyleQuery{
+		Tag:      "input",
+		State:    StateNone,
+		Viewport: Viewport{Width: 900, Height: 900},
+	}); w.Has("width") && w.Width.Px(0) == 100 {
 		t.Error("max-width query should NOT apply at 900")
 	}
 }
 
 func TestMarginShorthand(t *testing.T) {
 	sh := mustParse(t, `.btn { margin: 4px 8px; }`)
-	st := sh.Style("button", []string{"btn"}, StateNone, 800)
+	st := sh.Style(StyleQuery{
+		Tag:      "button",
+		Classes:  []string{"btn"},
+		State:    StateNone,
+		Viewport: Viewport{Width: 800, Height: 800},
+	})
 	want := [4]int{4, 8, 4, 8}
 	got := [4]int{st.Margin[SideTop].Px(0), st.Margin[SideRight].Px(0), st.Margin[SideBottom].Px(0), st.Margin[SideLeft].Px(0)}
 	if got != want {
@@ -123,7 +170,12 @@ func TestMarginShorthand(t *testing.T) {
 
 func TestMarginFourValues(t *testing.T) {
 	sh := mustParse(t, `.btn { margin: 1px 2px 3px 4px; }`)
-	st := sh.Style("button", []string{"btn"}, StateNone, 800)
+	st := sh.Style(StyleQuery{
+		Tag:      "button",
+		Classes:  []string{"btn"},
+		State:    StateNone,
+		Viewport: Viewport{Width: 800, Height: 800},
+	})
 	got := [4]int{st.Margin[SideTop].Px(0), st.Margin[SideRight].Px(0), st.Margin[SideBottom].Px(0), st.Margin[SideLeft].Px(0)}
 	if got != [4]int{1, 2, 3, 4} {
 		t.Errorf("margin = %v", got)
@@ -132,7 +184,12 @@ func TestMarginFourValues(t *testing.T) {
 
 func TestBorderShorthand(t *testing.T) {
 	sh := mustParse(t, `.btn { border: 2px solid red; }`)
-	st := sh.Style("button", []string{"btn"}, StateNone, 800)
+	st := sh.Style(StyleQuery{
+		Tag:      "button",
+		Classes:  []string{"btn"},
+		State:    StateNone,
+		Viewport: Viewport{Width: 800, Height: 800},
+	})
 	if !st.BorderOn() {
 		t.Error("border should be on")
 	}
@@ -152,13 +209,27 @@ func TestBackgroundShorthandAndColorNames(t *testing.T) {
 		.btn { background: #ff0000; }
 		.other { background: rgba(0, 128, 255, 0.5); }
 	`)
-	if st := sh.Style("body", nil, StateNone, 800); st.Background != 0xFF000080 {
+	if st := sh.Style(StyleQuery{
+		Tag:      "body",
+		State:    StateNone,
+		Viewport: Viewport{Width: 800, Height: 800},
+	}); st.Background != 0xFF000080 {
 		t.Errorf("body bg = %v, want navy", st.Background)
 	}
-	if st := sh.Style("button", []string{"btn"}, StateNone, 800); st.Background != 0xFFFF0000 {
+	if st := sh.Style(StyleQuery{
+		Tag:      "button",
+		Classes:  []string{"btn"},
+		State:    StateNone,
+		Viewport: Viewport{Width: 800, Height: 800},
+	}); st.Background != 0xFFFF0000 {
 		t.Errorf("btn bg = %v, want red", st.Background)
 	}
-	other := sh.Style("", []string{"other"}, StateNone, 800)
+	other := sh.Style(StyleQuery{
+		Tag:      "",
+		Classes:  []string{"other"},
+		State:    StateNone,
+		Viewport: Viewport{Width: 800, Height: 800},
+	})
 	if other.Background.A() != 128 {
 		t.Errorf("rgba alpha = %d, want 128 (0.5*255 rounded)", other.Background.A())
 	}
@@ -169,10 +240,20 @@ func TestDisplayNoneAndPosition(t *testing.T) {
 		.hidden { display: none; }
 		.fixed { position: absolute; top: 10px; left: 20px; }
 	`)
-	if st := sh.Style("div", []string{"hidden"}, StateNone, 800); st.Display != 1 {
+	if st := sh.Style(StyleQuery{
+		Tag:      "div",
+		Classes:  []string{"hidden"},
+		State:    StateNone,
+		Viewport: Viewport{Width: 800, Height: 800},
+	}); st.Display != 1 {
 		t.Error("display:none not honoured")
 	}
-	st := sh.Style("div", []string{"fixed"}, StateNone, 800)
+	st := sh.Style(StyleQuery{
+		Tag:      "div",
+		Classes:  []string{"fixed"},
+		State:    StateNone,
+		Viewport: Viewport{Width: 800, Height: 800},
+	})
 	if st.Position != 1 {
 		t.Error("position:absolute not honoured")
 	}
@@ -183,7 +264,12 @@ func TestDisplayNoneAndPosition(t *testing.T) {
 
 func TestPercentagesResolveAgainstBase(t *testing.T) {
 	sh := mustParse(t, `.panel { width: 50%; height: 25%; }`)
-	st := sh.Style("div", []string{"panel"}, StateNone, 800)
+	st := sh.Style(StyleQuery{
+		Tag:      "div",
+		Classes:  []string{"panel"},
+		State:    StateNone,
+		Viewport: Viewport{Width: 800, Height: 800},
+	})
 	if st.Width.Px(800) != 400 {
 		t.Errorf("width 50%% = %d, want 400", st.Width.Px(800))
 	}
@@ -196,7 +282,11 @@ func TestUnknownPropertyIsSkipped(t *testing.T) {
 	sh := mustParse(t, `
 		button { color: white; -webkit-animation: spin 1s; color: red; }
 	`)
-	st := sh.Style("button", nil, StateNone, 800)
+	st := sh.Style(StyleQuery{
+		Tag:      "button",
+		State:    StateNone,
+		Viewport: Viewport{Width: 800, Height: 800},
+	})
 	if st.Color != 0xFFFF0000 {
 		t.Errorf("color = %v, want red (unknown decl skipped, cascade continued)", st.Color)
 	}
@@ -207,26 +297,53 @@ func TestUnknownPropertyIsSkipped(t *testing.T) {
 
 func TestSelectorList(t *testing.T) {
 	sh := mustParse(t, `button, input, .thing { color: lime; }`)
-	if st := sh.Style("button", nil, StateNone, 800); st.Color != 0xFF00FF00 {
+	if st := sh.Style(StyleQuery{
+		Tag:      "button",
+		State:    StateNone,
+		Viewport: Viewport{Width: 800, Height: 800},
+	}); st.Color != 0xFF00FF00 {
 		t.Errorf("button color = %v", st.Color)
 	}
-	if st := sh.Style("input", nil, StateNone, 800); st.Color != 0xFF00FF00 {
+	if st := sh.Style(StyleQuery{
+		Tag:      "input",
+		State:    StateNone,
+		Viewport: Viewport{Width: 800, Height: 800},
+	}); st.Color != 0xFF00FF00 {
 		t.Errorf("input color = %v", st.Color)
 	}
-	if st := sh.Style("", []string{"thing"}, StateNone, 800); st.Color != 0xFF00FF00 {
+	if st := sh.Style(StyleQuery{
+		Tag:      "",
+		Classes:  []string{"thing"},
+		State:    StateNone,
+		Viewport: Viewport{Width: 800, Height: 800},
+	}); st.Color != 0xFF00FF00 {
 		t.Errorf("thing color = %v", st.Color)
 	}
-	if st := sh.Style("label", nil, StateNone, 800); st.Color == 0xFF00FF00 {
+	if st := sh.Style(StyleQuery{
+		Tag:      "label",
+		State:    StateNone,
+		Viewport: Viewport{Width: 800, Height: 800},
+	}); st.Color == 0xFF00FF00 {
 		t.Error("label should not match")
 	}
 }
 
 func TestMultipleClasses(t *testing.T) {
 	sh := mustParse(t, `.btn.primary { color: white; }`)
-	if st := sh.Style("button", []string{"btn", "primary"}, StateNone, 800); st.Color != 0xFFFFFFFF {
+	if st := sh.Style(StyleQuery{
+		Tag:      "button",
+		Classes:  []string{"btn", "primary"},
+		State:    StateNone,
+		Viewport: Viewport{Width: 800, Height: 800},
+	}); st.Color != 0xFFFFFFFF {
 		t.Errorf("color = %v", st.Color)
 	}
-	if st := sh.Style("button", []string{"btn"}, StateNone, 800); st.Has("color") {
+	if st := sh.Style(StyleQuery{
+		Tag:      "button",
+		Classes:  []string{"btn"},
+		State:    StateNone,
+		Viewport: Viewport{Width: 800, Height: 800},
+	}); st.Has("color") {
 		t.Error(".btn.primary should not match a widget holding only .btn")
 	}
 }
@@ -239,14 +356,23 @@ func TestCommentsAndNoise(t *testing.T) {
 		button { color: white; /* inline */ }
 		/* end */
 	`)
-	if st := sh.Style("button", nil, StateNone, 800); st.Color != 0xFFFFFFFF {
+	if st := sh.Style(StyleQuery{
+		Tag:      "button",
+		State:    StateNone,
+		Viewport: Viewport{Width: 800, Height: 800},
+	}); st.Color != 0xFFFFFFFF {
 		t.Errorf("color = %v", st.Color)
 	}
 }
 
 func TestHSL(t *testing.T) {
 	sh := mustParse(t, `.x { color: hsl(120, 100%, 50%); }`)
-	st := sh.Style("", []string{"x"}, StateNone, 800)
+	st := sh.Style(StyleQuery{
+		Tag:      "",
+		Classes:  []string{"x"},
+		State:    StateNone,
+		Viewport: Viewport{Width: 800, Height: 800},
+	})
 	if st.Color != 0xFF00FF00 {
 		t.Errorf("hsl green = %v, want #00FF00", st.Color)
 	}
@@ -256,7 +382,12 @@ func TestShadowAndOpacity(t *testing.T) {
 	sh := mustParse(t, `
 		.btn { opacity: 0.5; }
 	`)
-	st := sh.Style("button", []string{"btn"}, StateNone, 800)
+	st := sh.Style(StyleQuery{
+		Tag:      "button",
+		Classes:  []string{"btn"},
+		State:    StateNone,
+		Viewport: Viewport{Width: 800, Height: 800},
+	})
 	if st.Opacity != 0.5 {
 		t.Errorf("opacity = %v, want 0.5", st.Opacity)
 	}
@@ -264,11 +395,21 @@ func TestShadowAndOpacity(t *testing.T) {
 
 func TestWidthAutoAndFitContent(t *testing.T) {
 	sh := mustParse(t, `.a { width: auto; } .b { }`)
-	sa := sh.Style("", []string{"a"}, StateNone, 800)
+	sa := sh.Style(StyleQuery{
+		Tag:      "",
+		Classes:  []string{"a"},
+		State:    StateNone,
+		Viewport: Viewport{Width: 800, Height: 800},
+	})
 	if !sa.Width.Auto() {
 		t.Error("width:auto should keep the auto keyword")
 	}
-	sb := sh.Style("", []string{"b"}, StateNone, 800)
+	sb := sh.Style(StyleQuery{
+		Tag:      "",
+		Classes:  []string{"b"},
+		State:    StateNone,
+		Viewport: Viewport{Width: 800, Height: 800},
+	})
 	if sb.Has("width") {
 		t.Error("unset width should not claim to be set")
 	}

@@ -27,7 +27,11 @@ func TestAnimationShorthandComposes(t *testing.T) {
 	}
 
 	sh := mustParse(t, `button { animation: spin 2s linear 0.5s infinite alternate both; }`)
-	st := sh.Style("button", nil, StateNone, 800)
+	st := sh.Style(StyleQuery{
+		Tag:      "button",
+		State:    StateNone,
+		Viewport: Viewport{Width: 800, Height: 800},
+	})
 	if len(st.Animations) != 1 {
 		t.Fatalf("animations = %d, want 1", len(st.Animations))
 	}
@@ -64,7 +68,11 @@ func TestAnimationIterationFinite(t *testing.T) {
 		t.Errorf("iterations = %v infinite=%v, want 3", a.Iterations, a.Infinite)
 	}
 	sh := mustParse(t, `button { animation: bounce 2s 3; }`)
-	st := sh.Style("button", nil, StateNone, 800)
+	st := sh.Style(StyleQuery{
+		Tag:      "button",
+		State:    StateNone,
+		Viewport: Viewport{Width: 800, Height: 800},
+	})
 	if st.Animations[0].Iterations != 3 {
 		t.Errorf("composed iterations = %v, want 3", st.Animations[0].Iterations)
 	}
@@ -105,7 +113,11 @@ func TestAnimationMultipleGapFill(t *testing.T) {
 			animation-direction: alternate;
 		}
 	`)
-	st := sh.Style("button", nil, StateNone, 800)
+	st := sh.Style(StyleQuery{
+		Tag:      "button",
+		State:    StateNone,
+		Viewport: Viewport{Width: 800, Height: 800},
+	})
 	if len(st.Animations) != 3 {
 		t.Fatalf("animations = %d, want 3", len(st.Animations))
 	}
@@ -131,7 +143,11 @@ func TestAnimationInfiniteFlowsIntoList(t *testing.T) {
 // skips it, the way a browser skips a missing animation.
 func TestAnimationNoKeyframesStillComposes(t *testing.T) {
 	sh := mustParse(t, `button { animation: ghost 1s; }`)
-	st := sh.Style("button", nil, StateNone, 800)
+	st := sh.Style(StyleQuery{
+		Tag:      "button",
+		State:    StateNone,
+		Viewport: Viewport{Width: 800, Height: 800},
+	})
 	if len(st.Animations) != 1 || st.Animations[0].Name != "ghost" {
 		t.Errorf("animations = %+v", st.Animations)
 	}

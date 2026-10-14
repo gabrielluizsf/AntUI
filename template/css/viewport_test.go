@@ -13,7 +13,12 @@ func TestMediaMeasuresWindowHeight(t *testing.T) {
 @media (min-width: 700px) { .wide { width: 40px; } }
 `)
 	widthAt := func(vp Viewport, cls string) (int, bool) {
-		st := sh.StyleViewport("div", []string{cls}, StateNone, vp)
+		st := sh.StyleViewportQuery(StyleQuery{
+			Tag:      "div",
+			Classes:  []string{cls},
+			State:    StateNone,
+			Viewport: vp,
+		})
 		if !st.Has("width") {
 			return 0, false
 		}
@@ -55,13 +60,21 @@ func TestMediaMeasuresWindowHeight(t *testing.T) {
 func TestStyleResolvesViewportUnitsAgainstTheWindow(t *testing.T) {
 	sh := parseOK(t, "button { width: calc(10vh); }")
 
-	square := sh.Style("button", nil, StateNone, 400)
+	square := sh.Style(StyleQuery{
+		Tag:      "button",
+		State:    StateNone,
+		Viewport: Viewport{Width: 400, Height: 400},
+	})
 	if got := square.Width.Px(400); got != 40 {
 		t.Errorf("width under the width-only call: %d, want 40 — a window as "+
 			"wide as it is tall", got)
 	}
 
-	real := sh.StyleViewport("button", nil, StateNone, Viewport{Width: 400, Height: 800})
+	real := sh.StyleViewportQuery(StyleQuery{
+		Tag:      "button",
+		State:    StateNone,
+		Viewport: Viewport{Width: 400, Height: 800},
+	})
 	if got := real.Width.Px(400); got != 80 {
 		t.Errorf("width under an 800 tall window: %d, want 80 — 10vh of the "+
 			"window it is drawn in", got)
@@ -80,7 +93,11 @@ func TestGetStyleViewportCacheTracksWindow(t *testing.T) {
 	short := Viewport{Width: 400, Height: 400}
 	tall := Viewport{Width: 400, Height: 900}
 
-	st := c.GetStyleViewport(RoleButton, nil, StateNone, short)
+	st := c.GetStyleViewport(StyleQuery{
+		Tag:      RoleButton,
+		State:    StateNone,
+		Viewport: short,
+	})
 	if st.Background.R() != 0xFF || st.Background.G() != 0x00 {
 		t.Errorf("short window: background %v, want the red max-height rule", st.Background)
 	}
@@ -88,7 +105,11 @@ func TestGetStyleViewportCacheTracksWindow(t *testing.T) {
 		t.Error("expected the answer to have been cached")
 	}
 
-	st = c.GetStyleViewport(RoleButton, nil, StateNone, tall)
+	st = c.GetStyleViewport(StyleQuery{
+		Tag:      RoleButton,
+		State:    StateNone,
+		Viewport: tall,
+	})
 	if st.Background.G() != 0xFF || st.Background.R() != 0x00 {
 		t.Errorf("tall window: background %v, want the green rule — the red "+
 			"answer cached for another window leaked", st.Background)

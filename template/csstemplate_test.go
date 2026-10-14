@@ -112,7 +112,11 @@ func TestCSSPseudoSelectors(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	winner := classes.GetStyle(css.RoleButton, nil, css.StateWith(true, false, false, false), 400)
+	winner := classes.GetStyle(css.StyleQuery{
+		Tag:      css.RoleButton,
+		State:    css.StateWith(css.StateFlags{Hovered: true}),
+		Viewport: css.Viewport{Width: 400, Height: 400},
+	})
 	if winner.Background.R() != 0x22 {
 		t.Errorf("hover should win over resting background, got %v", winner.Background)
 	}

@@ -13,7 +13,11 @@ func trule(t *testing.T, rule string) Style {
 	if err != nil {
 		t.Fatal(err)
 	}
-	return sh.Style("label", nil, StateNone, 800)
+	return sh.Style(StyleQuery{
+		Tag:      "label",
+		State:    StateNone,
+		Viewport: Viewport{Width: 800, Height: 800},
+	})
 }
 
 func TestTransformListParses(t *testing.T) {

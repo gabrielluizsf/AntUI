@@ -16,7 +16,11 @@ func bgRule(t *testing.T, rule string) css.Style {
 	if err != nil {
 		t.Fatal(err)
 	}
-	return sh.Style("label", nil, css.StateNone, 800)
+	return sh.Style(css.StyleQuery{
+		Tag:      "label",
+		State:    css.StateNone,
+		Viewport: css.Viewport{Width: 800, Height: 800},
+	})
 }
 
 // blankWin is a window cleared to a colour that nothing else will paint, so a

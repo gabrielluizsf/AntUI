@@ -92,7 +92,11 @@ func TestGridAxisPlacementReadsLineNames(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	st := sheet.Style(css.RoleGrid, nil, css.StateNone, 400)
+	st := sheet.Style(css.StyleQuery{
+		Tag:      css.RoleGrid,
+		State:    css.StateNone,
+		Viewport: css.Viewport{Width: 400, Height: 400},
+	})
 	axis := st.GridTemplateColumns.Resolve(400, 0, 1)
 	for _, tc := range []struct {
 		placement css.GridPlacement

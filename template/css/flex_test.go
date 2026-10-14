@@ -13,7 +13,11 @@ func flexRule(t *testing.T, role, rule string) Style {
 	if err != nil {
 		t.Fatal(err)
 	}
-	return sh.Style(role, nil, StateNone, 800)
+	return sh.Style(StyleQuery{
+		Tag:      role,
+		State:    StateNone,
+		Viewport: Viewport{Width: 800, Height: 800},
+	})
 }
 
 func TestFlexDirectionParsesKeywords(t *testing.T) {

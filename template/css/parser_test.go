@@ -212,9 +212,23 @@ input:where([type=submit]) {
 	for _, sheet := range []string{reset, preflight, mdn} {
 		sh := parseOK(t, sheet)
 		// The sheets reach the cascade without dying even where they paint.
-		_ = sh.Style("body", nil, StateNone, 800)
-		_ = sh.Style("div", []string{"hero"}, StateNone, 400)
-		_ = sh.Style("div", []string{"alert"}, StateHover, 800)
+		_ = sh.Style(StyleQuery{
+			Tag:      "body",
+			State:    StateNone,
+			Viewport: Viewport{Width: 800, Height: 800},
+		})
+		_ = sh.Style(StyleQuery{
+			Tag:      "div",
+			Classes:  []string{"hero"},
+			State:    StateNone,
+			Viewport: Viewport{Width: 400, Height: 400},
+		})
+		_ = sh.Style(StyleQuery{
+			Tag:      "div",
+			Classes:  []string{"alert"},
+			State:    StateHover,
+			Viewport: Viewport{Width: 800, Height: 800},
+		})
 	}
 }
 
@@ -256,14 +270,29 @@ func TestStyleImportantCascade(t *testing.T) {
 .a.b { color: blue; }
 .a.b { color: green !important; }
 `)
-	if raw, ok := sh.Property("div", []string{"a", "b"}, "color", 800); !ok || raw != "green" {
+	if raw, ok := sh.Property(PropertyQuery{
+		Tag:      "div",
+		Classes:  []string{"a", "b"},
+		Prop:     "color",
+		Viewport: Viewport{Width: 800, Height: 800},
+	}); !ok || raw != "green" {
 		t.Errorf("Property of important vs higher-specificity normal = %q, %v; want green", raw, ok)
 	}
 	// With only the looser class, the important rule of .a.b cannot reach it.
-	if raw, _ := sh.Property("div", []string{"a"}, "color", 800); raw != "red" {
+	if raw, _ := sh.Property(PropertyQuery{
+		Tag:      "div",
+		Classes:  []string{"a"},
+		Prop:     "color",
+		Viewport: Viewport{Width: 800, Height: 800},
+	}); raw != "red" {
 		t.Errorf("Property without class b = %q, want red (the .a rule)", raw)
 	}
-	st := sh.Style("div", []string{"a", "b"}, StateNone, 800)
+	st := sh.Style(StyleQuery{
+		Tag:      "div",
+		Classes:  []string{"a", "b"},
+		State:    StateNone,
+		Viewport: Viewport{Width: 800, Height: 800},
+	})
 	if !st.Has("color") {
 		t.Fatal("important rule should set color")
 	}
@@ -277,7 +306,12 @@ func TestStyleImportantCascade(t *testing.T) {
 .x { color: blue; }
 .x { color: green !important; }
 `)
-	if raw, _ := sh.Property("div", []string{"x"}, "color", 800); raw != "green" {
+	if raw, _ := sh.Property(PropertyQuery{
+		Tag:      "div",
+		Classes:  []string{"x"},
+		Prop:     "color",
+		Viewport: Viewport{Width: 800, Height: 800},
+	}); raw != "green" {
 		t.Errorf("later !important should win, got %q", raw)
 	}
 }
@@ -289,7 +323,12 @@ func TestStyleResolvesCustomProperties(t *testing.T) {
 .fallback { background-color: var(--never, #111111); }
 .chain    { --b: 20px; --a: var(--b); width: var(--a); }
 `)
-	st := sh.Style("div", []string{"card"}, StateNone, 800)
+	st := sh.Style(StyleQuery{
+		Tag:      "div",
+		Classes:  []string{"card"},
+		State:    StateNone,
+		Viewport: Viewport{Width: 800, Height: 800},
+	})
 	if !st.Has("color") || st.Color != 0xFF0000FF {
 		t.Errorf("var(--brand) resolved to %#x (has=%v), want blue", st.Color, st.Has("color"))
 	}
@@ -298,16 +337,30 @@ func TestStyleResolvesCustomProperties(t *testing.T) {
 	}
 
 	// :root applies to the body element, carrying its own custom properties.
-	if st := sh.Style("body", nil, StateNone, 800); st.Custom["--brand"] != "orange" {
+	if st := sh.Style(StyleQuery{
+		Tag:      "body",
+		State:    StateNone,
+		Viewport: Viewport{Width: 800, Height: 800},
+	}); st.Custom["--brand"] != "orange" {
 		t.Errorf("body Custom[--brand] = %q, want orange", st.Custom["--brand"])
 	}
 
-	st = sh.Style("div", []string{"fallback"}, StateNone, 800)
+	st = sh.Style(StyleQuery{
+		Tag:      "div",
+		Classes:  []string{"fallback"},
+		State:    StateNone,
+		Viewport: Viewport{Width: 800, Height: 800},
+	})
 	if !st.Has("background-color") || st.Background != 0xFF111111 {
 		t.Errorf("var fallback should paint #111111, got %#x has=%v", st.Background, st.Has("background-color"))
 	}
 
-	st = sh.Style("div", []string{"chain"}, StateNone, 800)
+	st = sh.Style(StyleQuery{
+		Tag:      "div",
+		Classes:  []string{"chain"},
+		State:    StateNone,
+		Viewport: Viewport{Width: 800, Height: 800},
+	})
 	if !st.Has("width") || st.Width.Px(800) != 20 {
 		t.Errorf("chained var() should resolve width to 20px, got %d has=%v", st.Width.Px(800), st.Has("width"))
 	}
@@ -316,7 +369,12 @@ func TestStyleResolvesCustomProperties(t *testing.T) {
 func TestApplyWarnsOnVendorAndUnknown(t *testing.T) {
 	sh := parseOK(t, `.merk { -webkit-box-shadow: 0 1px 2px; bug-prop: nope; background-color: blue; }`)
 	before := len(sh.Warn)
-	st := sh.Style("div", []string{"merk"}, StateNone, 800)
+	st := sh.Style(StyleQuery{
+		Tag:      "div",
+		Classes:  []string{"merk"},
+		State:    StateNone,
+		Viewport: Viewport{Width: 800, Height: 800},
+	})
 	if !st.Has("background-color") {
 		t.Error("the known declaration must still apply")
 	}
@@ -337,12 +395,21 @@ div:hover span      { background-color: white; }
 .ok                 { background-color: lime; }
 `)
 	for _, tag := range []string{"input", "span", "div", "p"} {
-		if st := sh.Style(tag, nil, StateNone, 800); st.Has("background-color") || st.Has("color") {
+		if st := sh.Style(StyleQuery{
+			Tag:      tag,
+			State:    StateNone,
+			Viewport: Viewport{Width: 800, Height: 800},
+		}); st.Has("background-color") || st.Has("color") {
 			t.Errorf("%s: an unsupported selector must never apply, got %v/%v",
 				tag, st.Has("background-color"), st.Has("color"))
 		}
 	}
-	st := sh.Style("div", []string{"ok"}, StateNone, 800)
+	st := sh.Style(StyleQuery{
+		Tag:      "div",
+		Classes:  []string{"ok"},
+		State:    StateNone,
+		Viewport: Viewport{Width: 800, Height: 800},
+	})
 	if !st.Has("background-color") {
 		t.Error(".ok must still apply")
 	}
@@ -355,17 +422,30 @@ func TestSelectorCaseInsensitive(t *testing.T) {
 BUTTON        { background-color: red; }
 .PrimaryCard  { color: blue; }
 `)
-	if st := sh.Style("button", nil, StateNone, 800); !st.Has("background-color") {
+	if st := sh.Style(StyleQuery{
+		Tag:      "button",
+		State:    StateNone,
+		Viewport: Viewport{Width: 800, Height: 800},
+	}); !st.Has("background-color") {
 		t.Error("BUTTON selector should match the button tag")
 	}
-	if st := sh.Style("div", []string{"primarycard"}, StateNone, 800); !st.Has("color") {
+	if st := sh.Style(StyleQuery{
+		Tag:      "div",
+		Classes:  []string{"primarycard"},
+		State:    StateNone,
+		Viewport: Viewport{Width: 800, Height: 800},
+	}); !st.Has("color") {
 		t.Error(".PrimaryCard selector should match a lowercase class")
 	}
 }
 
 func TestSelectorRootIsBody(t *testing.T) {
 	sh := parseOK(t, `:root { background-color: #0f0f0f; }`)
-	st := sh.Style("body", nil, StateNone, 800)
+	st := sh.Style(StyleQuery{
+		Tag:      "body",
+		State:    StateNone,
+		Viewport: Viewport{Width: 800, Height: 800},
+	})
 	if !st.Has("background-color") || st.Background != 0xFF0F0F0F {
 		t.Errorf(":root should style the body element, got %#x has=%v", st.Background, st.Has("background-color"))
 	}
@@ -378,14 +458,29 @@ func TestSupportsAppliesNestedRules(t *testing.T) {
   @media (min-width: 720px) { .wide { background-color: blue; } }
 }
 `)
-	st := sh.Style("div", []string{"grid"}, StateNone, 800)
+	st := sh.Style(StyleQuery{
+		Tag:      "div",
+		Classes:  []string{"grid"},
+		State:    StateNone,
+		Viewport: Viewport{Width: 800, Height: 800},
+	})
 	if !st.Has("width") || st.Width.Px(800) != 720 {
 		t.Errorf("90%% of 800 should be 720, got %d has=%v", st.Width.Px(800), st.Has("width"))
 	}
-	if st := sh.Style("div", []string{"wide"}, StateNone, 800); !st.Has("background-color") {
+	if st := sh.Style(StyleQuery{
+		Tag:      "div",
+		Classes:  []string{"wide"},
+		State:    StateNone,
+		Viewport: Viewport{Width: 800, Height: 800},
+	}); !st.Has("background-color") {
 		t.Error("media inside @supports should apply when the width fits")
 	}
-	if st := sh.Style("div", []string{"wide"}, StateNone, 400); st.Has("background-color") {
+	if st := sh.Style(StyleQuery{
+		Tag:      "div",
+		Classes:  []string{"wide"},
+		State:    StateNone,
+		Viewport: Viewport{Width: 400, Height: 400},
+	}); st.Has("background-color") {
 		t.Error("media inside @supports must still gate on width")
 	}
 }
@@ -400,7 +495,12 @@ func TestMediaGrammar(t *testing.T) {
 @media (orientation: portrait) { .f { width: 60px; } }
 `)
 	widthAt := func(w int, cls string) (int, bool) {
-		st := sh.Style("div", []string{cls}, StateNone, w)
+		st := sh.Style(StyleQuery{
+			Tag:      "div",
+			Classes:  []string{cls},
+			State:    StateNone,
+			Viewport: Viewport{Width: w, Height: w},
+		})
 		if !st.Has("width") {
 			return 0, false
 		}
@@ -457,13 +557,28 @@ func TestMediaNestedApplies(t *testing.T) {
   @media (max-width: 900px) { .box { width: 10px; } }
 }
 `)
-	if st := sh.Style("div", []string{"box"}, StateNone, 800); !st.Has("width") {
+	if st := sh.Style(StyleQuery{
+		Tag:      "div",
+		Classes:  []string{"box"},
+		State:    StateNone,
+		Viewport: Viewport{Width: 800, Height: 800},
+	}); !st.Has("width") {
 		t.Error("nested media inside the window should apply")
 	}
-	if st := sh.Style("div", []string{"box"}, StateNone, 500); st.Has("width") {
+	if st := sh.Style(StyleQuery{
+		Tag:      "div",
+		Classes:  []string{"box"},
+		State:    StateNone,
+		Viewport: Viewport{Width: 500, Height: 500},
+	}); st.Has("width") {
 		t.Error("nested media must intersect with the outer window (500 is too narrow)")
 	}
-	if st := sh.Style("div", []string{"box"}, StateNone, 1000); st.Has("width") {
+	if st := sh.Style(StyleQuery{
+		Tag:      "div",
+		Classes:  []string{"box"},
+		State:    StateNone,
+		Viewport: Viewport{Width: 1000, Height: 1000},
+	}); st.Has("width") {
 		t.Error("nested media must intersect with the outer window (1000 is too wide)")
 	}
 }
@@ -480,10 +595,19 @@ input[type="text"] { padding: 4px 8px; }
 	}
 	// The table must answer styles over the file, unsupported selectors and
 	// all, instead of dying on the load.
-	if st := classes.GetStyle(RoleButton, []string{"primary"}, StateNone, 800); !st.Has("background-color") {
+	if st := classes.GetStyle(StyleQuery{
+		Tag:      RoleButton,
+		Classes:  []string{"primary"},
+		State:    StateNone,
+		Viewport: Viewport{Width: 800, Height: 800},
+	}); !st.Has("background-color") {
 		t.Error("primary button should take its background from the sheet")
 	}
-	if st := classes.GetStyle(RoleInput, nil, StateNone, 800); st.Has("background-color") {
+	if st := classes.GetStyle(StyleQuery{
+		Tag:      RoleInput,
+		State:    StateNone,
+		Viewport: Viewport{Width: 800, Height: 800},
+	}); st.Has("background-color") {
 		t.Error("input[type=text] is unsupported and must never match")
 	}
 }

@@ -93,7 +93,11 @@ func TestTransitionLonghandsEachList(t *testing.T) {
 			transition-delay: 0.5s;
 		}
 	`)
-	st := sh.Style("button", nil, StateNone, 800)
+	st := sh.Style(StyleQuery{
+		Tag:      "button",
+		State:    StateNone,
+		Viewport: Viewport{Width: 800, Height: 800},
+	})
 	if len(st.Transitions) != 2 {
 		t.Fatalf("transitions = %d, want 2", len(st.Transitions))
 	}
@@ -115,7 +119,11 @@ func TestTransitionNoneClears(t *testing.T) {
 			transition-duration: 1s;
 		}
 	`)
-	st := sh.Style("button", nil, StateNone, 800)
+	st := sh.Style(StyleQuery{
+		Tag:      "button",
+		State:    StateNone,
+		Viewport: Viewport{Width: 800, Height: 800},
+	})
 	if len(st.Transitions) != 0 {
 		t.Errorf("transition: none should clear transitions, got %d", len(st.Transitions))
 	}
@@ -125,7 +133,11 @@ func TestTransitionNoneClears(t *testing.T) {
 // property list is empty and everything that follows animates ("all").
 func TestTransitionDurationsOnlyAll(t *testing.T) {
 	sh := mustParse(t, `button { transition-duration: 0.4s; }`)
-	st := sh.Style("button", nil, StateNone, 800)
+	st := sh.Style(StyleQuery{
+		Tag:      "button",
+		State:    StateNone,
+		Viewport: Viewport{Width: 800, Height: 800},
+	})
 	if len(st.Transitions) != 1 || st.Transitions[0].Prop != "all" ||
 		st.Transitions[0].Duration.MS() != 400 {
 		t.Errorf("duration-only transitions = %+v", st.Transitions)
@@ -140,11 +152,19 @@ func TestTransitionSpan(t *testing.T) {
 			transition: opacity 0.2s 0.1s, background-color 1s;
 		}
 	`)
-	st := sh.Style("button", nil, StateNone, 800)
+	st := sh.Style(StyleQuery{
+		Tag:      "button",
+		State:    StateNone,
+		Viewport: Viewport{Width: 800, Height: 800},
+	})
 	if got := TransitionSpan(st); got != 1000 {
 		t.Errorf("TransitionSpan = %v, want 1000", got)
 	}
-	plain := mustParse(t, `button { color: red; }`).Style("button", nil, StateNone, 800)
+	plain := mustParse(t, `button { color: red; }`).Style(StyleQuery{
+		Tag:      "button",
+		State:    StateNone,
+		Viewport: Viewport{Width: 800, Height: 800},
+	})
 	if TransitionSpan(plain) != 0 {
 		t.Error("a style with no transitions spans zero")
 	}
@@ -156,7 +176,11 @@ func TestTransitionShorthandStyle(t *testing.T) {
 	sh := mustParse(t, `
 		button { transition: opacity 0.5s ease-in-out 0.2s; }
 	`)
-	st := sh.Style("button", nil, StateNone, 800)
+	st := sh.Style(StyleQuery{
+		Tag:      "button",
+		State:    StateNone,
+		Viewport: Viewport{Width: 800, Height: 800},
+	})
 	if len(st.Transitions) != 1 {
 		t.Fatalf("transitions = %d, want 1", len(st.Transitions))
 	}
@@ -173,7 +197,11 @@ func TestTransitionShorthandStyle(t *testing.T) {
 // transition: it exists in the style, but the drawer snaps it.
 func TestTransitionZeroDurationComposes(t *testing.T) {
 	sh := mustParse(t, `button { transition: opacity 0s; }`)
-	st := sh.Style("button", nil, StateNone, 800)
+	st := sh.Style(StyleQuery{
+		Tag:      "button",
+		State:    StateNone,
+		Viewport: Viewport{Width: 800, Height: 800},
+	})
 	if len(st.Transitions) != 1 {
 		t.Fatalf("transitions = %d, want 1", len(st.Transitions))
 	}

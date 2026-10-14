@@ -25,7 +25,11 @@ func TestKeyframesParse(t *testing.T) {
 	if kf.Frames[0].Offset != 0 || kf.Frames[1].Offset != 0.5 || kf.Frames[2].Offset != 1 {
 		t.Errorf("offsets = %v, %v, %v", kf.Frames[0].Offset, kf.Frames[1].Offset, kf.Frames[2].Offset)
 	}
-	if got := sh.Style("button", nil, StateNone, 800).Animations; got != nil {
+	if got := sh.Style(StyleQuery{
+		Tag:      "button",
+		State:    StateNone,
+		Viewport: Viewport{Width: 800, Height: 800},
+	}).Animations; got != nil {
 		t.Errorf("a sheet with only keyframes must style no animations, got %v", got)
 	}
 }
@@ -71,7 +75,11 @@ func TestKeyframesJunkSkipped(t *testing.T) {
 	if len(kf.Frames) != 2 {
 		t.Fatalf("frames = %d, want the two valid ones", len(kf.Frames))
 	}
-	if color := sh.Style("button", nil, StateNone, 800).Color; color != 0xFFFF0000 {
+	if color := sh.Style(StyleQuery{
+		Tag:      "button",
+		State:    StateNone,
+		Viewport: Viewport{Width: 800, Height: 800},
+	}).Color; color != 0xFFFF0000 {
 		t.Errorf("button after keyframes = %v, want red", color)
 	}
 }
@@ -152,7 +160,11 @@ func TestAnimateMissingBlock(t *testing.T) {
 	if kf != nil {
 		t.Fatal("no block should answer nil")
 	}
-	base := mustParse(t, `button { opacity: 0.75; }`).Style("button", nil, StateNone, 800)
+	base := mustParse(t, `button { opacity: 0.75; }`).Style(StyleQuery{
+		Tag:      "button",
+		State:    StateNone,
+		Viewport: Viewport{Width: 800, Height: 800},
+	})
 	out := Animate(base, kf, 1, ctx(800))
 	if out.Opacity != 0.75 {
 		t.Errorf("Animate(nil block).Opacity = %v, want the base 0.75", out.Opacity)

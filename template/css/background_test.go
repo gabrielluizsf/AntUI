@@ -9,7 +9,11 @@ import (
 
 func TestBackgroundImageParses(t *testing.T) {
 	sh := mustParse(t, `button { background-image: url(logo.png), url("face.png"); }`)
-	st := sh.Style("button", nil, StateNone, 800)
+	st := sh.Style(StyleQuery{
+		Tag:      "button",
+		State:    StateNone,
+		Viewport: Viewport{Width: 800, Height: 800},
+	})
 	if len(st.BackgroundImages) != 2 {
 		t.Fatalf("loaded %d images, want 2", len(st.BackgroundImages))
 	}
@@ -26,7 +30,11 @@ func TestBackgroundImageParses(t *testing.T) {
 
 func TestBackgroundImageNone(t *testing.T) {
 	sh := mustParse(t, `button { background-image: none; }`)
-	st := sh.Style("button", nil, StateNone, 800)
+	st := sh.Style(StyleQuery{
+		Tag:      "button",
+		State:    StateNone,
+		Viewport: Viewport{Width: 800, Height: 800},
+	})
 	if len(st.BackgroundImages) != 0 {
 		t.Errorf("none must clear the layers, got %v", st.BackgroundImages)
 	}
@@ -34,7 +42,11 @@ func TestBackgroundImageNone(t *testing.T) {
 
 func TestBackgroundLinearGradientParses(t *testing.T) {
 	sh := mustParse(t, `button { background-image: linear-gradient(45deg, red, blue); }`)
-	st := sh.Style("button", nil, StateNone, 800)
+	st := sh.Style(StyleQuery{
+		Tag:      "button",
+		State:    StateNone,
+		Viewport: Viewport{Width: 800, Height: 800},
+	})
 	if len(st.BackgroundImages) != 1 || st.BackgroundImages[0].Grad == nil {
 		t.Fatalf("expected one gradient layer, got %+v", st.BackgroundImages)
 	}
@@ -55,7 +67,11 @@ func TestBackgroundLinearGradientParses(t *testing.T) {
 
 func TestBackgroundLinearGradientDefaultIsBottom(t *testing.T) {
 	sh := mustParse(t, `button { background-image: linear-gradient(red, yellow, blue); }`)
-	st := sh.Style("button", nil, StateNone, 800)
+	st := sh.Style(StyleQuery{
+		Tag:      "button",
+		State:    StateNone,
+		Viewport: Viewport{Width: 800, Height: 800},
+	})
 	g := st.BackgroundImages[0].Grad
 	if g.Kind != GradientLinear {
 		t.Fatalf("kind = %d", g.Kind)
@@ -70,7 +86,11 @@ func TestBackgroundLinearGradientDefaultIsBottom(t *testing.T) {
 
 func TestBackgroundRadialGradientParses(t *testing.T) {
 	sh := mustParse(t, `button { background-image: radial-gradient(closest-side circle at 20% 30px, red, yellow 50%, blue); }`)
-	st := sh.Style("button", nil, StateNone, 800)
+	st := sh.Style(StyleQuery{
+		Tag:      "button",
+		State:    StateNone,
+		Viewport: Viewport{Width: 800, Height: 800},
+	})
 	g := st.BackgroundImages[0].Grad
 	if g.Kind != GradientRadial {
 		t.Fatalf("kind = %d, want radial", g.Kind)
@@ -91,7 +111,11 @@ func TestBackgroundRadialGradientParses(t *testing.T) {
 
 func TestBackgroundConicGradientParses(t *testing.T) {
 	sh := mustParse(t, `button { background-image: conic-gradient(from 90deg at 25% 75%, red, blue); }`)
-	st := sh.Style("button", nil, StateNone, 800)
+	st := sh.Style(StyleQuery{
+		Tag:      "button",
+		State:    StateNone,
+		Viewport: Viewport{Width: 800, Height: 800},
+	})
 	g := st.BackgroundImages[0].Grad
 	if g.Kind != GradientConic {
 		t.Fatalf("kind = %d, want conic", g.Kind)
@@ -108,7 +132,11 @@ func TestBackgroundGradientPrematureEnd(t *testing.T) {
 	// "closest-side circle" naming a size with no prelude comma folds into the
 	// first stop, so the layer still parses.
 	sh := mustParse(t, `button { background-image: radial-gradient(circle red, blue); }`)
-	st := sh.Style("button", nil, StateNone, 800)
+	st := sh.Style(StyleQuery{
+		Tag:      "button",
+		State:    StateNone,
+		Viewport: Viewport{Width: 800, Height: 800},
+	})
 	g := st.BackgroundImages[0].Grad
 	if g == nil {
 		t.Fatal("radial gradient should parse")
@@ -120,7 +148,11 @@ func TestBackgroundGradientPrematureEnd(t *testing.T) {
 
 func TestBackgroundCurrentColorResolves(t *testing.T) {
 	sh := mustParse(t, `button { color: #123456; background-image: linear-gradient(red, currentColor); }`)
-	st := sh.Style("button", nil, StateNone, 800)
+	st := sh.Style(StyleQuery{
+		Tag:      "button",
+		State:    StateNone,
+		Viewport: Viewport{Width: 800, Height: 800},
+	})
 	g := st.BackgroundImages[0].Grad
 	if g.Stops[1].Color != 0xFF123456 {
 		t.Errorf("currentColor stop = %v, want the button colour", g.Stops[1].Color)
@@ -129,7 +161,11 @@ func TestBackgroundCurrentColorResolves(t *testing.T) {
 
 func TestBackgroundPositionParses(t *testing.T) {
 	sh := mustParse(t, `button { background-position: right 20px top 30px; }`)
-	st := sh.Style("button", nil, StateNone, 800)
+	st := sh.Style(StyleQuery{
+		Tag:      "button",
+		State:    StateNone,
+		Viewport: Viewport{Width: 800, Height: 800},
+	})
 	if len(st.BackgroundPos) != 1 {
 		t.Fatalf("positions = %d, want 1", len(st.BackgroundPos))
 	}
@@ -154,7 +190,11 @@ func TestBackgroundPositionKeywords(t *testing.T) {
 		{"left 20px", BackPosition{Edge: BackPosStart, Off: Fixed(20)}, BackPosition{Edge: BackPosMiddle}},
 	} {
 		sh := mustParse(t, `button { background-position: `+tc.raw+`; }`)
-		st := sh.Style("button", nil, StateNone, 800)
+		st := sh.Style(StyleQuery{
+			Tag:      "button",
+			State:    StateNone,
+			Viewport: Viewport{Width: 800, Height: 800},
+		})
 		p := st.BackgroundPos[0]
 		if p[0] != tc.x || p[1] != tc.y {
 			t.Errorf("background-position: %s = (%+v, %+v), want (%+v, %+v)",
@@ -165,13 +205,21 @@ func TestBackgroundPositionKeywords(t *testing.T) {
 		// "left right" overfills an axis, but the corner fallback still lands on
 		// both axes.
 		sh := mustParse(t, `button { background-position: left right; }`)
-		_ = sh.Style("button", nil, StateNone, 800)
+		_ = sh.Style(StyleQuery{
+			Tag:      "button",
+			State:    StateNone,
+			Viewport: Viewport{Width: 800, Height: 800},
+		})
 	}
 }
 
 func TestBackgroundPositionMissingAxisCentres(t *testing.T) {
 	sh := mustParse(t, `button { background-position: 20px; }`)
-	st := sh.Style("button", nil, StateNone, 800)
+	st := sh.Style(StyleQuery{
+		Tag:      "button",
+		State:    StateNone,
+		Viewport: Viewport{Width: 800, Height: 800},
+	})
 	p := st.BackgroundPos[0]
 	if p[0].Edge != BackPosOffset || p[0].Off.Px(0) != 20 {
 		t.Errorf("x = %+v, want a 20px hand-off", p[0])
@@ -193,7 +241,11 @@ func TestBackgroundSizeParses(t *testing.T) {
 		{"80px", BackSize{W: Fixed(80), H: Auto()}},
 	} {
 		sh := mustParse(t, `button { background-size: `+tc.raw+`; }`)
-		st := sh.Style("button", nil, StateNone, 800)
+		st := sh.Style(StyleQuery{
+			Tag:      "button",
+			State:    StateNone,
+			Viewport: Viewport{Width: 800, Height: 800},
+		})
 		if len(st.BackgroundSize) != 1 || st.BackgroundSize[0] != tc.sz {
 			t.Errorf("background-size: %s = %+v, want %+v", tc.raw, st.BackgroundSize, tc.sz)
 		}
@@ -213,7 +265,11 @@ func TestBackgroundRepeatParses(t *testing.T) {
 		{"space round", BackRepeat{BackRepeatSpace, BackRepeatRound}},
 	} {
 		sh := mustParse(t, `button { background-repeat: `+tc.raw+`; }`)
-		st := sh.Style("button", nil, StateNone, 800)
+		st := sh.Style(StyleQuery{
+			Tag:      "button",
+			State:    StateNone,
+			Viewport: Viewport{Width: 800, Height: 800},
+		})
 		if len(st.BackgroundRepeat) != 1 || st.BackgroundRepeat[0] != tc.rep {
 			t.Errorf("background-repeat: %s = %+v, want %+v", tc.raw, st.BackgroundRepeat, tc.rep)
 		}
@@ -228,7 +284,11 @@ func TestBackgroundClipOriginAttachment(t *testing.T) {
 			background-attachment: fixed;
 		}
 	`)
-	st := sh.Style("button", nil, StateNone, 800)
+	st := sh.Style(StyleQuery{
+		Tag:      "button",
+		State:    StateNone,
+		Viewport: Viewport{Width: 800, Height: 800},
+	})
 	if len(st.BackgroundClip) != 2 || st.BackgroundClip[0] != BackPadding || st.BackgroundClip[1] != BackBorder {
 		t.Errorf("clips = %v, want padding then border", st.BackgroundClip)
 	}
@@ -242,7 +302,11 @@ func TestBackgroundClipOriginAttachment(t *testing.T) {
 
 func TestBackgroundShorthand(t *testing.T) {
 	sh := mustParse(t, `button { background: url(logo.png) no-repeat right / cover, linear-gradient(red, blue) 50% padding-box / 100px 20px; }`)
-	st := sh.Style("button", nil, StateNone, 800)
+	st := sh.Style(StyleQuery{
+		Tag:      "button",
+		State:    StateNone,
+		Viewport: Viewport{Width: 800, Height: 800},
+	})
 	if len(st.BackgroundImages) != 2 {
 		t.Fatalf("layers = %d, want 2", len(st.BackgroundImages))
 	}
@@ -271,7 +335,11 @@ func TestBackgroundShorthand(t *testing.T) {
 
 func TestBackgroundShorthandPicksTheColour(t *testing.T) {
 	sh := mustParse(t, `button { background: url(logo.png), linear-gradient(red, blue), #123456; }`)
-	st := sh.Style("button", nil, StateNone, 800)
+	st := sh.Style(StyleQuery{
+		Tag:      "button",
+		State:    StateNone,
+		Viewport: Viewport{Width: 800, Height: 800},
+	})
 	if st.Background != 0xFF123456 {
 		t.Errorf("colour = %v, want #123456", st.Background)
 	}
@@ -289,7 +357,11 @@ func TestBackgroundInitial(t *testing.T) {
 			background: initial;
 		}
 	`)
-	st := sh.Style("button", nil, StateNone, 800)
+	st := sh.Style(StyleQuery{
+		Tag:      "button",
+		State:    StateNone,
+		Viewport: Viewport{Width: 800, Height: 800},
+	})
 	if st.Background.A() != 0 {
 		t.Errorf("background = %v after initial, want transparent", st.Background)
 	}
@@ -300,7 +372,11 @@ func TestBackgroundInitial(t *testing.T) {
 
 func TestBackgroundMultiLayerCycle(t *testing.T) {
 	sh := mustParse(t, `button { background: linear-gradient(red, blue), url(a.png), url(b.png); background-size: 50% auto; }`)
-	st := sh.Style("button", nil, StateNone, 800)
+	st := sh.Style(StyleQuery{
+		Tag:      "button",
+		State:    StateNone,
+		Viewport: Viewport{Width: 800, Height: 800},
+	})
 	if len(st.BackgroundImages) != 3 {
 		t.Fatalf("layers = %d, want 3", len(st.BackgroundImages))
 	}
@@ -326,7 +402,11 @@ func TestBackgroundRejectsGarbage(t *testing.T) {
 		`background-attachment: sideways;`,
 	} {
 		sh := mustParse(t, `button { `+raw+` }`)
-		st := sh.Style("button", nil, StateNone, 800)
+		st := sh.Style(StyleQuery{
+			Tag:      "button",
+			State:    StateNone,
+			Viewport: Viewport{Width: 800, Height: 800},
+		})
 		if len(st.BackgroundImages) > 0 || len(st.BackgroundPos) > 0 || len(st.BackgroundSize) > 0 ||
 			len(st.BackgroundRepeat) > 0 || len(st.BackgroundClip) > 0 || len(st.BackgroundAttach) > 0 {
 			t.Errorf("%s must be dropped whole", raw)

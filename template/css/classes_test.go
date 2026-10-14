@@ -31,7 +31,11 @@ func TestSetStyleLoadsFile(t *testing.T) {
 	`)
 	c.Button = "primary"
 
-	st := c.GetStyle(RoleButton, nil, StateNone, 360)
+	st := c.GetStyle(StyleQuery{
+		Tag:      RoleButton,
+		State:    StateNone,
+		Viewport: Viewport{Width: 360, Height: 360},
+	})
 	if !st.Has("background-color") {
 		t.Error("expected background-color to apply from .primary")
 	}
@@ -47,7 +51,11 @@ func TestSetStyleLoadsFile(t *testing.T) {
 		t.Errorf("width should not apply at 360 wide, got %v", st.Width)
 	}
 
-	stWide := c.GetStyle(RoleButton, nil, StateNone, 800)
+	stWide := c.GetStyle(StyleQuery{
+		Tag:      RoleButton,
+		State:    StateNone,
+		Viewport: Viewport{Width: 800, Height: 800},
+	})
 	if !stWide.Has("width") {
 		t.Error("expected width to apply inside the media query")
 	}
@@ -65,8 +73,16 @@ func TestSetStyleBadFile(t *testing.T) {
 
 func TestGetStyleCaches(t *testing.T) {
 	c := load(t, "button { background-color: #123456; }")
-	a := c.GetStyle(RoleButton, nil, StateNone, 360)
-	b := c.GetStyle(RoleButton, nil, StateNone, 360)
+	a := c.GetStyle(StyleQuery{
+		Tag:      RoleButton,
+		State:    StateNone,
+		Viewport: Viewport{Width: 360, Height: 360},
+	})
+	b := c.GetStyle(StyleQuery{
+		Tag:      RoleButton,
+		State:    StateNone,
+		Viewport: Viewport{Width: 360, Height: 360},
+	})
 	if !sameStyle(a, b) {
 		t.Error("two reads should return equal styles")
 	}
@@ -77,14 +93,18 @@ func sameStyle(a, b Style) bool { return a.Background == b.Background }
 
 func TestSetPropertyWins(t *testing.T) {
 	c := load(t, "button { background-color: #111111; }")
-	c.SetProperty(RoleButton, nil, "background-color", "#222222")
+	c.SetProperty(PropertyQuery{Tag: RoleButton, Prop: "background-color"}, "#222222")
 
-	st := c.GetStyle(RoleButton, nil, StateNone, 360)
+	st := c.GetStyle(StyleQuery{
+		Tag:      RoleButton,
+		State:    StateNone,
+		Viewport: Viewport{Width: 360, Height: 360},
+	})
 	if st.Background.R() != 0x22 {
 		t.Errorf("SetProperty should win over the file, got %v", st.Background)
 	}
 
-	val, ok := c.Property(RoleButton, nil, "background-color", 360)
+	val, ok := c.Property(PropertyQuery{Tag: RoleButton, Prop: "background-color"})
 	if !ok || val != "#222222" {
 		t.Errorf("Property should answer the override, got %q ok=%v", val, ok)
 	}
@@ -92,7 +112,11 @@ func TestSetPropertyWins(t *testing.T) {
 
 func TestDisplayNone(t *testing.T) {
 	c := load(t, "button { display: none; }")
-	st := c.GetStyle(RoleButton, nil, StateNone, 360)
+	st := c.GetStyle(StyleQuery{
+		Tag:      RoleButton,
+		State:    StateNone,
+		Viewport: Viewport{Width: 360, Height: 360},
+	})
 	if st.Display != 1 {
 		t.Error("expected display:none to set Display=1")
 	}

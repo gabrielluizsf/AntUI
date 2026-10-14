@@ -187,7 +187,12 @@ func TestSupportsGatesTheBlock(t *testing.T) {
 		{"comb", false},
 		{"unreadable", false},
 	} {
-		_, has := sh.Property("div", []string{c.class}, "width", 800)
+		_, has := sh.Property(PropertyQuery{
+			Tag:      "div",
+			Classes:  []string{c.class},
+			Prop:     "width",
+			Viewport: Viewport{Width: 800, Height: 800},
+		})
 		if has != c.want {
 			t.Errorf("@supports kept .%s = %v, want %v", c.class, has, c.want)
 		}
@@ -200,7 +205,12 @@ func TestSupportsGatesTheBlock(t *testing.T) {
 // TestSupportsStatementFormWithNoBlock reads a @supports that gates nothing.
 func TestSupportsStatementFormWithNoBlock(t *testing.T) {
 	sh := parseOK(t, `@supports (display: grid); .a { color: red; }`)
-	if _, has := sh.Property("div", []string{"a"}, "color", 800); !has {
+	if _, has := sh.Property(PropertyQuery{
+		Tag:      "div",
+		Classes:  []string{"a"},
+		Prop:     "color",
+		Viewport: Viewport{Width: 800, Height: 800},
+	}); !has {
 		t.Error("the rule after a @supports statement should still apply")
 	}
 	if len(sh.Warn) != 0 {
@@ -219,10 +229,20 @@ func TestSupportsMediaInsideAndOutside(t *testing.T) {
   @media (min-width: 720px) { .dropped { background-color: red; } }
 }
 `)
-	if st := sh.Style("div", []string{"wide"}, StateNone, 800); !st.Has("background-color") {
+	if st := sh.Style(StyleQuery{
+		Tag:      "div",
+		Classes:  []string{"wide"},
+		State:    StateNone,
+		Viewport: Viewport{Width: 800, Height: 800},
+	}); !st.Has("background-color") {
 		t.Error("a media inside a passing @supports should apply when the width fits")
 	}
-	if st := sh.Style("div", []string{"dropped"}, StateNone, 800); st.Has("background-color") {
+	if st := sh.Style(StyleQuery{
+		Tag:      "div",
+		Classes:  []string{"dropped"},
+		State:    StateNone,
+		Viewport: Viewport{Width: 800, Height: 800},
+	}); st.Has("background-color") {
 		t.Error("a media inside a failing @supports must never reach the sheet")
 	}
 }
