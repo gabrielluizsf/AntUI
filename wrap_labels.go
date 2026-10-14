@@ -9,7 +9,8 @@ package antui
 // is a thing the caller can see and shorten. There is always at least one row
 // when there is at least one label, so a caller can lay them out without
 // checking for nothing.
-func WrapLabels(labels []string, pad, gap, most int) []int {
+func WrapLabels(labels []string, cfg WrapConfig) []int {
+	pad, gap, most := cfg.Pad, cfg.Gap, cfg.Most
 	if len(labels) == 0 {
 		return nil
 	}

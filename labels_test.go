@@ -45,11 +45,11 @@ func TestWrappingARowOfLabels(t *testing.T) {
 	whole := LabelsWidth(labels, 16, 8)
 
 	// Room for the lot is one row.
-	if rows := WrapLabels(labels, 16, 8, whole); len(rows) != 1 || rows[0] != 4 {
+	if rows := WrapLabels(labels, WrapConfig{Pad: 16, Gap: 8, Most: whole}); len(rows) != 1 || rows[0] != 4 {
 		t.Errorf("%v rows with room for them all, want one of four", rows)
 	}
 	// A pixel short of the lot is two rows, and every label is on one of them.
-	rows := WrapLabels(labels, 16, 8, whole-1)
+	rows := WrapLabels(labels, WrapConfig{Pad: 16, Gap: 8, Most: whole - 1})
 	if len(rows) < 2 {
 		t.Fatalf("%v rows with no room for them all", rows)
 	}
@@ -71,11 +71,11 @@ func TestWrappingARowOfLabels(t *testing.T) {
 	}
 
 	// A label wider than anything gets a row to itself rather than nothing.
-	rows = WrapLabels([]string{"a", "an unreasonably long answer", "b"}, 16, 8, 40)
+	rows = WrapLabels([]string{"a", "an unreasonably long answer", "b"}, WrapConfig{Pad: 16, Gap: 8, Most: 40})
 	if len(rows) != 3 {
 		t.Errorf("%v rows, want one each", rows)
 	}
-	if rows := WrapLabels(nil, 16, 8, 100); rows != nil {
+	if rows := WrapLabels(nil, WrapConfig{Pad: 16, Gap: 8, Most: 100}); rows != nil {
 		t.Errorf("%v rows for no labels", rows)
 	}
 }
