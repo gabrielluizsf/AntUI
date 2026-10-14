@@ -250,7 +250,7 @@ func TestButtonCentresLabelInTheDefaultFace(t *testing.T) {
 
 	win, _ := newTestWindow(t, 220, 120)
 	win.Begin()
-	win.Button(30, 30, 120, 40, "C")
+	win.Button(canvas.Area{X: 30, Y: 30, Width: 120, Height: 40}, "C")
 	win.End()
 
 	// Let c is single, fully inked, so the rows that match the text colour
@@ -279,7 +279,7 @@ func TestButtonCentresLabelInTheDefaultFace(t *testing.T) {
 func TestButtonCentresLabelInTheBuiltin(t *testing.T) {
 	win, _ := newTestWindow(t, 220, 120)
 	win.Begin()
-	win.Button(30, 30, 120, 40, "C")
+	win.Button(canvas.Area{X: 30, Y: 30, Width: 120, Height: 40}, "C")
 	win.End()
 
 	want := 30 + 40/2

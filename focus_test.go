@@ -1,5 +1,7 @@
 package antui
 
+import "github.com/gabrielluizsf/antui/canvas"
+
 import "testing"
 
 // tabFrame presses Tab between Begin and End, so the widget draws, the tab
@@ -47,7 +49,7 @@ func TestTabFocusesFirstWidgetWhenNothingFocused(t *testing.T) {
 	clicked := false
 
 	tabFrame(win)
-	clicked = win.Button(20, 20, 100, 30, "OK")
+	clicked = win.Button(canvas.Area{X: 20, Y: 20, Width: 100, Height: 30}, "OK")
 	win.End()
 	if clicked {
 		t.Error("Tab alone must not click a button")
@@ -62,7 +64,7 @@ func TestEnterActivatesFocusedButton(t *testing.T) {
 
 	// Focus the button with Tab, then press Enter in a later frame.
 	tabFrame(win)
-	win.Button(20, 20, 100, 30, "OK")
+	win.Button(canvas.Area{X: 20, Y: 20, Width: 100, Height: 30}, "OK")
 	win.End()
 	if win.uiFocus == 0 {
 		t.Fatal("Tab should have focused the button")
@@ -70,7 +72,7 @@ func TestEnterActivatesFocusedButton(t *testing.T) {
 
 	win.Begin()
 	win.Push(Event{Type: EventKeyDown, Key: KeyEnter})
-	clicked := win.Button(20, 20, 100, 30, "OK")
+	clicked := win.Button(canvas.Area{X: 20, Y: 20, Width: 100, Height: 30}, "OK")
 	win.End()
 	if !clicked {
 		t.Error("Enter should click the focused button")

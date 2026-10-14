@@ -21,17 +21,17 @@ func TestButtonClick(t *testing.T) {
 
 	// Pressing alone is not a click.
 	click(win, 50, 30)
-	if win.Button(20, 20, 100, 30, "OK") {
+	if win.Button(canvas.Area{X: 20, Y: 20, Width: 100, Height: 30}, "OK") {
 		t.Error("a press with no release should not count as a click")
 	}
 	// Releasing on the button completes it.
 	release(win, 50, 30)
-	if !win.Button(20, 20, 100, 30, "OK") {
+	if !win.Button(canvas.Area{X: 20, Y: 20, Width: 100, Height: 30}, "OK") {
 		t.Error("press then release on the button should count as a click")
 	}
 	// And it does not repeat on the next frame.
 	win.Begin()
-	if win.Button(20, 20, 100, 30, "OK") {
+	if win.Button(canvas.Area{X: 20, Y: 20, Width: 100, Height: 30}, "OK") {
 		t.Error("a click should be reported once, not every frame after")
 	}
 }
@@ -39,11 +39,11 @@ func TestButtonClick(t *testing.T) {
 func TestButtonDragOffCancels(t *testing.T) {
 	win, _ := newTestWindow(t, 200, 100)
 	click(win, 50, 30)
-	win.Button(20, 20, 100, 30, "OK")
+	win.Button(canvas.Area{X: 20, Y: 20, Width: 100, Height: 30}, "OK")
 
 	// The pointer leaves the button before the release.
 	release(win, 180, 90)
-	if win.Button(20, 20, 100, 30, "OK") {
+	if win.Button(canvas.Area{X: 20, Y: 20, Width: 100, Height: 30}, "OK") {
 		t.Error("releasing away from the button should cancel the click")
 	}
 }
