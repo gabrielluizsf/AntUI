@@ -277,7 +277,7 @@ func TestView(t *testing.T) {
 	sheet := newCanvas(t, 16, 16)
 	sheet.Clear(Black)
 
-	view := sheet.View(4, 4, 8, 8)
+	view := sheet.View(Area{X: 4, Y: 4, Width: 8, Height: 8})
 	if view.Width != 8 || view.Height != 8 {
 		t.Fatalf("view is %dx%d, want 8x8", view.Width, view.Height)
 	}
@@ -305,16 +305,16 @@ func TestView(t *testing.T) {
 func TestViewIsClampedToTheParent(t *testing.T) {
 	sheet := newCanvas(t, 16, 16)
 
-	view := sheet.View(10, 10, 100, 100)
+	view := sheet.View(Area{X: 10, Y: 10, Width: 100, Height: 100})
 	if view.Width != 6 || view.Height != 6 {
 		t.Errorf("view is %dx%d, want it clamped to 6x6", view.Width, view.Height)
 	}
 	// Wholly outside gives an empty view rather than a panic.
-	if got := sheet.View(50, 50, 4, 4); got.Width != 0 || got.Height != 0 {
+	if got := sheet.View(Area{X: 50, Y: 50, Width: 4, Height: 4}); got.Width != 0 || got.Height != 0 {
 		t.Errorf("a view off the sheet is %dx%d, want it empty", got.Width, got.Height)
 	}
 	// Drawing into an empty view must not panic either.
-	sheet.View(50, 50, 4, 4).Clear(Red)
+	sheet.View(Area{X: 50, Y: 50, Width: 4, Height: 4}).Clear(Red)
 }
 
 func TestNarrowCanvasHasNoView(t *testing.T) {
@@ -322,7 +322,7 @@ func TestNarrowCanvasHasNoView(t *testing.T) {
 	if err != nil {
 		t.Fatalf("NewCanvasFormat: %v", err)
 	}
-	if got := cv.View(0, 0, 8, 8); got != nil {
+	if got := cv.View(Area{X: 0, Y: 0, Width: 8, Height: 8}); got != nil {
 		t.Error("a narrow canvas has no view to give; nil says so, an empty canvas would not")
 	}
 }

@@ -14,7 +14,7 @@ func (cs *cssStyle) backgroundTileSize(st css.Style, i int, src *canvas.Canvas, 
 	case sz.Cover:
 		dw, dh = coverSize(src.Width, src.Height, ow, oh)
 	case sz.Contain:
-		dw, dh = canvas.Fit(src.Width, src.Height, ow, oh)
+		dw, dh = canvas.Fit(src.Width, src.Height, canvas.Area{Width: ow, Height: oh})
 	default:
 		if !autoDim(sz.W) {
 			dw = cs.sizeDim(st, sz.W, ow, src.Width)

@@ -4,12 +4,13 @@ package canvas
 // ARGB32 canvas; the narrow formats have no per-pixel colour to filter and are
 // left untouched. A blur is handled by [Canvas.Blur] and is the one filter
 // that reads outside the rectangle, so callers give it room to bleed.
-func (cv *Canvas) FilterRegion(x, y, w, h int, kind FilterKind, amount float64) {
+func (cv *Canvas) FilterRegion(area Area, kind FilterKind, amount float64) {
+	x, y, w, h := area.X, area.Y, area.Width, area.Height
 	if cv.Pixels == nil || w <= 0 || h <= 0 {
 		return
 	}
 	if kind == FilterBlur {
-		cv.Blur(x, y, w, h, int(amount+0.5))
+		cv.Blur(area, int(amount+0.5))
 		return
 	}
 	x0, y0, x1, y1 := cv.filterBounds(x, y, w, h)

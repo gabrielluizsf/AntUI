@@ -4,7 +4,8 @@ package canvas
 // transform stretched more across than down carries its blur stretched with it,
 // and one number cannot say two: radiusX reaches sideways and radiusY up and
 // down, and either may be zero for no blur that way.
-func (cv *Canvas) BlurXY(x, y, w, h, radiusX, radiusY int) {
+func (cv *Canvas) BlurXY(area Area, radiusX, radiusY int) {
+	x, y, w, h := area.X, area.Y, area.Width, area.Height
 	if cv.Pixels == nil || (radiusX <= 0 && radiusY <= 0) || w <= 0 || h <= 0 {
 		return
 	}

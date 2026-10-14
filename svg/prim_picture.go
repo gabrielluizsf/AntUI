@@ -20,7 +20,7 @@ func primPicture(p filterPrim, in, in2, src *canvas.Canvas, s scale2, current ca
 		if out == nil {
 			return nil
 		}
-		out.BlurXY(0, 0, out.Width, out.Height, radius(p.stdDev*s.x), radius(p.stdDevY*s.y))
+		out.BlurXY(canvas.Area{X: 0, Y: 0, Width: out.Width, Height: out.Height}, radius(p.stdDev*s.x), radius(p.stdDevY*s.y))
 		return out
 	case primColorMatrix:
 		out := pictureOf(in)

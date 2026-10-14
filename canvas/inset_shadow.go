@@ -16,7 +16,7 @@ func (cv *Canvas) insetShadow(x, y, w, h, rx, ry, dx, dy, blur, spread int, c Co
 	if holeW > 0 && holeH > 0 {
 		eraseRoundRect(layer, holeX, holeY, holeW, holeH, max(rx-spread, 0), max(ry-spread, 0))
 	}
-	layer.Blur(0, 0, layer.Width, layer.Height, blurRadius(blur))
+	layer.Blur(Area{X: 0, Y: 0, Width: layer.Width, Height: layer.Height}, blurRadius(blur))
 	ScaleAlpha(layer, float64(c.A())/255)
 	saved := cv.Clip
 	cv.SetClip(Area{x, y, w, h})

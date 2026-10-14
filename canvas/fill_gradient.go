@@ -6,7 +6,8 @@ package canvas
 // the pixels behind it. It honours the clip, and it works on any canvas
 // format. A linear gradient's first colour lands on the starting side of its
 // angle, so linear-gradient(red, blue) with no angle runs top to bottom.
-func (cv *Canvas) FillGradient(x, y, w, h int, g Gradient) {
+func (cv *Canvas) FillGradient(area Area, g Gradient) {
+	x, y, w, h := area.X, area.Y, area.Width, area.Height
 	if g.Kind > GConic || len(g.Stops) == 0 || w <= 0 || h <= 0 {
 		return
 	}

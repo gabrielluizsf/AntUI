@@ -91,7 +91,7 @@ func TestBlurKeepsTheEdgesHonest(t *testing.T) {
 		t.Fatalf("NewCanvas: %v", err)
 	}
 	cv.FillRect(Area{0, 0, 24, 24}, RGB(200, 200, 200))
-	cv.Blur(4, 4, 16, 16, 6)
+	cv.Blur(Area{X: 4, Y: 4, Width: 16, Height: 16}, 6)
 	for _, p := range [][2]int{{4, 4}, {19, 4}, {4, 19}, {19, 19}, {12, 12}} {
 		if c := cv.At(p[0], p[1]); c != RGB(200, 200, 200) {
 			t.Errorf("inside pixel %v blurred to %v, want it untouched", p, c)
@@ -109,7 +109,7 @@ func TestBlurXYSpreadsOnlyWhereItIsAsked(t *testing.T) {
 	}
 	const cx, cy = 10, 10
 	cv.Put(cx, cy, RGB(255, 255, 255))
-	cv.BlurXY(0, 0, 21, 21, 0, 2)
+	cv.BlurXY(Area{X: 0, Y: 0, Width: 21, Height: 21}, 0, 2)
 
 	if c := cv.At(cx, cy-3); c.A() == 0 {
 		t.Error("three pixels up is clear, want the blur carried there and not across")

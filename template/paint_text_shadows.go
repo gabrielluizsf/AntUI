@@ -30,7 +30,7 @@ func (cs *cssStyle) paintTextShadows(win *antui.Window, st css.Style, tx, ty int
 			continue
 		}
 		layer.DrawStyled(pad, pad, text, col|0xFF000000, o)
-		layer.Blur(0, 0, layer.Width, layer.Height, max(blur/2, 1))
+		layer.Blur(canvas.Area{X: 0, Y: 0, Width: layer.Width, Height: layer.Height}, max(blur/2, 1))
 		canvas.ScaleAlpha(layer, float64(col.A())/255)
 		cv.BlitOver(tx+dx-pad, ty+dy-pad, layer)
 	}

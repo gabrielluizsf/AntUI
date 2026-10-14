@@ -34,7 +34,7 @@ func (cs *cssStyle) paintImageLayer(win *antui.Window, st css.Style, i int, src 
 	}
 	repeat := propAt(st.BackgroundRepeat, i, css.BackRepeat{css.BackRepeatRepeat, css.BackRepeatRepeat})
 	if repeat[0] == css.BackRepeatNoRepeat && repeat[1] == css.BackRepeatNoRepeat {
-		layer.BlitScaled(px, py, dw, dh, src)
+		layer.BlitScaled(canvas.Area{X: px, Y: py, Width: dw, Height: dh}, src)
 	} else {
 		blitTiled(layer, src, px, py, dw, dh, w, h)
 	}

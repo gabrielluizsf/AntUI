@@ -94,14 +94,12 @@ func TestFit(t *testing.T) {
 		// Nothing sensible to answer.
 		{0, 10, 10, 10, 0, 0},
 	} {
-		w, h := Fit(tc.srcW, tc.srcH, tc.boxW, tc.boxH)
+		w, h := Fit(tc.srcW, tc.srcH, Area{Width: tc.boxW, Height: tc.boxH})
 		if w != tc.wantW || h != tc.wantH {
-			t.Errorf("Fit(%d,%d in %d,%d) = %d,%d, want %d,%d",
-				tc.srcW, tc.srcH, tc.boxW, tc.boxH, w, h, tc.wantW, tc.wantH)
+			t.Errorf("Fit = %d,%d, want %d,%d", w, h, tc.wantW, tc.wantH)
 		}
 		if w > tc.boxW || h > tc.boxH {
-			t.Errorf("Fit(%d,%d in %d,%d) = %d,%d, which does not fit",
-				tc.srcW, tc.srcH, tc.boxW, tc.boxH, w, h)
+			t.Errorf("Fit does not fit: %d,%d", w, h)
 		}
 	}
 }

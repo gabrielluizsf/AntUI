@@ -7,7 +7,7 @@ import "github.com/gabrielluizsf/antui/canvas"
 func blitTiled(layer *canvas.Canvas, src *canvas.Canvas, px, py, dw, dh, w, h int) {
 	for tx := boxStart(px, dw); tx < w; tx += dw {
 		for ty := boxStart(py, dh); ty < h; ty += dh {
-			layer.BlitScaled(tx, ty, dw, dh, src)
+			layer.BlitScaled(canvas.Area{X: tx, Y: ty, Width: dw, Height: dh}, src)
 		}
 	}
 }

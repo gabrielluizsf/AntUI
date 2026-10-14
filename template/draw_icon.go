@@ -21,6 +21,6 @@ func DrawIcon(cv *canvas.Canvas, name string, x, y, w, h int, tint canvas.Color)
 	if painted == nil {
 		return false
 	}
-	cv.BlitScaled(x, y, w, h, painted)
+	cv.BlitScaled(canvas.Area{X: x, Y: y, Width: w, Height: h}, painted)
 	return true
 }

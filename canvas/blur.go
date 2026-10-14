@@ -4,6 +4,6 @@ package canvas
 // which is what CSS blur radii are measured in; the colour is premultiplied
 // while it moves so a transparent pixel cannot drag its black into the edges.
 // It works on ARGB32 only.
-func (cv *Canvas) Blur(x, y, w, h, radius int) {
-	cv.BlurXY(x, y, w, h, radius, radius)
+func (cv *Canvas) Blur(area Area, radius int) {
+	cv.BlurXY(area, radius, radius)
 }

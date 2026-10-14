@@ -30,7 +30,7 @@ func applyDropShadow(src *canvas.Canvas, sh *dropShadow, s scale2, current canva
 		c = current
 	}
 	if shadow := silhouette(src, c); shadow != nil {
-		shadow.BlurXY(0, 0, shadow.Width, shadow.Height, radius(sh.blur*s.x), radius(sh.blur*s.y))
+		shadow.BlurXY(canvas.Area{X: 0, Y: 0, Width: shadow.Width, Height: shadow.Height}, radius(sh.blur*s.x), radius(sh.blur*s.y))
 		out.BlitOver(int(math.Round(sh.dx*s.x)), int(math.Round(sh.dy*s.y)), shadow)
 	}
 	out.BlitOver(0, 0, src)

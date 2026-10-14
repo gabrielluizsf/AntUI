@@ -2,7 +2,8 @@ package canvas
 
 // Fit is the largest width and height with the source's proportions that
 // fits inside the box given.
-func Fit(srcW, srcH, boxW, boxH int) (width, height int) {
+func Fit(srcW, srcH int, box Area) (width, height int) {
+	boxW, boxH := box.Width, box.Height
 	if srcW <= 0 || srcH <= 0 || boxW <= 0 || boxH <= 0 {
 		return 0, 0
 	}

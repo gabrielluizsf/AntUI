@@ -6,7 +6,8 @@ package canvas
 // case: a frame of it is just a canvas.
 //
 // Narrow-format canvases have no view: their pixels are not Colors.
-func (cv *Canvas) View(x, y, w, h int) *Canvas {
+func (cv *Canvas) View(area Area) *Canvas {
+	x, y, w, h := area.X, area.Y, area.Width, area.Height
 	if cv.Pixels == nil {
 		return nil
 	}

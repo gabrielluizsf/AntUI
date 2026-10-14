@@ -50,10 +50,9 @@ func applyFilters(cv *canvas.Canvas, filters []filterOp, s scale2, current canva
 			// A blur is a length, and a length is longer along one axis than
 			// the other when the transform stretches it unevenly, so the two
 			// radii come from the two axes rather than from their average.
-			cv.BlurXY(0, 0, cv.Width, cv.Height, radius(f.amount*s.x), radius(f.amount*s.y))
+			cv.BlurXY(canvas.Area{X: 0, Y: 0, Width: cv.Width, Height: cv.Height}, radius(f.amount*s.x), radius(f.amount*s.y))
 			continue
 		}
-		cv.FilterRegion(0, 0, cv.Width, cv.Height, f.kind, f.amount)
-	}
+		cv.FilterRegion(canvas.Area{X: 0, Y: 0, Width: cv.Width, Height: cv.Height}, f.kind, f.amount)	}
 	return cv
 }

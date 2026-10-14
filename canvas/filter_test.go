@@ -8,12 +8,12 @@ func TestFilterGrayscaleAndInvert(t *testing.T) {
 		t.Fatal(err)
 	}
 	cv.FillRect(Area{0, 0, 4, 4}, Red)
-	cv.FilterRegion(0, 0, 4, 4, FilterGrayscale, 1)
+	cv.FilterRegion(Area{X: 0, Y: 0, Width: 4, Height: 4}, FilterGrayscale, 1)
 	g := cv.At(2, 2)
 	if g.R() != g.G() || g.G() != g.B() {
 		t.Fatalf("grayscale left colour: %v", g)
 	}
-	cv.FilterRegion(0, 0, 4, 4, FilterInvert, 1)
+	cv.FilterRegion(Area{X: 0, Y: 0, Width: 4, Height: 4}, FilterInvert, 1)
 	if got := cv.At(2, 2); got.R() != 255-g.R() || got.A() != 255 {
 		t.Fatalf("invert: %v from %v", got, g)
 	}
@@ -22,12 +22,12 @@ func TestFilterGrayscaleAndInvert(t *testing.T) {
 func TestFilterBrightnessContrast(t *testing.T) {
 	cv, _ := NewCanvas(2, 2)
 	cv.FillRect(Area{0, 0, 2, 2}, RGBA(100, 100, 100, 255))
-	cv.FilterRegion(0, 0, 2, 2, FilterBrightness, 0)
+	cv.FilterRegion(Area{X: 0, Y: 0, Width: 2, Height: 2}, FilterBrightness, 0)
 	if got := cv.At(0, 0); got.R() != 0 {
 		t.Fatalf("brightness 0: %v", got)
 	}
 	cv.FillRect(Area{0, 0, 2, 2}, RGBA(100, 100, 100, 255))
-	cv.FilterRegion(0, 0, 2, 2, FilterContrast, 2)
+	cv.FilterRegion(Area{X: 0, Y: 0, Width: 2, Height: 2}, FilterContrast, 2)
 	if got := cv.At(0, 0); got.R() != 73 {
 		t.Fatalf("contrast 2: got %d want 73", got.R())
 	}
@@ -37,7 +37,7 @@ func TestFilterHueRotateFullTurnIsIdentity(t *testing.T) {
 	cv, _ := NewCanvas(2, 2)
 	cv.FillRect(Area{0, 0, 2, 2}, RGB(200, 40, 90))
 	before := cv.At(0, 0)
-	cv.FilterRegion(0, 0, 2, 2, FilterHueRotate, 360)
+	cv.FilterRegion(Area{X: 0, Y: 0, Width: 2, Height: 2}, FilterHueRotate, 360)
 	after := cv.At(0, 0)
 	for _, d := range []int{int(before.R()) - int(after.R()), int(before.G()) - int(after.G()), int(before.B()) - int(after.B())} {
 		if d > 1 || d < -1 {
@@ -49,7 +49,7 @@ func TestFilterHueRotateFullTurnIsIdentity(t *testing.T) {
 func TestBlurSpreadsAndDims(t *testing.T) {
 	cv, _ := NewCanvas(9, 9)
 	cv.Put(4, 4, White)
-	cv.Blur(0, 0, 9, 9, 2)
+	cv.Blur(Area{X: 0, Y: 0, Width: 9, Height: 9}, 2)
 	if a := cv.At(4, 4).A(); a >= 255 {
 		t.Fatalf("centre did not dim: alpha %d", a)
 	}
@@ -63,7 +63,7 @@ func TestFilterOnNarrowCanvasIsNoOp(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	cv.FilterRegion(0, 0, 2, 2, FilterInvert, 1)
+	cv.FilterRegion(Area{X: 0, Y: 0, Width: 2, Height: 2}, FilterInvert, 1)
 	if cv.Pixels != nil {
 		t.Fatal("narrow canvas should not have ARGB pixels")
 	}

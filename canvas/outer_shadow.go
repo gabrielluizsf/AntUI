@@ -15,7 +15,7 @@ func (cv *Canvas) outerShadow(x, y, w, h, rx, ry, dx, dy, blur, spread int, c Co
 	}
 	defer releaseLayer(layer)
 	fillRoundMask(layer, pad, pad, sw, sh, max(rx+spread, 0), max(ry+spread, 0), c)
-	layer.Blur(0, 0, layer.Width, layer.Height, blurRadius(blur))
+	layer.Blur(Area{X: 0, Y: 0, Width: layer.Width, Height: layer.Height}, blurRadius(blur))
 	ScaleAlpha(layer, float64(c.A())/255)
 	cv.BlitOver(sx-pad, sy-pad, layer)
 }

@@ -13,7 +13,7 @@ func TestLinearGradientRunsTopToBottom(t *testing.T) {
 		t.Fatal(err)
 	}
 	// to bottom: the first stop lands on the top side, the last on the bottom.
-	cv.FillGradient(0, 0, 20, 20, Gradient{
+	cv.FillGradient(Area{X: 0, Y: 0, Width: 20, Height: 20}, Gradient{
 		Kind:  GLinear,
 		Angle: math.Pi,
 		Stops: []GradientStop{off(RGBA(255, 0, 0, 255)), off(RGBA(0, 0, 255, 255))},
@@ -28,7 +28,7 @@ func TestLinearGradientRunsTopToBottom(t *testing.T) {
 
 func TestLinearGradientRunsLeftToRight(t *testing.T) {
 	cv, _ := NewCanvas(20, 20)
-	cv.FillGradient(0, 0, 20, 20, Gradient{
+	cv.FillGradient(Area{X: 0, Y: 0, Width: 20, Height: 20}, Gradient{
 		Kind:  GLinear,
 		Angle: math.Pi / 2, // to right
 		Stops: []GradientStop{off(RGBA(255, 0, 0, 255)), off(RGBA(0, 0, 255, 255))},
@@ -43,7 +43,7 @@ func TestLinearGradientRunsLeftToRight(t *testing.T) {
 
 func TestGradientSpreadsUnsetStopsEvenly(t *testing.T) {
 	cv, _ := NewCanvas(40, 40)
-	cv.FillGradient(0, 0, 40, 40, Gradient{
+	cv.FillGradient(Area{X: 0, Y: 0, Width: 40, Height: 40}, Gradient{
 		Kind: GLinear,
 		Stops: []GradientStop{
 			off(RGBA(255, 0, 0, 255)),
@@ -60,7 +60,7 @@ func TestGradientSpreadsUnsetStopsEvenly(t *testing.T) {
 
 func TestSingleStopGradientIsSolid(t *testing.T) {
 	cv, _ := NewCanvas(20, 20)
-	cv.FillGradient(0, 0, 20, 20, Gradient{
+	cv.FillGradient(Area{X: 0, Y: 0, Width: 20, Height: 20}, Gradient{
 		Kind:  GLinear,
 		Stops: []GradientStop{off(RGBA(1, 2, 3, 255))},
 	})
@@ -71,7 +71,7 @@ func TestSingleStopGradientIsSolid(t *testing.T) {
 
 func TestRadialGradientCentred(t *testing.T) {
 	cv, _ := NewCanvas(21, 21)
-	cv.FillGradient(0, 0, 21, 21, Gradient{
+	cv.FillGradient(Area{X: 0, Y: 0, Width: 21, Height: 21}, Gradient{
 		Kind:    GRadial,
 		CenterX: 0.5,
 		CenterY: 0.5,
@@ -89,7 +89,7 @@ func TestRadialGradientCentred(t *testing.T) {
 
 func TestConicStartsPointingUp(t *testing.T) {
 	cv, _ := NewCanvas(21, 21)
-	cv.FillGradient(0, 0, 21, 21, Gradient{
+	cv.FillGradient(Area{X: 0, Y: 0, Width: 21, Height: 21}, Gradient{
 		Kind:    GConic,
 		CenterX: 0.5,
 		CenterY: 0.5,

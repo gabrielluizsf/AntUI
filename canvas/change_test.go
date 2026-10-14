@@ -30,7 +30,7 @@ func TestDamageCoversEveryDrawing(t *testing.T) {
 		"face":     func() { cv.face().Draw(cv, 20, 50, "AntUI", White) },
 		"styled":   func() { cv.DrawStyled(20, 70, "styled", White, TextStyle{Bold: true, Scale: 2}) },
 		"gradient": func() {
-			cv.FillGradient(220, 20, 80, 60, Gradient{Kind: GLinear, Stops: []GradientStop{
+			cv.FillGradient(Area{X: 220, Y: 20, Width: 80, Height: 60}, Gradient{Kind: GLinear, Stops: []GradientStop{
 				{Offset: 0, Color: Red}, {Offset: 1, Color: Blue}}})
 		},
 		"mask rect": func() {
@@ -41,13 +41,12 @@ func TestDamageCoversEveryDrawing(t *testing.T) {
 			cv.FillRect(Area{200, 100, 100, 40}, RGB(0x66, 0x44, 0x22))
 			cv.MaskRoundRect(Rounded{Area{200, 100, 100, 40}, 16, 16})
 		},
-		"blur":        func() { cv.Blur(10, 10, 80, 60, 3) },
-		"filter":      func() { cv.FilterRegion(100, 10, 60, 40, FilterBlur, 2) },
-		"scale alpha": func() { ScaleAlpha(cv, 0.5) },
+		"blur":        func() { cv.Blur(Area{X: 10, Y: 10, Width: 80, Height: 60}, 3) },
+		"filter":      func() { cv.FilterRegion(Area{X: 100, Y: 10, Width: 60, Height: 40}, FilterBlur, 2) },		"scale alpha": func() { ScaleAlpha(cv, 0.5) },
 		"box shadow":  func() { cv.BoxShadow(20, 20, 100, 50, 8, 8, 4, 4, 6, 2, RGBA(0, 0, 0, 0x99), false) },
 		"blit":        func() { cv.Blit(120, 30, layer(t)) },
 		"blit over":   func() { cv.BlitOver(140, 30, layer(t)) },
-		"blit scaled": func() { cv.BlitScaled(160, 30, 64, 64, layer(t)) },
+		"blit scaled": func() { cv.BlitScaled(Area{X: 160, Y: 30, Width: 64, Height: 64}, layer(t)) },
 		"blit matrix": func() {
 			cv.BlitMatrix(layer(t), Matrix{A: 1, D: 1}, Area{Width: 32, Height: 32})
 		},

@@ -33,7 +33,7 @@ func (cs *cssStyle) paintGradientLayer(st css.Style, i int, g css.Gradient, w, h
 	if layer == nil {
 		return nil
 	}
-	layer.FillGradient(ox, oy, ow, oh, cg)
+	layer.FillGradient(canvas.Area{X: ox, Y: oy, Width: ow, Height: oh}, cg)
 	cs.maskLayer(layer, st, propAt(st.BackgroundClip, i, css.BackBorder), 0, 0, w, h, cr)
 	return layer
 }
