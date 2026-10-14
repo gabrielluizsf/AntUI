@@ -8,18 +8,18 @@ import "strings"
 // It is how a template answers "what does my button's background say" without
 // computing the whole style. Media queries are read against a window as tall
 // as baseWidth is wide; [Sheet.StyleViewport] reads them against a real one.
-func (sh *Sheet) Property(tag string, classes []string, prop string, baseWidth int) (string, bool) {
-	prop = keyword(prop)
+func (sh *Sheet) Property(q PropertyQuery) (string, bool) {
+	prop := keyword(q.Prop)
 	var normalRaw string
 	var impRaw string
 	var hasNormal, hasImp bool
 	for _, r := range sh.rules {
-		if !r.Media.matches(Viewport{Width: baseWidth, Height: baseWidth}) {
+		if !r.Media.matches(Viewport{Width: q.Viewport.Width, Height: q.Viewport.Height}) {
 			continue
 		}
 		match := false
 		for _, sel := range r.Selectors {
-			if sel.match(tag, classes, StateNone) {
+			if sel.match(q.Tag, q.Classes, StateNone) {
 				match = true
 				break
 			}

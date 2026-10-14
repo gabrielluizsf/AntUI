@@ -5,6 +5,6 @@ package css
 // real window, which is what a template drawing a frame uses. The result is
 // cached, so a caller that paints every widget each frame computes each style
 // once.
-func (c *CSSClasses) GetStyle(tag string, classes []string, state State, width int) Style {
-	return c.GetStyleViewport(tag, classes, state, Viewport{Width: width, Height: width})
+func (c *CSSClasses) GetStyle(q StyleQuery) Style {
+	return c.GetStyleViewport(q)
 }

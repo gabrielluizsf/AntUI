@@ -10,19 +10,27 @@ const (
 	StateChecked
 )
 
+// StateFlags carries the boolean interaction flags for building a State.
+type StateFlags struct {
+	Hovered bool
+	Focused bool
+	Active  bool
+	Checked bool
+}
+
 // StateWith builds a State for the interaction layer's flags.
-func StateWith(hovered, focused, active, checked bool) State {
+func StateWith(flags StateFlags) State {
 	var s State
-	if hovered {
+	if flags.Hovered {
 		s |= StateHover
 	}
-	if focused {
+	if flags.Focused {
 		s |= StateFocus
 	}
-	if active {
+	if flags.Active {
 		s |= StateActive
 	}
-	if checked {
+	if flags.Checked {
 		s |= StateChecked
 	}
 	return s

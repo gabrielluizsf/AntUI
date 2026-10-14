@@ -12,3 +12,8 @@ func (sh *Sheet) StyleViewport(tag string, classes []string, state State, vp Vie
 		Width: vp.Width, Height: vp.Height, Scale: vp.Scale, Scheme: vp.Scheme,
 	}, true)
 }
+
+// StyleViewportQuery computes the style against a StyleQuery.
+func (sh *Sheet) StyleViewportQuery(q StyleQuery) Style {
+	return sh.styleUnits(q.Tag, q.Classes, q.State, q.Units(), true)
+}

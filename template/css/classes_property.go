@@ -5,9 +5,9 @@ package css
 // stylesheet says, outside of the folded [Style] the drawing uses, reading
 // media queries against a window as tall as width is wide — the drawing goes
 // through [CSSClasses.GetStyleViewport], which measures a real one.
-func (c *CSSClasses) Property(tag string, classes []string, prop string, width int) (string, bool) {
+func (c *CSSClasses) Property(q PropertyQuery) (string, bool) {
 	if c.sheet == nil {
 		return "", false
 	}
-	return c.sheet.Property(tag, classes, prop, width)
+	return c.sheet.Property(q)
 }

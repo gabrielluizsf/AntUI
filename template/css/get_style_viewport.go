@@ -10,13 +10,13 @@ package css
 // system changed makes every cached style stale and the table starts over on
 // the next lookup. A caller that paints every widget each frame therefore
 // computes each style once per window, not once ever.
-func (c *CSSClasses) GetStyleViewport(tag string, classes []string, state State, vp Viewport) Style {
+func (c *CSSClasses) GetStyleViewport(q StyleQuery) Style {
 	if c.sheet == nil {
 		return Style{}
 	}
-	if c.vp != vp {
+	if c.vp != q.Viewport {
 		clear(c.specs)
-		c.vp = vp
+		c.vp = q.Viewport
 	}
 	// The cache is keyed by what decides the answer: the widget kind, its
 	// state, and the window its media queries and lengths resolve against. A
@@ -25,17 +25,17 @@ func (c *CSSClasses) GetStyleViewport(tag string, classes []string, state State,
 	// a list without building a string for it every frame, which is the very
 	// thing the cache is here to avoid. The template, which is the caller that
 	// matters, asks for the table's own classes and hits the cache every time.
-	if len(classes) == 0 {
-		key := styleKey{tag: tag, state: state, width: vp.Width, height: vp.Height}
+	if len(q.Classes) == 0 {
+		key := styleKey{tag: q.Tag, state: q.State, width: q.Viewport.Width, height: q.Viewport.Height}
 		if st, ok := c.specs[key]; ok {
 			return st
 		}
-		st := c.sheet.StyleViewport(tag, c.classesOf(tag), state, vp)
+		st := c.sheet.StyleViewport(q.Tag, c.classesOf(q.Tag), q.State, q.Viewport)
 		if c.specs != nil {
 			c.specs[key] = st
 		}
 		return st
 	}
-	all := append(append([]string(nil), c.classesOf(tag)...), classes...)
-	return c.sheet.StyleViewport(tag, all, state, vp)
+	all := append(append([]string(nil), c.classesOf(q.Tag)...), q.Classes...)
+	return c.sheet.StyleViewport(q.Tag, all, q.State, q.Viewport)
 }
