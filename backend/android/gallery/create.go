@@ -19,7 +19,7 @@ import (
 // it creates: it may write it, read it back and delete it, and needs nothing
 // granted to do so. Below that it needs WRITE_EXTERNAL_STORAGE, which is why
 // this reports [ErrNoPermission] rather than failing at the write.
-func Create(kind Kind, name, mime, album string) (*Writer, error) {
+func Create(entry Entry) (*Writer, error) {
 	a := app.Current()
 	if a == nil {
 		return nil, app.ErrNoUIThread
@@ -37,7 +37,7 @@ func Create(kind Kind, name, mime, album string) (*Writer, error) {
 
 	w := &Writer{}
 	err := jni.Do(func(e *jni.Env) error {
-		return fillWriter(e, w, kind, name, mime, album, modern)
+		return fillWriter(e, w, entry, modern)
 	})
 	if err != nil {
 		w.abandon()

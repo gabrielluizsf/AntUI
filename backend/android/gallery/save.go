@@ -4,8 +4,8 @@ package gallery
 
 // Save writes bytes into the device's library in one call, and gives back
 // the content:// address.
-func Save(kind Kind, name, mime, album string, data []byte) (string, error) {
-	w, err := Create(kind, name, mime, album)
+func Save(entry Entry, data []byte) (string, error) {
+	w, err := Create(entry)
 	if err != nil {
 		return "", err
 	}
