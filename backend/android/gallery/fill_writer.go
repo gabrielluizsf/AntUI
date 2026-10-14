@@ -26,7 +26,7 @@ func fillWriter(e *jni.Env, w *Writer, entry Entry, modern bool) error {
 	if w.uriText, err = e.InvokeString(uri, "toString", jni.Sig(jni.TString)); err != nil {
 		return err
 	}
-	file, err := openWriter(e, resolver, uri, name)
+	file, err := openWriter(e, resolver, uri, entry.Name)
 	if err != nil {
 		return err
 	}
