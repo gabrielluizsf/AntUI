@@ -8,6 +8,6 @@ func Message(title, message, dismiss string) error {
 	if dismiss == "" {
 		dismiss = "OK"
 	}
-	_, err := Ask(title, message, dismiss, "", "")
+	_, err := Ask(title, message, Labels{Positive: dismiss})
 	return err
 }

@@ -7,7 +7,7 @@ import (
 	"github.com/gabrielluizsf/antui/backend/android/jni"
 )
 
-func show(token int64, title, message, positive, negative, neutral string) error {
+func show(token int64, title, message string, labels Labels) error {
 	return jni.Do(func(e *jni.Env) error {
 		builder, err := e.Make("android/app/AlertDialog$Builder",
 			jni.Sig(jni.TVoid, jni.TContext), jni.Ref(app.Context()))
@@ -24,7 +24,7 @@ func show(token int64, title, message, positive, negative, neutral string) error
 		if err := dialogText(e, builder, "setMessage", message); err != nil {
 			return err
 		}
-		if err := dialogButtons(e, builder, listener, positive, negative, neutral); err != nil {
+		if err := dialogButtons(e, builder, listener, labels.Positive, labels.Negative, labels.Neutral); err != nil {
 			return err
 		}
 		// The back button and a tap outside both have to answer, or a caller

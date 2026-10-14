@@ -22,7 +22,7 @@ import (
 //
 // **Not from the frame loop.** It waits for a person, and while it waits the
 // app is paused and Android is waiting for the app to say so.
-func Ask(title, message string, positive, negative, neutral string) (Button, error) {
+func Ask(title, message string, labels Labels) (Button, error) {
 	answer := make(chan Button, 1)
 	var once sync.Once
 	send := func(b Button) { once.Do(func() { answer <- b }) }
@@ -32,7 +32,7 @@ func Ask(title, message string, positive, negative, neutral string) (Button, err
 
 	var err error
 	if e := app.RunOnUISync(func() {
-		err = show(token, title, message, positive, negative, neutral)
+		err = show(token, title, message, labels)
 	}); e != nil {
 		return Cancelled, e
 	}
