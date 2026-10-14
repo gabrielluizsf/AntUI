@@ -4,12 +4,13 @@ import "github.com/gabrielluizsf/antui/canvas"
 
 // Input draws a single-line text field and reports whether the text changed
 // this frame.
-func (win *Window) Input(x, y, w, h int, text *string) bool {
+func (win *Window) Input(area canvas.Area, text *string) bool {
 	if text == nil {
 		return false
 	}
+	x, y, w, h := area.X, area.Y, area.Width, area.Height
 	s := inputState{x: x, y: y, w: w, h: h, id: widgetID("input", x, y, w, h, "")}
-	s.hovered = win.Hovered(canvas.Area{X: x, Y: y, Width: w, Height: h})
+	s.hovered = win.Hovered(area)
 	if s.hovered {
 		win.uiHot = s.id
 	}

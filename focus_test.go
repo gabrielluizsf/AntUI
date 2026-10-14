@@ -18,7 +18,7 @@ func TestTabMovesBetweenBuiltinInputs(t *testing.T) {
 
 	// Focus the first field by clicking it.
 	click(win, 50, 30)
-	win.Input(20, 20, 200, 30, &title)
+	win.Input(canvas.Area{X: 20, Y: 20, Width: 200, Height: 30}, &title)
 	release(win, 50, 30)
 	if win.uiFocus != widgetID("input", 20, 20, 200, 30, "") {
 		t.Fatal("the title field should have focus after clicking it")
@@ -26,8 +26,8 @@ func TestTabMovesBetweenBuiltinInputs(t *testing.T) {
 
 	// Tab goes to the second field, not back onto itself.
 	tabFrame(win)
-	win.Input(20, 20, 200, 30, &title)
-	win.Input(20, 60, 200, 30, &body)
+	win.Input(canvas.Area{X: 20, Y: 20, Width: 200, Height: 30}, &title)
+	win.Input(canvas.Area{X: 20, Y: 60, Width: 200, Height: 30}, &body)
 	win.End()
 	if win.uiFocus != widgetID("input", 20, 60, 200, 30, "") {
 		t.Fatalf("Tab should move focus to the body field, still on %d", win.uiFocus)
@@ -36,8 +36,8 @@ func TestTabMovesBetweenBuiltinInputs(t *testing.T) {
 	// Typing now lands in the body field, and the title is left alone.
 	win.Begin()
 	win.Push(Event{Type: EventText, Text: "x"})
-	win.Input(20, 20, 200, 30, &title)
-	win.Input(20, 60, 200, 30, &body)
+	win.Input(canvas.Area{X: 20, Y: 20, Width: 200, Height: 30}, &title)
+	win.Input(canvas.Area{X: 20, Y: 60, Width: 200, Height: 30}, &body)
 	win.End()
 	if title != "" || body != "x" {
 		t.Errorf("typing after Tab went to wrong field: title=%q body=%q", title, body)
@@ -126,11 +126,11 @@ func TestShiftTabMovesBackwards(t *testing.T) {
 
 	// Focus the second field directly.
 	click(win, 50, 70)
-	win.Input(20, 20, 200, 30, &one)
-	win.Input(20, 60, 200, 30, &two)
+	win.Input(canvas.Area{X: 20, Y: 20, Width: 200, Height: 30}, &one)
+	win.Input(canvas.Area{X: 20, Y: 60, Width: 200, Height: 30}, &two)
 	release(win, 50, 70)
-	win.Input(20, 20, 200, 30, &one)
-	win.Input(20, 60, 200, 30, &two)
+	win.Input(canvas.Area{X: 20, Y: 20, Width: 200, Height: 30}, &one)
+	win.Input(canvas.Area{X: 20, Y: 60, Width: 200, Height: 30}, &two)
 	if win.uiFocus != widgetID("input", 20, 60, 200, 30, "") {
 		t.Fatal("the second field should have focus after clicking it")
 	}
@@ -141,16 +141,16 @@ func TestShiftTabMovesBackwards(t *testing.T) {
 		win.Push(Event{Type: EventKeyDown, Key: KeyTab, Mods: ModShift})
 	}
 	tabFr()
-	win.Input(20, 20, 200, 30, &one)
-	win.Input(20, 60, 200, 30, &two)
+	win.Input(canvas.Area{X: 20, Y: 20, Width: 200, Height: 30}, &one)
+	win.Input(canvas.Area{X: 20, Y: 60, Width: 200, Height: 30}, &two)
 	win.End()
 	if win.uiFocus != widgetID("input", 20, 20, 200, 30, "") {
 		t.Errorf("Shift+Tab should move to the first field, still on %d", win.uiFocus)
 	}
 
 	tabFr()
-	win.Input(20, 20, 200, 30, &one)
-	win.Input(20, 60, 200, 30, &two)
+	win.Input(canvas.Area{X: 20, Y: 20, Width: 200, Height: 30}, &one)
+	win.Input(canvas.Area{X: 20, Y: 60, Width: 200, Height: 30}, &two)
 	win.End()
 	if win.uiFocus != widgetID("input", 20, 60, 200, 30, "") {
 		t.Errorf("Shift+Tab should wrap to the last field, still on %d", win.uiFocus)

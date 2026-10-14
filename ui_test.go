@@ -164,12 +164,12 @@ func TestInputTyping(t *testing.T) {
 
 	// Focus the field.
 	click(win, 50, 30)
-	win.Input(20, 20, 200, 30, &text)
+	win.Input(canvas.Area{X: 20, Y: 20, Width: 200, Height: 30}, &text)
 	release(win, 50, 30)
 
 	win.Begin()
 	win.Push(Event{Type: EventText, Text: "ol"})
-	if !win.Input(20, 20, 200, 30, &text) {
+	if !win.Input(canvas.Area{X: 20, Y: 20, Width: 200, Height: 30}, &text) {
 		t.Fatal("typing should report a change")
 	}
 	if text != "ol" {
@@ -179,7 +179,7 @@ func TestInputTyping(t *testing.T) {
 	// An accented character arrives as one composed rune.
 	win.Begin()
 	win.Push(Event{Type: EventText, Text: "á"})
-	win.Input(20, 20, 200, 30, &text)
+	win.Input(canvas.Area{X: 20, Y: 20, Width: 200, Height: 30}, &text)
 	if text != "olá" {
 		t.Errorf("text = %q, want %q", text, "olá")
 	}
@@ -190,13 +190,13 @@ func TestInputBackspaceDeletesWholeCharacters(t *testing.T) {
 	text := "ação"
 
 	click(win, 50, 30)
-	win.Input(20, 20, 200, 30, &text)
+	win.Input(canvas.Area{X: 20, Y: 20, Width: 200, Height: 30}, &text)
 	release(win, 50, 30)
 
 	// Backspace takes the whole "o", which is one byte here.
 	win.Begin()
 	win.Push(Event{Type: EventKeyDown, Key: KeyBackspace})
-	win.Input(20, 20, 200, 30, &text)
+	win.Input(canvas.Area{X: 20, Y: 20, Width: 200, Height: 30}, &text)
 	if text != "açã" {
 		t.Errorf("text = %q, want %q", text, "açã")
 	}
@@ -205,7 +205,7 @@ func TestInputBackspaceDeletesWholeCharacters(t *testing.T) {
 	// leaving half a character behind.
 	win.Begin()
 	win.Push(Event{Type: EventKeyDown, Key: KeyBackspace})
-	win.Input(20, 20, 200, 30, &text)
+	win.Input(canvas.Area{X: 20, Y: 20, Width: 200, Height: 30}, &text)
 	if text != "aç" {
 		t.Errorf("text = %q, want %q", text, "aç")
 	}
@@ -216,7 +216,7 @@ func TestInputCursorMovesByCharacters(t *testing.T) {
 	text := "ação"
 
 	click(win, 50, 30)
-	win.Input(20, 20, 200, 30, &text)
+	win.Input(canvas.Area{X: 20, Y: 20, Width: 200, Height: 30}, &text)
 	release(win, 50, 30)
 	if win.uiCursor != len(text) {
 		t.Fatalf("cursor = %d, want it at the end on focus", win.uiCursor)
@@ -225,7 +225,7 @@ func TestInputCursorMovesByCharacters(t *testing.T) {
 	// Left steps over the one-byte "o", landing after "açã".
 	win.Begin()
 	win.Push(Event{Type: EventKeyDown, Key: KeyLeft})
-	win.Input(20, 20, 200, 30, &text)
+	win.Input(canvas.Area{X: 20, Y: 20, Width: 200, Height: 30}, &text)
 	if win.uiCursor != len("açã") {
 		t.Errorf("cursor = %d, want %d", win.uiCursor, len("açã"))
 	}
@@ -233,14 +233,14 @@ func TestInputCursorMovesByCharacters(t *testing.T) {
 	// And again over the two-byte "ã".
 	win.Begin()
 	win.Push(Event{Type: EventKeyDown, Key: KeyLeft})
-	win.Input(20, 20, 200, 30, &text)
+	win.Input(canvas.Area{X: 20, Y: 20, Width: 200, Height: 30}, &text)
 	if win.uiCursor != len("aç") {
 		t.Errorf("cursor = %d, want %d", win.uiCursor, len("aç"))
 	}
 
 	win.Begin()
 	win.Push(Event{Type: EventKeyDown, Key: KeyHome})
-	win.Input(20, 20, 200, 30, &text)
+	win.Input(canvas.Area{X: 20, Y: 20, Width: 200, Height: 30}, &text)
 	if win.uiCursor != 0 {
 		t.Errorf("cursor = %d, want Home to take it to the start", win.uiCursor)
 	}
@@ -248,7 +248,7 @@ func TestInputCursorMovesByCharacters(t *testing.T) {
 	// Delete at the start takes the whole first character.
 	win.Begin()
 	win.Push(Event{Type: EventKeyDown, Key: KeyDelete})
-	win.Input(20, 20, 200, 30, &text)
+	win.Input(canvas.Area{X: 20, Y: 20, Width: 200, Height: 30}, &text)
 	if text != "ção" {
 		t.Errorf("text = %q, want %q", text, "ção")
 	}
@@ -259,11 +259,11 @@ func TestInputLosesFocusOnAClickOutside(t *testing.T) {
 	text := ""
 
 	click(win, 50, 30)
-	win.Input(20, 20, 200, 30, &text)
+	win.Input(canvas.Area{X: 20, Y: 20, Width: 200, Height: 30}, &text)
 	release(win, 50, 30)
 
 	click(win, 250, 180)
-	win.Input(20, 20, 200, 30, &text)
+	win.Input(canvas.Area{X: 20, Y: 20, Width: 200, Height: 30}, &text)
 	if win.uiFocus != 0 {
 		t.Error("clicking outside should take the focus away")
 	}
@@ -271,7 +271,7 @@ func TestInputLosesFocusOnAClickOutside(t *testing.T) {
 	// With no focus, typing goes nowhere.
 	win.Begin()
 	win.Push(Event{Type: EventText, Text: "x"})
-	if win.Input(20, 20, 200, 30, &text) || text != "" {
+	if win.Input(canvas.Area{X: 20, Y: 20, Width: 200, Height: 30}, &text) || text != "" {
 		t.Errorf("text = %q, want an unfocused field to ignore typing", text)
 	}
 }
