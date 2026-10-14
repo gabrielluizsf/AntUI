@@ -12,13 +12,13 @@ func paintStroke(cv *canvas.Canvas, n *Node, m canvas.Matrix, current canvas.Col
 	// nonScalingDashed after that transform, because its pattern is in pixels.
 	outline := n.Path
 	outlineMatrix := m
-	if st.NonScalingStroke {
+	if st.VectorEffect.NonScalingStroke {
 		if fixed := nonScalingDashed(n, m); fixed != nil {
 			outline = fixed
 			outlineMatrix = canvas.Identity()
 		}
 	}
-	if n.dashed != nil && !st.NonScalingStroke {
+	if n.dashed != nil && !st.VectorEffect.NonScalingStroke {
 		outline = n.dashed
 	}
 	band := strokeBand(outline, st, outlineMatrix)

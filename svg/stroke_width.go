@@ -15,7 +15,7 @@ import "github.com/gabrielluizsf/antui/canvas"
 // the size asked for and brought back down at the end, so the width is in those
 // bigger pixels and comes down with the rest of the picture.
 func (st Style) strokeWidth(m canvas.Matrix) float64 {
-	if st.NonScalingStroke {
+	if st.VectorEffect.NonScalingStroke {
 		return st.Width * supersample
 	}
 	// The transform only counts where it was put into the path, under the same

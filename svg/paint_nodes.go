@@ -18,6 +18,12 @@ func paintNodes(cv *canvas.Canvas, n *Node, m canvas.Matrix, current canvas.Colo
 	if n.Style.Hidden {
 		return
 	}
+	// An element that asked for a coordinate system held still against the host
+	// is painted, and has everything inside it painted, through the transform
+	// the effect makes of the one the drawing gave it.
+	if n.Style.VectorEffect.constraining() {
+		m = vectorEffectMatrix(m, n.Style)
+	}
 	if n.clip != nil || n.mask != nil || len(n.filters) > 0 {
 		paintLayered(cv, n, m, current, masking, patterning)
 		return

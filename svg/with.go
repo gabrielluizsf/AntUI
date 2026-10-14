@@ -19,9 +19,9 @@ func (s Style) with(e *element, warn func(string, ...any)) Style {
 
 	// vector-effect does not travel either, and for a plainer reason than the
 	// length: the spec says it is not inherited, so what a `<g>` asks for is
-	// about the `<g>` — which has no outline of its own to compute — and the
-	// shapes inside start from the scaled stroke every drawing gets.
-	s.NonScalingStroke = false
+	// about the `<g>` itself and not the value every shape inside reads. What
+	// does reach them is the coordinate system the effect makes of the `<g>`.
+	s.VectorEffect = VectorEffect{}
 
 	s.applyAttrs(attrs, warn)
 

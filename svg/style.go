@@ -28,17 +28,18 @@ type Style struct {
 	Cap           canvas.LineCap
 	Join          canvas.LineJoin
 	MiterLimit    float64
-	// NonScalingStroke is `vector-effect="non-scaling-stroke"`: the stroke is
-	// drawn at the width the drawing wrote, in the pixels the drawing comes out
-	// at, rather than taken through the viewBox and the transforms that carry
-	// it there — a hairline that stays a hairline however much the drawing is
-	// zoomed. It is not inherited, as the spec has it, so [Style.with] takes it
-	// off again before reading what the element itself said, the same as it
-	// does for pathLength.
-	NonScalingStroke bool
-	Opacity          float64
-	FillOpacity      float64
-	StrokeOpacity    float64
+	// VectorEffect is `vector-effect`: the ways the element's own user
+	// coordinate system is held still against the host's transformations,
+	// including the stroke that does not scale — a hairline that stays a
+	// hairline however much the drawing is zoomed. It is not inherited, as the
+	// spec has it, so [Style.with] takes the whole of it off again before
+	// reading what the element itself said, the same as it does for pathLength,
+	// while the coordinate system the effect makes of the element is what the
+	// shapes inside it are drawn in. See [vectorEffectMatrix].
+	VectorEffect  VectorEffect
+	Opacity       float64
+	FillOpacity   float64
+	StrokeOpacity float64
 	// Dash is the stroke broken into pieces along the path, with every length
 	// of it — the dashes, the gaps and the offset into them — written in the
 	// drawing's own units. On a shape whose element wrote a pathLength it

@@ -16,7 +16,7 @@ import "github.com/gabrielluizsf/antui/canvas"
 // average there rather than to nothing.
 func strokeBand(path *canvas.Path, st Style, m canvas.Matrix) *canvas.Path {
 	style := canvas.StrokeStyle{Width: st.Width, Cap: st.Cap, Join: st.Join, MiterLimit: st.MiterLimit}
-	if st.NonScalingStroke {
+	if st.VectorEffect.NonScalingStroke {
 		scaled := clonePath(path)
 		scaled.Transform(m)
 		style.Width = st.Width * supersample

@@ -2,29 +2,35 @@ package svg
 
 import "strings"
 
-// withVectorEffect reads `vector-effect`: whether the stroke is taken through
-// everything that scaled the shape — which is what SVG does by default — or
-// drawn at the width it says, in the pixels the drawing comes out at whatever
-// scaled it.
+// withVectorEffect reads `vector-effect`: the ways an element's own coordinate
+// system is held still against the transformations the host puts on it. The
+// spec's values are read alone or together, and a value this package does not
+// know is said once and left out rather than the whole declaration being
+// refused, so a drawing written against a newer spec keeps the rest of what it
+// asked for. `none` is the empty value and clears whatever the list has said so
+// far; nothing written is silence, as everywhere else.
 //
-// The other three values the property has — `non-scaling-size`, `non-rotation`
-// and `fixed-position` — are refused, and a refusal that is said beats a stroke
-// quietly painted as though nobody had asked for anything. All three are
-// measured against the host coordinate system, the page the drawing is placed
-// in, and this package paints one drawing onto one canvas with no page around
-// it: the viewBox fit is the nearest thing to a host transform and it is not
-// one. No browser draws them either, so a file that writes one is written
-// against a draft rather than against the SVG a drawing can count on.
+// `non-scaling-stroke` is the one value that says nothing about the shape, so
+// it is kept beside the other three, which rewrite the transform the element
+// and everything inside it are painted through — see [vectorEffectMatrix].
 func (s *Style) withVectorEffect(raw string, warn func(string, ...any)) {
-	switch keyword(raw) {
-	case "none":
-		s.NonScalingStroke = false
-	case "non-scaling-stroke":
-		s.NonScalingStroke = true
-	default:
-		s.NonScalingStroke = false
-		if strings.TrimSpace(raw) != "" {
-			warn("the vector-effect %q is not one this package draws (only none and non-scaling-stroke), so the stroke is scaled the way SVG scales it", raw)
+	s.VectorEffect.clear()
+	for _, name := range strings.Fields(strings.ReplaceAll(raw, ",", " ")) {
+		switch strings.ToLower(name) {
+		case "none":
+			s.VectorEffect.clear()
+		case "non-scaling-stroke":
+			s.VectorEffect.NonScalingStroke = true
+		case "non-scaling-size":
+			// The spec has this one carry a stroke that does not scale with
+			// it: a scale that does not scale has no width to stretch one with.
+			s.VectorEffect.NonScalingSize, s.VectorEffect.NonScalingStroke = true, true
+		case "non-rotation":
+			s.VectorEffect.NonRotation = true
+		case "fixed-position":
+			s.VectorEffect.FixedPosition = true
+		default:
+			warn("the vector-effect %q is not a value this package draws, so it is left out", name)
 		}
 	}
 }
