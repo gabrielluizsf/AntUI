@@ -1,8 +1,11 @@
 package svg
 
 import (
+	"math"
 	"strings"
 	"testing"
+
+	"github.com/gabrielluizsf/antui/canvas"
 )
 
 // A `<marker>` is a picture drawn at the vertex of the shape that names it, and
@@ -623,11 +626,13 @@ func TestRenderMarksEveryVertexOfAShapeThatCloses(t *testing.T) {
 	// is its first one again — the point the path arrives at when it closes —
 	// and it is marked as the last one, with marker-end, while the four corners
 	// between the two are marker-mid. The closing vertex is therefore marked
-	// twice over, once as the first vertex and once as the last, and each time
-	// turned to the way the path is going there: east where it leaves, north
-	// where it arrives. The corners in between are turned to the middle of the
-	// turn each of them makes, which is why the markers stand on the diagonal
-	// out of every corner rather than square with the rectangle.
+	// twice over, once as the first vertex and once as the last, and it is one
+	// vertex with a segment on each side, so it is turned to the middle of its
+	// turn like any other corner. The four corners are each turned to the middle
+	// of their own turn, which is why the markers stand on the diagonal out of
+	// every corner rather than square with the rectangle. The picture here is
+	// square, so it covers the whole diagonal either way; the direction it is
+	// turned in is the subject of the test below.
 	_, cv := painted(t, `<svg viewBox="0 0 40 40">
 		<defs>
 			<marker id="m" markerUnits="userSpaceOnUse" markerWidth="10" markerHeight="10" refX="0" refY="0" orient="auto">
@@ -720,6 +725,69 @@ func TestRenderCutsWhatOverflowsTheRoomOfAMarker(t *testing.T) {
 	gone(t, cv, 14, 7) // beside the room's left edge, where the picture runs out
 	gone(t, cv, 19, 7) // and past its right edge
 	gone(t, cv, 13, 7) // outside the picture altogether
+}
+
+func TestAClosedSubpathIsOneVertexWithBothItsDirections(t *testing.T) {
+	// A subpath that closes travels back to its first point, so that point is
+	// not two vertices — the one the path leaves from and the one it arrives at
+	// — but one vertex with a segment on each side. `orient="auto"` turns a
+	// marker there to the bisector between the two, which for this rectangle is
+	// north east: north the way the close comes in, east the way the first
+	// segment leaves. The point the close comes back to is written again at the
+	// end, as the vertex the path arrives at, and it carries the same two
+	// directions.
+	var p canvas.Path
+	p.AddRect(0, 10, 10, 10)
+	vs := pathVertices(&p)
+	if len(vs) != 5 {
+		t.Fatalf("the rectangle has %d vertices, want 5", len(vs))
+	}
+	for _, i := range []int{0, 4} {
+		v := vs[i]
+		if v.pt != (canvas.Point{X: 0, Y: 10}) {
+			t.Errorf("vertex %d is at %v, want the closing point (0,10)", i, v.pt)
+		}
+		if !v.hasIn || !v.hasOut {
+			t.Errorf("vertex %d has in=%v out=%v, want a segment on each side", i, v.hasIn, v.hasOut)
+		}
+		if got, want := v.angle(), -math.Pi/4; math.Abs(got-want) > 1e-9 {
+			t.Errorf("vertex %d turns to %g, want the bisector %g", i, got, want)
+		}
+	}
+	if got := vs[1].angle(); math.Abs(got-math.Pi/4) > 1e-9 {
+		t.Errorf("the corner after the closing point turns to %g, want %g", got, math.Pi/4)
+	}
+}
+
+func TestASubpathAfterACloseIsArrivedAtByTheClose(t *testing.T) {
+	// A close opens a subpath at the point it came back to, so a drawing that
+	// carries on from there starts at the same vertex the close arrived at:
+	// what arrives at it is the segment that closed the subpath before, and
+	// what leaves is the first segment of the subpath carrying on. The first
+	// point of a subpath after a move, by contrast, is arrived at by nothing —
+	// the path does not travel from one subpath to the next.
+	var p canvas.Path
+	p.MoveTo(0, 0)
+	p.LineTo(10, 0)
+	p.Close()
+	p.LineTo(10, 10)
+	vs := pathVertices(&p)
+	if len(vs) != 4 {
+		t.Fatalf("the drawing has %d vertices, want 4", len(vs))
+	}
+	carried := vs[2]
+	if carried.pt != (canvas.Point{X: 0, Y: 0}) {
+		t.Fatalf("the carried vertex is at %v, want the point the close came back to (0,0)", carried.pt)
+	}
+	if !carried.hasIn || !carried.hasOut {
+		t.Fatalf("the carried vertex has in=%v out=%v, want a segment on each side", carried.hasIn, carried.hasOut)
+	}
+	if got, want := carried.angle(), 5*math.Pi/8; math.Abs(got-want) > 1e-9 {
+		t.Errorf("the carried vertex turns to %g, want %g", got, want)
+	}
+	if got, want := vs[0].angle(), math.Pi; math.Abs(got-want) > 1e-9 {
+		t.Errorf("the closing vertex turns to %g, want %g", got, want)
+	}
 }
 
 func TestRenderDrawsAMarkerWholeWhereItsRoomLetsItOverflow(t *testing.T) {
