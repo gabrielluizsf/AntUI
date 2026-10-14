@@ -21,5 +21,5 @@ func (k Keystore) Ensure(tc *sdk.Toolchain) error {
 	if !k.Debug() {
 		return fmt.Errorf("apk: no keystore at %s; make one with antuiapk keygen", k.Path)
 	}
-	return Create(tc, k, debugName, 10000)
+	return Create(tc, CreateParams{Keystore: k, Name: debugName, Days: 10000})
 }

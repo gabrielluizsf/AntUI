@@ -17,7 +17,9 @@ import (
 // the one that matters at three in the morning before a release.
 //
 // serial names a device, or is empty for the only one attached.
-func VerifyBundle(tc *sdk.Toolchain, cfg *Config, bundle, serial string) error {
+func VerifyBundle(tc *sdk.Toolchain, cfg *Config, params VerifyBundleParams) error {
+	bundle := params.Bundle
+	serial := params.Serial
 	if err := cfg.check(); err != nil {
 		return err
 	}

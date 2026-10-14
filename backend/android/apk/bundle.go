@@ -40,10 +40,10 @@ func Bundle(tc *sdk.Toolchain, cfg Config) (*Result, error) {
 		return nil, err
 	}
 	unsigned := filepath.Join(work, "unsigned.aab")
-	if err := AssembleBundle(proto, libs, &cfg, unsigned); err != nil {
+	if err := AssembleBundle(&cfg, AssembleBundleParams{Proto: proto, Libs: libs, Out: unsigned}); err != nil {
 		return nil, err
 	}
-	if err := SignBundle(tc, &cfg, unsigned, cfg.Out); err != nil {
+	if err := SignBundle(tc, &cfg, Paths{In: unsigned, Out: cfg.Out}); err != nil {
 		return nil, err
 	}
 	return bundleResult(cfg, libs)

@@ -38,10 +38,10 @@ func Build(tc *sdk.Toolchain, cfg Config) (*Result, error) {
 		return nil, err
 	}
 	packed := filepath.Join(work, "packed.apk")
-	if err := Assemble(base, libs, cfg.Lib, packed, &cfg); err != nil {
+	if err := Assemble(&cfg, AssembleParams{Base: base, Libs: libs, LibName: cfg.Lib, Out: packed}); err != nil {
 		return nil, err
 	}
-	if err := Sign(tc, &cfg, packed, cfg.Out); err != nil {
+	if err := Sign(tc, &cfg, Paths{In: packed, Out: cfg.Out}); err != nil {
 		return nil, err
 	}
 	return buildResult(cfg, libs)

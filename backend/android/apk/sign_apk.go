@@ -12,7 +12,11 @@ import (
 // around it. It is what [Sign] does, and what "antuiapk sign" is: an APK
 // that came from somewhere else — an unsigned one, or one to be re-signed
 // with a release key — has no Go package behind it to describe.
-func SignAPK(tc *sdk.Toolchain, k Keystore, minSDK int, in, out string) error {
+func SignAPK(tc *sdk.Toolchain, params SignAPKParams) error {
+	k := params.Keystore
+	minSDK := params.MinSDK
+	in := params.In
+	out := params.Out
 	if minSDK == 0 {
 		minSDK = sdk.MinSDK
 	}

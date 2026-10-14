@@ -157,7 +157,7 @@ func TestAssembleStoresLibraries(t *testing.T) {
 	if err := cfg.check(); err != nil {
 		t.Fatal(err)
 	}
-	if err := Assemble(base, map[sdk.ABI]string{sdk.Arm64: lib}, "antui", out, cfg); err != nil {
+	if err := Assemble(cfg, AssembleParams{Base: base, Libs: map[sdk.ABI]string{sdk.Arm64: lib}, LibName: "antui", Out: out}); err != nil {
 		t.Fatal(err)
 	}
 

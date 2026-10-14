@@ -58,10 +58,10 @@ func TestSignedPackageVerifies(t *testing.T) {
 	out := filepath.Join(dir, "signed.apk")
 	k := Keystore{Path: filepath.Join(dir, "test.jks"), Alias: "test",
 		StorePass: "testtest", KeyPass: "testtest"}
-	if err := Create(tc, k, "CN=Test", 30); err != nil {
+	if err := Create(tc, CreateParams{Keystore: k, Name: "CN=Test", Days: 30}); err != nil {
 		t.Fatalf("could not make a key: %v", err)
 	}
-	if err := SignAPK(tc, k, 21, unsigned, out); err != nil {
+	if err := SignAPK(tc, SignAPKParams{Keystore: k, MinSDK: 21, In: unsigned, Out: out}); err != nil {
 		t.Fatalf("signing failed: %v", err)
 	}
 

@@ -5,13 +5,15 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/gabrielluizsf/antui/backend/android/sdk"
 	"github.com/gabrielluizsf/antui/backend/android/shim"
 )
 
 // AssembleBundle rearranges what aapt2 produced into the layout a bundle
 // has, and adds the libraries, the dex and the configuration.
-func AssembleBundle(proto string, libs map[sdk.ABI]string, cfg *Config, out string) error {
+func AssembleBundle(cfg *Config, params AssembleBundleParams) error {
+	proto := params.Proto
+	libs := params.Libs
+	out := params.Out
 	zr, err := zip.OpenReader(proto)
 	if err != nil {
 		return fmt.Errorf("apk: reading %s: %w", proto, err)

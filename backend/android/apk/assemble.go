@@ -5,8 +5,6 @@ import (
 	"fmt"
 	"os"
 	"path"
-
-	"github.com/gabrielluizsf/antui/backend/android/sdk"
 )
 
 // Assemble copies the base APK and adds the libraries — and the Java shim,
@@ -16,7 +14,11 @@ import (
 // the manifest says extractNativeLibs="false", so the loader maps the .so
 // straight out of the APK, and a compressed entry cannot be mapped. The
 // alignment that mapping also needs is [Sign]'s job.
-func Assemble(base string, libs map[sdk.ABI]string, libName, out string, cfg *Config) error {
+func Assemble(cfg *Config, params AssembleParams) error {
+	base := params.Base
+	libs := params.Libs
+	libName := params.LibName
+	out := params.Out
 	zr, err := zip.OpenReader(base)
 	if err != nil {
 		return fmt.Errorf("apk: reading %s: %w", base, err)

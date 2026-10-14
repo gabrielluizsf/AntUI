@@ -12,9 +12,9 @@ import "github.com/gabrielluizsf/antui/backend/android/sdk"
 // years. Android 15 introduced devices with 16 KB memory pages, and the
 // Play Store requires an app to work on them; a library aligned to 4 KB
 // cannot be mapped on such a device at all.
-func Sign(tc *sdk.Toolchain, cfg *Config, in, out string) error {
+func Sign(tc *sdk.Toolchain, cfg *Config, paths Paths) error {
 	if err := cfg.check(); err != nil {
 		return err
 	}
-	return SignAPK(tc, cfg.Keystore, cfg.MinSDK, in, out)
+	return SignAPK(tc, SignAPKParams{Keystore: cfg.Keystore, MinSDK: cfg.MinSDK, In: paths.In, Out: paths.Out})
 }
