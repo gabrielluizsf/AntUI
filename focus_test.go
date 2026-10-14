@@ -84,7 +84,7 @@ func TestSpaceTogglesFocusedCheckbox(t *testing.T) {
 	value := false
 
 	tabFrame(win)
-	win.Checkbox(20, 20, "Enable", &value)
+	win.Checkbox(20, 20, CheckboxParams{Label: "Enable", Value: &value})
 	win.End()
 	if win.uiFocus == 0 {
 		t.Fatal("Tab should have focused the checkbox")
@@ -92,7 +92,7 @@ func TestSpaceTogglesFocusedCheckbox(t *testing.T) {
 
 	win.Begin()
 	win.Push(Event{Type: EventKeyDown, Key: KeySpace})
-	win.Checkbox(20, 20, "Enable", &value)
+	win.Checkbox(20, 20, CheckboxParams{Label: "Enable", Value: &value})
 	win.End()
 	if !value {
 		t.Error("Space should toggle the focused checkbox")

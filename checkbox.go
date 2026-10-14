@@ -6,10 +6,11 @@ import (
 
 // Checkbox draws a labelled checkbox, flips value when clicked, and reports
 // whether it changed this frame.
-func (win *Window) Checkbox(x, y int, label string, value *bool) bool {
-	if value == nil {
+func (win *Window) Checkbox(x, y int, params CheckboxParams) bool {
+	if params.Value == nil {
 		return false
 	}
+	label, value := params.Label, params.Value
 	const box = 18
 	w := box + 8 + canvas.TextWidth(label)
 	id := widgetID("checkbox", x, y, box, box, label)

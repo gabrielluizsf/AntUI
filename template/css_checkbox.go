@@ -35,7 +35,7 @@ func (c *CSS) Checkbox(label string, value *bool) event.Event {
 	}
 	var e event.Event
 	c.paint(st, css.RoleCheckbox, label, x, y, w, h, func() {
-		e = c.ui.Checkbox(c.win, x, cy, label, value)
+		e = c.ui.Checkbox(c.win, x, y, label, value)
 	})
 	return e
 }

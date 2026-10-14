@@ -53,9 +53,9 @@ func TestCheckboxToggles(t *testing.T) {
 	value := false
 
 	click(win, 15, 15)
-	win.Checkbox(10, 10, "Enable", &value)
+	win.Checkbox(10, 10, CheckboxParams{Label: "Enable", Value: &value})
 	release(win, 15, 15)
-	if !win.Checkbox(10, 10, "Enable", &value) {
+	if !win.Checkbox(10, 10, CheckboxParams{Label: "Enable", Value: &value}) {
 		t.Fatal("the checkbox should report the change")
 	}
 	if !value {
@@ -63,9 +63,9 @@ func TestCheckboxToggles(t *testing.T) {
 	}
 
 	click(win, 15, 15)
-	win.Checkbox(10, 10, "Enable", &value)
+	win.Checkbox(10, 10, CheckboxParams{Label: "Enable", Value: &value})
 	release(win, 15, 15)
-	win.Checkbox(10, 10, "Enable", &value)
+	win.Checkbox(10, 10, CheckboxParams{Label: "Enable", Value: &value})
 	if value {
 		t.Error("clicking again should have turned it back off")
 	}
