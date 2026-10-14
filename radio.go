@@ -6,10 +6,11 @@ import (
 
 // Radio draws one option of a group. Clicking it sets value to option and
 // reports true; clicking the already-selected option changes nothing.
-func (win *Window) Radio(x, y int, label string, value *int, option int) bool {
-	if value == nil {
+func (win *Window) Radio(x, y int, params RadioParams) bool {
+	if params.Value == nil {
 		return false
 	}
+	label, value, option := params.Label, params.Value, params.Option
 	const size = 18
 	w := size + 8 + canvas.TextWidth(label)
 	id := widgetID("radio", x, y, size, option, label)

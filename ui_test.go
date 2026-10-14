@@ -76,9 +76,9 @@ func TestRadioSelectsOnceOnly(t *testing.T) {
 	choice := 0
 
 	click(win, 15, 15)
-	win.Radio(10, 10, "Second", &choice, 1)
+	win.Radio(10, 10, RadioParams{Label: "Second", Value: &choice, Option: 1})
 	release(win, 15, 15)
-	if !win.Radio(10, 10, "Second", &choice, 1) {
+	if !win.Radio(10, 10, RadioParams{Label: "Second", Value: &choice, Option: 1}) {
 		t.Fatal("selecting a new option should report the change")
 	}
 	if choice != 1 {
@@ -87,9 +87,9 @@ func TestRadioSelectsOnceOnly(t *testing.T) {
 
 	// Clicking the option that is already selected changes nothing.
 	click(win, 15, 15)
-	win.Radio(10, 10, "Second", &choice, 1)
+	win.Radio(10, 10, RadioParams{Label: "Second", Value: &choice, Option: 1})
 	release(win, 15, 15)
-	if win.Radio(10, 10, "Second", &choice, 1) {
+	if win.Radio(10, 10, RadioParams{Label: "Second", Value: &choice, Option: 1}) {
 		t.Error("re-clicking the selected option should not report a change")
 	}
 }
