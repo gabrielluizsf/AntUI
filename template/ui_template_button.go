@@ -15,11 +15,16 @@ func (t *uiTemplate) Button(win *antui.Window, x, y, w, h int, label string) eve
 	if keyed {
 		clicked = true
 	}
-	t.style.Button(win, State{
-		Hovered: hovered,
-		Pressed: (win.WidgetActive() == id && hovered) || keyed,
-		Focused: focused,
-	}, x, y, w, h, label)
+	t.style.Button(ButtonParams{
+		Win: win,
+		State: State{
+			Hovered: hovered,
+			Pressed: (win.WidgetActive() == id && hovered) || keyed,
+			Focused: focused,
+		},
+		X: x, Y: y, W: w, H: h,
+		Label: label,
+	})
 	if clicked {
 		return t.fire(event.Event{Component: event.Button, Kind: event.Click})
 	}

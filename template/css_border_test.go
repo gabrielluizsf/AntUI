@@ -53,8 +53,8 @@ func TestNoPaintWithoutADeclaredFill(t *testing.T) {
 	cs := newCSSStyle(win)
 
 	off := false
-	cs.Switch(win, State{}, 0, 0, "pinned", off)
-	cs.SelectOption(win, State{}, 0, 30, 40, 10, "stable", false)
+	cs.Switch(SwitchParams{Win: win, State: State{}, X: 0, Y: 0, Label: "pinned", On: off})
+	cs.SelectOption(SelectOptionParams{Win: win, State: State{}, X: 0, Y: 30, W: 40, H: 10, Label: "stable", Selected: false})
 
 	for y := 0; y < 40; y++ {
 		for x := 0; x < 40; x++ {

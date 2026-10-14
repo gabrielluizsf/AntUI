@@ -17,10 +17,21 @@ func (t *uiTemplate) textAreaPress(win *antui.Window, id uint32, x, y, w, h int,
 		}
 		// The caret goes where the pointer pointed, even on a re-click into
 		// the field.
-		win.WidgetCursorSet(t.style.TextAreaTextPos(win, State{
-			Hovered: hovered,
-			Focused: win.WidgetFocus() == id,
-		}, x, y, w, h, text, win.WidgetCursor(), win.MouseX(), win.MouseY()))
+		win.WidgetCursorSet(t.style.TextAreaTextPos(TextAreaTextPosParams{
+			Win: win,
+			State: State{
+				Hovered: hovered,
+				Focused: win.WidgetFocus() == id,
+			},
+			X:      x,
+			Y:      y,
+			W:      w,
+			H:      h,
+			Text:   text,
+			Cursor: win.WidgetCursor(),
+			MouseX: win.MouseX(),
+			MouseY: win.MouseY(),
+		}))
 		return justFocused
 	case win.WidgetFocus() == id:
 		win.WidgetFocusClear(id)

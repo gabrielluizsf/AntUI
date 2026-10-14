@@ -1,25 +1,24 @@
 package template
 
 import (
-	"github.com/gabrielluizsf/antui"
 	"github.com/gabrielluizsf/antui/canvas"
 	"github.com/gabrielluizsf/antui/template/css"
 )
 
-func (cs *cssStyle) SelectOption(win *antui.Window, s State, x, y, w, h int, label string, selected bool) {
-	st := cs.styleFor(css.RoleSelect, s)
-	if selected {
-		st = cs.styleFor(css.RoleSelect, State{On: true, Focused: s.Focused, Hovered: s.Hovered})
+func (cs *cssStyle) SelectOption(p SelectOptionParams) {
+	st := cs.styleFor(css.RoleSelect, p.State)
+	if p.Selected {
+		st = cs.styleFor(css.RoleSelect, State{On: true, Focused: p.State.Focused, Hovered: p.State.Hovered})
 	}
 	fill := cs.fill(st)
-	if selected || s.Hovered {
+	if p.Selected || p.State.Hovered {
 		fill = canvas.Shade(fill, hoverFillShade)
 	}
 	u := cs.u()
-	cv := win.Canvas()
-	cv.FillRect(canvas.Area{X: x, Y: y, Width: w, Height: h}, cs.fade(st, fill))
-	if selected || s.Hovered {
-		cv.FillRect(canvas.Area{X: x, Y: y, Width: 3 * u, Height: h}, cs.ink(st))
+	cv := p.Win.Canvas()
+	cv.FillRect(canvas.Area{X: p.X, Y: p.Y, Width: p.W, Height: p.H}, cs.fade(st, fill))
+	if p.Selected || p.State.Hovered {
+		cv.FillRect(canvas.Area{X: p.X, Y: p.Y, Width: 3 * u, Height: p.H}, cs.ink(st))
 	}
-	cs.drawText(win, st, x, y, w, h, label)
+	cs.drawText(p.Win, st, p.X, p.Y, p.W, p.H, p.Label)
 }

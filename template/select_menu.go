@@ -33,7 +33,13 @@ func (t *uiTemplate) selectMenu(win *antui.Window, x, y, w, h int, index *int, o
 	// it, so an open menu never hides behind fields below.
 	win.WidgetFrontmost(func() {
 		for _, d := range draws {
-			t.style.SelectOption(win, d.state, d.x, d.y, w, h, d.label, d.sel)
+			t.style.SelectOption(SelectOptionParams{
+				Win:   win,
+				State: d.state,
+				X:     d.x, Y: d.y, W: w, H: h,
+				Label:    d.label,
+				Selected: d.sel,
+			})
 		}
 	})
 	return picked

@@ -1,22 +1,21 @@
 package template
 
-import "github.com/gabrielluizsf/antui"
-
-func (cyberStyle) DatePicker(win *antui.Window, s State, x, y, w, h int, year, month, firstWD, days, selected, today, hover int) {
+func (cyberStyle) DatePicker(p DatePickerParams) {
+	win := p.Win
 	cv := win.Canvas()
-	u := popupScale(w)
+	u := popupScale(p.W)
 	v := vividFor(win)
 
-	glow(cv, halo{x: x, y: y, w: w, h: h, radius: 4 * u, colour: v.neon, strength: 12, u: u})
+	glow(cv, halo{x: p.X, y: p.Y, w: p.W, h: p.H, radius: 4 * u, colour: v.neon, strength: 12, u: u})
 	body := cyberPalette.panel
-	if s.Hovered {
+	if p.State.Hovered {
 		body = cyberPalette.panelHov
 	}
-	neonFill(cv, x, y, w, h, 4*u, body, v.edge)
+	neonFill(cv, p.X, p.Y, p.W, p.H, 4*u, body, v.edge)
 
-	p := datePaint{x: x, y: y, w: w, h: h, u: u, month: month, year: year,
-		firstWD: firstWD, days: days, selected: selected, today: today, hover: hover}
-	paintCyberDateHeader(cv, v, p)
-	paintWeekdayHeads(cv, p, v.dim)
-	paintCyberDateDays(cv, v, p)
+	dp := datePaint{x: p.X, y: p.Y, w: p.W, h: p.H, u: u, month: p.Month, year: p.Year,
+		firstWD: p.FirstWD, days: p.Days, selected: p.Selected, today: p.Today, hover: p.Hover}
+	paintCyberDateHeader(cv, v, dp)
+	paintWeekdayHeads(cv, dp, v.dim)
+	paintCyberDateDays(cv, v, dp)
 }

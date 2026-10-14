@@ -20,7 +20,13 @@ func (c *CSS) Radio(label string, value *int, option int) event.Event {
 	st = c.style.entryStyle(c.style.cur, css.RoleRadio, s)
 	if !interactive(st) {
 		c.paint(st, css.RoleRadio, label, x, y, w, h, func() {
-			c.style.Radio(c.win, s, x, cy, label, on)
+			c.style.Radio(RadioParams{
+				Win:   c.win,
+				State: s,
+				X:     x, Y: cy,
+				Label: label,
+				On:    on,
+			})
 		})
 		return event.Nothing
 	}

@@ -1,31 +1,31 @@
 package template
 
 import (
-	"github.com/gabrielluizsf/antui"
 	"github.com/gabrielluizsf/antui/canvas"
 )
 
-func (cyberStyle) Radio(win *antui.Window, s State, x, y int, label string, on bool) {
+func (cyberStyle) Radio(p RadioParams) {
+	win := p.Win
 	cv := win.Canvas()
 	u := Scale(win)
 	v := vividFor(win)
 	size := boxSize * u
-	cx, cy := x+size/2, y+size/2
-	if s.Focused || s.Hovered {
-		glow(cv, halo{x: x, y: y, w: size, h: size, radius: size / 2, colour: v.neon, strength: int(float64(30) * v.glow), u: u})
+	cx, cy := p.X+size/2, p.Y+size/2
+	if p.State.Focused || p.State.Hovered {
+		glow(cv, halo{x: p.X, y: p.Y, w: size, h: size, radius: size / 2, colour: v.neon, strength: int(float64(30) * v.glow), u: u})
 	}
 	body := cyberPalette.panel
-	if s.Hovered {
+	if p.State.Hovered {
 		body = cyberPalette.panelHov
 	}
 	cv.FillCircle(canvas.Circle{X: cx, Y: cy, R: size / 2}, body)
 	border := v.edge
-	if on || s.Hovered {
+	if p.On || p.State.Hovered {
 		border = v.neon
 	}
 	cv.Circle(canvas.Circle{X: cx, Y: cy, R: size / 2}, border)
-	if on {
+	if p.On {
 		cv.FillCircle(canvas.Circle{X: cx, Y: cy, R: size/2 - 4*u}, v.neon)
 	}
-	cv.TextScaled(x+size+labelGap*u, y+(size-textHeight(u))/2, label, v.text, u)
+	cv.TextScaled(p.X+size+labelGap*u, p.Y+(size-textHeight(u))/2, p.Label, v.text, u)
 }

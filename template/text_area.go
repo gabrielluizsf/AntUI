@@ -1,33 +1,33 @@
 package template
 
 import (
-	"github.com/gabrielluizsf/antui"
 	"github.com/gabrielluizsf/antui/canvas"
 )
 
-func (builtinStyle) TextArea(win *antui.Window, s State, x, y, w, h int, text string, cursor int, caret bool) {
+func (builtinStyle) TextArea(p TextAreaParams) {
+	win := p.Win
 	cv := win.Canvas()
 	th := win.Theme()
 	u := Scale(win)
 	padding := 8 * u
 
-	cv.FillRoundRect(canvas.Round(canvas.Area{X: x, Y: y, Width: w, Height: h}, th.Radius), th.Surface)
+	cv.FillRoundRect(canvas.Round(canvas.Area{X: p.X, Y: p.Y, Width: p.W, Height: p.H}, th.Radius), th.Surface)
 	border := th.Border
 	switch {
-	case s.Focused:
+	case p.State.Focused:
 		border = th.Accent
-	case s.Hovered:
+	case p.State.Hovered:
 		border = th.TextMuted
 	}
-	cv.RoundRect(canvas.Round(canvas.Area{X: x, Y: y, Width: w, Height: h}, th.Radius), border)
+	cv.RoundRect(canvas.Round(canvas.Area{X: p.X, Y: p.Y, Width: p.W, Height: p.H}, th.Radius), border)
 
-	innerW := w - 2*padding
+	innerW := p.W - 2*padding
 	textW := max(innerW/u, 12)
-	cursor = min(max(cursor, 0), len(text))
-	lines := textLines(text, textW)
+	cursor := min(max(p.Cursor, 0), len(p.Text))
+	lines := textLines(p.Text, textW)
 
 	lineH := textHeight(u)
-	visible := max((h-2*padding)/lineH, 1)
+	visible := max((p.H-2*padding)/lineH, 1)
 	viewTop := 0
 	for li, l := range lines {
 		if cursor >= l[0] && cursor < l[1] || (li == len(lines)-1 && cursor == l[1]) {
@@ -38,18 +38,18 @@ func (builtinStyle) TextArea(win *antui.Window, s State, x, y, w, h int, text st
 	viewTop = max(min(viewTop, len(lines)-visible), 0)
 
 	savedClip := cv.Clip
-	cv.SetClip(canvas.Area{X: x + padding, Y: y + padding, Width: innerW, Height: h - 2*padding})
+	cv.SetClip(canvas.Area{X: p.X + padding, Y: p.Y + padding, Width: innerW, Height: p.H - 2*padding})
 
 	for lif, l := range lines {
 		if lif < viewTop || lif >= viewTop+visible {
 			continue
 		}
-		cy := y + padding + (lif-viewTop)*lineH
-		line := text[l[0]:l[1]]
-		cv.TextScaled(x+padding, cy, line, th.Text, u)
-		if s.Focused && caret && cursor >= l[0] && cursor <= l[1] {
+		cy := p.Y + padding + (lif-viewTop)*lineH
+		line := p.Text[l[0]:l[1]]
+		cv.TextScaled(p.X+padding, cy, line, th.Text, u)
+		if p.State.Focused && p.Caret && cursor >= l[0] && cursor <= l[1] {
 			off := cursor - l[0]
-			cx := x + padding + textWidth(u, line[:off])
+			cx := p.X + padding + textWidth(u, line[:off])
 			cv.FillRect(canvas.Area{X: cx, Y: cy, Width: u, Height: lineH}, th.Text)
 		}
 	}

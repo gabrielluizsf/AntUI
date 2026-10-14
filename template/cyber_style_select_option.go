@@ -1,31 +1,31 @@
 package template
 
 import (
-	"github.com/gabrielluizsf/antui"
 	"github.com/gabrielluizsf/antui/canvas"
 )
 
-func (cyberStyle) SelectOption(win *antui.Window, s State, x, y, w, h int, label string, selected bool) {
+func (cyberStyle) SelectOption(p SelectOptionParams) {
+	win := p.Win
 	cv := win.Canvas()
 	u := Scale(win)
 	v := vividFor(win)
 
 	body := cyberPalette.panel
-	if selected || s.Hovered {
+	if p.Selected || p.State.Hovered {
 		body = cyberPalette.panelHov
 	}
-	cv.FillRect(canvas.Area{X: x, Y: y, Width: w, Height: h}, body)
+	cv.FillRect(canvas.Area{X: p.X, Y: p.Y, Width: p.W, Height: p.H}, body)
 	edge := v.edge
-	if selected {
+	if p.Selected {
 		edge = v.neon
 	}
-	cv.Line(x, y, x+w, y, edge)
-	if selected || s.Hovered {
-		cv.FillRect(canvas.Area{X: x, Y: y, Width: 3 * u, Height: h}, v.neon)
+	cv.Line(p.X, p.Y, p.X+p.W, p.Y, edge)
+	if p.Selected || p.State.Hovered {
+		cv.FillRect(canvas.Area{X: p.X, Y: p.Y, Width: 3 * u, Height: p.H}, v.neon)
 	}
 	colour := v.text
-	if selected {
+	if p.Selected {
 		colour = v.neon
 	}
-	cv.TextScaled(x+10*u, y+(h-textHeight(u))/2, label, colour, u)
+	cv.TextScaled(p.X+10*u, p.Y+(p.H-textHeight(u))/2, p.Label, colour, u)
 }

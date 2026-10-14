@@ -28,7 +28,13 @@ func (t *uiTemplate) Switch(win *antui.Window, x, y int, label string, value *bo
 		*value = !*value
 		changed = true
 	}
-	t.style.Switch(win, State{Hovered: hovered, Focused: focused, On: *value}, x, y, label, *value)
+	t.style.Switch(SwitchParams{
+		Win:   win,
+		State: State{Hovered: hovered, Focused: focused, On: *value},
+		X:     x, Y: y,
+		Label: label,
+		On:    *value,
+	})
 	if changed {
 		return t.fire(event.Event{Component: event.Switch, Kind: event.Toggle})
 	}

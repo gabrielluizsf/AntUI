@@ -1,11 +1,10 @@
 package template
 
 import (
-	"github.com/gabrielluizsf/antui"
 	"github.com/gabrielluizsf/antui/template/css"
 )
 
-func (cs *cssStyle) Label(win *antui.Window, x, y int, text string) {
+func (cs *cssStyle) Label(p LabelParams) {
 	st := cs.styleFor(css.RoleLabel, State{})
-	cs.run(win.Canvas(), st, x, y, text)
+	cs.run(p.Win.Canvas(), st, p.X, p.Y, p.Text)
 }

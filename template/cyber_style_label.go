@@ -1,7 +1,5 @@
 package template
 
-import "github.com/gabrielluizsf/antui"
-
-func (cyberStyle) Label(win *antui.Window, x, y int, text string) {
-	win.Canvas().TextScaled(x, y, text, vividFor(win).text, Scale(win))
+func (cyberStyle) Label(p LabelParams) {
+	p.Win.Canvas().TextScaled(p.X, p.Y, p.Text, vividFor(p.Win).text, Scale(p.Win))
 }

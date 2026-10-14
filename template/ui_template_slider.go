@@ -50,7 +50,12 @@ func (t *uiTemplate) Slider(win *antui.Window, x, y, w, h int, value *float32, m
 	*value = min(max(*value, minValue), maxValue)
 
 	visualValue := min(max((*value-minValue)/g.span, 0), 1)
-	t.style.Slider(win, State{Hovered: knobHit, Active: active, Focused: focused}, x, y, w, h, visualValue)
+	t.style.Slider(SliderParams{
+		Win:   win,
+		State: State{Hovered: knobHit, Active: active, Focused: focused},
+		X:     x, Y: y, W: w, H: h,
+		Value: visualValue,
+	})
 
 	if changed {
 		return t.fire(event.Event{Component: event.Slider, Kind: event.Change})

@@ -1,27 +1,27 @@
 package template
 
 import (
-	"github.com/gabrielluizsf/antui"
 	"github.com/gabrielluizsf/antui/canvas"
 )
 
-func (builtinStyle) DatePicker(win *antui.Window, s State, x, y, w, h int, year, month, firstWD, days, selected, today, hover int) {
+func (builtinStyle) DatePicker(p DatePickerParams) {
+	win := p.Win
 	cv := win.Canvas()
 	th := win.Theme()
 	// The popup is drawn at the scale it was measured at, which is the step it
 	// grew to for this window rather than the window's own.
-	u := popupScale(w)
+	u := popupScale(p.W)
 
-	cv.FillRoundRect(canvas.Round(canvas.Area{X: x, Y: y, Width: w, Height: h}, 4*u), th.Surface)
+	cv.FillRoundRect(canvas.Round(canvas.Area{X: p.X, Y: p.Y, Width: p.W, Height: p.H}, 4*u), th.Surface)
 	border := th.Border
-	if s.Focused {
+	if p.State.Focused {
 		border = th.Accent
 	}
-	cv.RoundRect(canvas.Round(canvas.Area{X: x, Y: y, Width: w, Height: h}, 4*u), border)
+	cv.RoundRect(canvas.Round(canvas.Area{X: p.X, Y: p.Y, Width: p.W, Height: p.H}, 4*u), border)
 
-	p := datePaint{x: x, y: y, w: w, h: h, u: u, month: month, year: year,
-		firstWD: firstWD, days: days, selected: selected, today: today, hover: hover}
-	paintDatePickerHeader(cv, th, p)
-	paintWeekdayHeads(cv, p, th.TextMuted)
-	paintDateDays(cv, th, p)
+	dp := datePaint{x: p.X, y: p.Y, w: p.W, h: p.H, u: u, month: p.Month, year: p.Year,
+		firstWD: p.FirstWD, days: p.Days, selected: p.Selected, today: p.Today, hover: p.Hover}
+	paintDatePickerHeader(cv, th, dp)
+	paintWeekdayHeads(cv, dp, th.TextMuted)
+	paintDateDays(cv, th, dp)
 }

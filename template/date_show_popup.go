@@ -6,7 +6,17 @@ import "github.com/gabrielluizsf/antui"
 // painted under it, so an open calendar never hides behind fields below.
 func (t *uiTemplate) showDatePopup(win *antui.Window, state State, p datePaint) {
 	win.WidgetFrontmost(func() {
-		t.style.DatePicker(win, state, p.x, p.y, p.w, p.h,
-			p.year, p.month, p.firstWD, p.days, p.selected, p.today, p.hover)
+		t.style.DatePicker(DatePickerParams{
+			Win:   win,
+			State: state,
+			X:     p.x, Y: p.y, W: p.w, H: p.h,
+			Year:     p.year,
+			Month:    p.month,
+			FirstWD:  p.firstWD,
+			Days:     p.days,
+			Selected: p.selected,
+			Today:    p.today,
+			Hover:    p.hover,
+		})
 	})
 }

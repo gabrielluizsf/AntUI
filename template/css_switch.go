@@ -20,7 +20,13 @@ func (c *CSS) Switch(label string, value *bool) event.Event {
 	st = c.style.entryStyle(c.style.cur, css.RoleSwitch, s)
 	if !interactive(st) {
 		c.paint(st, css.RoleSwitch, label, x, y, w, h, func() {
-			c.style.Switch(c.win, s, x, cy, label, on)
+			c.style.Switch(SwitchParams{
+				Win:   c.win,
+				State: s,
+				X:     x, Y: cy,
+				Label: label,
+				On:    on,
+			})
 		})
 		return event.Nothing
 	}

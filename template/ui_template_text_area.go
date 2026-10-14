@@ -29,8 +29,14 @@ func (t *uiTemplate) TextArea(win *antui.Window, x, y, w, h int, text *string) e
 		changed = t.editTextArea(win, text, max(w/(8*u), 12))
 	}
 
-	t.style.TextArea(win, State{Hovered: hovered, Focused: focused},
-		x, y, w, h, *text, win.WidgetCursor(), focused && win.WidgetCaret())
+	t.style.TextArea(TextAreaParams{
+		Win:   win,
+		State: State{Hovered: hovered, Focused: focused},
+		X:     x, Y: y, W: w, H: h,
+		Text:   *text,
+		Cursor: win.WidgetCursor(),
+		Caret:  focused && win.WidgetCaret(),
+	})
 
 	switch {
 	case justFocused:

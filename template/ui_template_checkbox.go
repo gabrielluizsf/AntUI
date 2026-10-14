@@ -25,7 +25,13 @@ func (t *uiTemplate) Checkbox(win *antui.Window, x, y int, label string, value *
 		*value = !*value
 		changed = true
 	}
-	t.style.Checkbox(win, State{Hovered: hovered, Focused: focused, On: *value}, x, y, label, *value)
+	t.style.Checkbox(CheckboxParams{
+		Win:   win,
+		State: State{Hovered: hovered, Focused: focused, On: *value},
+		X:     x, Y: y,
+		Label: label,
+		On:    *value,
+	})
 	if changed {
 		return t.fire(event.Event{Component: event.Checkbox, Kind: event.Toggle})
 	}

@@ -1,35 +1,35 @@
 package template
 
 import (
-	"github.com/gabrielluizsf/antui"
 	"github.com/gabrielluizsf/antui/canvas"
 )
 
-func (builtinStyle) SelectOption(win *antui.Window, s State, x, y, w, h int, label string, selected bool) {
+func (builtinStyle) SelectOption(p SelectOptionParams) {
+	win := p.Win
 	cv := win.Canvas()
 	th := win.Theme()
 
 	fill := th.Surface
 	border := th.Border
-	if selected {
+	if p.Selected {
 		fill = th.SurfaceHover
 		border = th.Accent
 	}
-	if s.Hovered {
+	if p.State.Hovered {
 		fill = th.AccentHover
 		border = th.Accent
 	}
-	cv.FillRoundRect(canvas.Round(canvas.Area{X: x, Y: y, Width: w, Height: h}, 0), fill)
-	if selected || s.Hovered {
-		cv.FillRect(canvas.Area{X: x, Y: y, Width: 3, Height: h}, th.Accent)
+	cv.FillRoundRect(canvas.Round(canvas.Area{X: p.X, Y: p.Y, Width: p.W, Height: p.H}, 0), fill)
+	if p.Selected || p.State.Hovered {
+		cv.FillRect(canvas.Area{X: p.X, Y: p.Y, Width: 3, Height: p.H}, th.Accent)
 	}
-	cv.RoundRect(canvas.Round(canvas.Area{X: x, Y: y, Width: w, Height: h}, 0), border)
+	cv.RoundRect(canvas.Round(canvas.Area{X: p.X, Y: p.Y, Width: p.W, Height: p.H}, 0), border)
 
 	u := Scale(win)
-	textY := y + (h-textHeight(u))/2
+	textY := p.Y + (p.H-textHeight(u))/2
 	colour := th.Text
-	if selected {
+	if p.Selected {
 		colour = th.TextOnAccent
 	}
-	cv.TextScaled(x+10*u, textY, label, colour, u)
+	cv.TextScaled(p.X+10*u, textY, p.Label, colour, u)
 }

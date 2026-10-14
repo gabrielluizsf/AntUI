@@ -134,29 +134,22 @@ func TestOffscreenCanvasIsDrawable(t *testing.T) {
 // busyboxStyle satisfies Style for testing New() without any drawing.
 type busyboxStyle struct{}
 
-func (busyboxStyle) Background(*antui.Window) canvas.Color                             { return 0 }
-func (busyboxStyle) Label(*antui.Window, int, int, string)                             {}
-func (busyboxStyle) Button(*antui.Window, State, int, int, int, int, string)           {}
-func (busyboxStyle) Checkbox(*antui.Window, State, int, int, string, bool)             {}
-func (busyboxStyle) Radio(*antui.Window, State, int, int, string, bool)                {}
-func (busyboxStyle) Slider(*antui.Window, State, int, int, int, int, float32)          {}
-func (busyboxStyle) Input(*antui.Window, State, int, int, int, int, string, int, bool) {}
-func (busyboxStyle) InputTextPos(*antui.Window, State, int, int, int, int, string, int, int, int) int {
-	return 0
-}
-func (busyboxStyle) TextAreaTextPos(*antui.Window, State, int, int, int, int, string, int, int, int) int {
-	return 0
-}
-func (busyboxStyle) Select(*antui.Window, State, int, int, int, int, string, bool) {}
-func (busyboxStyle) SelectOption(*antui.Window, State, int, int, int, int, string, bool) {
-}
-func (busyboxStyle) TextArea(*antui.Window, State, int, int, int, int, string, int, bool) {
-}
-func (busyboxStyle) Switch(*antui.Window, State, int, int, string, bool) {}
-func (busyboxStyle) Progress(*antui.Window, int, int, int, int, float32) {}
-func (busyboxStyle) DatePicker(*antui.Window, State, int, int, int, int, int, int, int, int, int, int, int) {
-}
-func (busyboxStyle) DatePickerBox(*antui.Window, State, int, int, int, int, string, bool) {}
+func (busyboxStyle) Background(*antui.Window) canvas.Color     { return 0 }
+func (busyboxStyle) Label(LabelParams)                         {}
+func (busyboxStyle) Button(ButtonParams)                       {}
+func (busyboxStyle) Checkbox(CheckboxParams)                   {}
+func (busyboxStyle) Radio(RadioParams)                         {}
+func (busyboxStyle) Slider(SliderParams)                       {}
+func (busyboxStyle) Input(InputParams)                         {}
+func (busyboxStyle) InputTextPos(InputTextPosParams) int       { return 0 }
+func (busyboxStyle) TextAreaTextPos(TextAreaTextPosParams) int { return 0 }
+func (busyboxStyle) Select(SelectParams)                       {}
+func (busyboxStyle) SelectOption(SelectOptionParams)           {}
+func (busyboxStyle) TextArea(TextAreaParams)                   {}
+func (busyboxStyle) Switch(SwitchParams)                       {}
+func (busyboxStyle) Progress(ProgressParams)                   {}
+func (busyboxStyle) DatePicker(DatePickerParams)               {}
+func (busyboxStyle) DatePickerBox(DatePickerBoxParams)         {}
 
 func TestNewCreatesATemplate(t *testing.T) {
 	win, _, _ := antui.Offscreen(200, 200)

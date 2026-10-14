@@ -1,36 +1,36 @@
 package template
 
 import (
-	"github.com/gabrielluizsf/antui"
 	"github.com/gabrielluizsf/antui/canvas"
 )
 
-func (builtinStyle) DatePickerBox(win *antui.Window, s State, x, y, w, h int, value string, open bool) {
+func (builtinStyle) DatePickerBox(p DatePickerBoxParams) {
+	win := p.Win
 	cv := win.Canvas()
 	th := win.Theme()
 	u := Scale(win)
 
 	local := th.Surface
-	if s.Hovered {
+	if p.State.Hovered {
 		local = th.SurfaceHover
 	}
 	border := th.Border
-	if s.Focused || open {
+	if p.State.Focused || p.Open {
 		border = th.Accent
 	}
-	cv.FillRoundRect(canvas.Round(canvas.Area{X: x, Y: y, Width: w, Height: h}, th.Radius), local)
-	cv.RoundRect(canvas.Round(canvas.Area{X: x, Y: y, Width: w, Height: h}, th.Radius), border)
+	cv.FillRoundRect(canvas.Round(canvas.Area{X: p.X, Y: p.Y, Width: p.W, Height: p.H}, th.Radius), local)
+	cv.RoundRect(canvas.Round(canvas.Area{X: p.X, Y: p.Y, Width: p.W, Height: p.H}, th.Radius), border)
 
 	padding := 8 * u
-	cv.TextScaled(x+padding, y+(h-textHeight(u))/2, value, th.Text, u)
+	cv.TextScaled(p.X+padding, p.Y+(p.H-textHeight(u))/2, p.Value, th.Text, u)
 
 	// The caret that says "there is a calendar below", flipped the way the
 	// dropdown's is while the picker is open.
 	name := IconCaret
-	if open {
+	if p.Open {
 		name = IconCaretUp
 	}
 	caretBox := 10 * u
 	DrawIcon(cv, name,
-		x+w-padding-3*u-caretBox/2, y+(h-caretBox)/2, caretBox, caretBox, th.TextMuted)
+		p.X+p.W-padding-3*u-caretBox/2, p.Y+(p.H-caretBox)/2, caretBox, caretBox, th.TextMuted)
 }

@@ -1,9 +1,6 @@
 package template
 
-import (
-	"github.com/gabrielluizsf/antui"
-	"github.com/gabrielluizsf/antui/template/css"
-)
+import ()
 
 func (builtinStyle) Slider(p SliderParams) {
 	win := p.Win

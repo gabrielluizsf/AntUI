@@ -1,32 +1,32 @@
 package template
 
 import (
-	"github.com/gabrielluizsf/antui"
 	"github.com/gabrielluizsf/antui/canvas"
 )
 
-func (cyberStyle) Checkbox(win *antui.Window, s State, x, y int, label string, on bool) {
+func (cyberStyle) Checkbox(p CheckboxParams) {
+	win := p.Win
 	cv := win.Canvas()
 	u := Scale(win)
 	v := vividFor(win)
 	box := boxSize * u
 	radius := 4 * u
-	if s.Focused || s.Hovered {
-		glow(cv, halo{x: x, y: y, w: box, h: box, radius: radius, colour: v.neon, strength: int(float64(30) * v.glow), u: u})
+	if p.State.Focused || p.State.Hovered {
+		glow(cv, halo{x: p.X, y: p.Y, w: box, h: box, radius: radius, colour: v.neon, strength: int(float64(30) * v.glow), u: u})
 	}
 	body := cyberPalette.panel
-	if s.Hovered {
+	if p.State.Hovered {
 		body = cyberPalette.panelHov
 	}
-	cv.FillRoundRect(canvas.Round(canvas.Area{X: x, Y: y, Width: box, Height: box}, radius), body)
+	cv.FillRoundRect(canvas.Round(canvas.Area{X: p.X, Y: p.Y, Width: box, Height: box}, radius), body)
 	border := v.edge
-	if on || s.Hovered {
+	if p.On || p.State.Hovered {
 		border = v.neon
 	}
-	cv.RoundRect(canvas.Round(canvas.Area{X: x, Y: y, Width: box, Height: box}, radius), border)
-	if on {
-		cv.FillRect(canvas.Area{X: x + 4*u, Y: y + 9*u, Width: 3 * u, Height: 3 * u}, v.neon)
-		cv.FillRect(canvas.Area{X: x + 6*u, Y: y + 9*u, Width: 8 * u, Height: 3 * u}, v.neon)
+	cv.RoundRect(canvas.Round(canvas.Area{X: p.X, Y: p.Y, Width: box, Height: box}, radius), border)
+	if p.On {
+		cv.FillRect(canvas.Area{X: p.X + 4*u, Y: p.Y + 9*u, Width: 3 * u, Height: 3 * u}, v.neon)
+		cv.FillRect(canvas.Area{X: p.X + 6*u, Y: p.Y + 9*u, Width: 8 * u, Height: 3 * u}, v.neon)
 	}
-	cv.TextScaled(x+box+labelGap*u, y+(box-textHeight(u))/2, label, v.text, u)
+	cv.TextScaled(p.X+box+labelGap*u, p.Y+(box-textHeight(u))/2, p.Label, v.text, u)
 }

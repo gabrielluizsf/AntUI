@@ -28,7 +28,13 @@ func (t *uiTemplate) Radio(win *antui.Window, x, y int, label string, value *int
 	} else {
 		clicked = false
 	}
-	t.style.Radio(win, State{Hovered: hovered, Focused: focused, On: selected}, x, y, label, selected)
+	t.style.Radio(RadioParams{
+		Win:   win,
+		State: State{Hovered: hovered, Focused: focused, On: selected},
+		X:     x, Y: y,
+		Label: label,
+		On:    selected,
+	})
 	if clicked {
 		return t.fire(event.Event{Component: event.Radio, Kind: event.Pick})
 	}

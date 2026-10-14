@@ -10,6 +10,11 @@ func (c *CSS) Label(text string) {
 		return
 	}
 	c.style.transformed(st, x, y, w, h, func() {
-		c.style.Label(c.win, x, y, text)
+		c.style.Label(LabelParams{
+			Win:   c.win,
+			State: State{},
+			X:     x, Y: y,
+			Text: text,
+		})
 	})
 }

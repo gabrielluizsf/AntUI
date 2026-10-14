@@ -1,13 +1,12 @@
 package template
 
-import "github.com/gabrielluizsf/antui"
-
-func (builtinStyle) TextAreaTextPos(win *antui.Window, s State, x, y, w, h int, text string, cursor, mx, my int) int {
+func (builtinStyle) TextAreaTextPos(p TextAreaTextPosParams) int {
+	win := p.Win
 	u := Scale(win)
 	padding := 8 * u
-	down := max((w-2*padding)/u, 12)
-	cursor = min(max(cursor, 0), len(text))
-	lines := textLines(text, down)
-	return textAreaTextPos(text, lines, padding, x, y, h, cursor, textHeight(u),
-		func(prefix string) int { return textWidth(u, prefix) }, mx, my)
+	down := max((p.W-2*padding)/u, 12)
+	cursor := min(max(p.Cursor, 0), len(p.Text))
+	lines := textLines(p.Text, down)
+	return textAreaTextPos(p.Text, lines, padding, p.X, p.Y, p.H, cursor, textHeight(u),
+		func(prefix string) int { return textWidth(u, prefix) }, p.MouseX, p.MouseY)
 }

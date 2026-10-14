@@ -294,7 +294,7 @@ func TestWidgetsDrawTheirMarksAsIcons(t *testing.T) {
 	}
 
 	tick := markOfIcon(func(win *antui.Window) {
-		builtinStyle{}.Checkbox(win, State{}, 0, 0, "", true)
+		builtinStyle{}.Checkbox(CheckboxParams{Win: win, State: State{}, X: 0, Y: 0, Label: "", On: true})
 	}, IconCheck)
 	if tick.count() < 8 {
 		t.Errorf("a checked checkbox has %d pixels of tick in it, want a visible mark", tick.count())
@@ -312,13 +312,13 @@ func TestWidgetsDrawTheirMarksAsIcons(t *testing.T) {
 	}
 	// An unchecked box shows no tick: the mark belongs to being on.
 	if off := markOfIcon(func(win *antui.Window) {
-		builtinStyle{}.Checkbox(win, State{}, 0, 0, "", false)
+		builtinStyle{}.Checkbox(CheckboxParams{Win: win, State: State{}, X: 0, Y: 0, Label: "", On: false})
 	}, IconCheck); off.count() != 0 {
 		t.Errorf("an unchecked checkbox has %d pixels of tick in it, want none", off.count())
 	}
 
 	dot := markOfIcon(func(win *antui.Window) {
-		builtinStyle{}.Radio(win, State{}, 0, 0, "", true)
+		builtinStyle{}.Radio(RadioParams{Win: win, State: State{}, X: 0, Y: 0, Label: "", On: true})
 	}, IconDot)
 	if dot.count() < 8 {
 		t.Errorf("a selected radio has %d pixels of dot in it, want a visible mark", dot.count())
@@ -340,7 +340,7 @@ func TestWidgetsDrawTheirMarksAsIcons(t *testing.T) {
 		t.Errorf("the dot is %dx%d, want something round of a few pixels across", w, h)
 	}
 	if off := markOfIcon(func(win *antui.Window) {
-		builtinStyle{}.Radio(win, State{}, 0, 0, "", false)
+		builtinStyle{}.Radio(RadioParams{Win: win, State: State{}, X: 0, Y: 0, Label: "", On: false})
 	}, IconDot); off.count() != 0 {
 		t.Errorf("an unselected radio has %d pixels of dot in it, want none", off.count())
 	}
@@ -365,19 +365,23 @@ func TestSelectAndDatePickerDrawTheirCarets(t *testing.T) {
 	// Two paints of the same widget with the same icons have to agree, or the
 	// difference measured below would be measuring nothing at all.
 	if diff := markOf(t, w, h,
-		func(win *antui.Window) { builtinStyle{}.Select(win, State{}, 0, 0, w, h, "v", false) },
-		func(win *antui.Window) { builtinStyle{}.Select(win, State{}, 0, 0, w, h, "v", false) }); diff.count() != 0 {
+		func(win *antui.Window) {
+			builtinStyle{}.Select(SelectParams{Win: win, State: State{}, X: 0, Y: 0, W: w, H: h, Value: "v", Open: false})
+		},
+		func(win *antui.Window) {
+			builtinStyle{}.Select(SelectParams{Win: win, State: State{}, X: 0, Y: 0, W: w, H: h, Value: "v", Open: false})
+		}); diff.count() != 0 {
 		t.Fatalf("a widget painted twice differed in %d pixels, so a mark cannot be told from its widget", diff.count())
 	}
 
 	arrow := markOf(t, w, h,
 		func(win *antui.Window) {
 			resetIcons()
-			builtinStyle{}.Select(win, State{}, 0, 0, w, h, "v", false)
+			builtinStyle{}.Select(SelectParams{Win: win, State: State{}, X: 0, Y: 0, W: w, H: h, Value: "v", Open: false})
 		},
 		func(win *antui.Window) {
 			blank(IconCaret)
-			builtinStyle{}.Select(win, State{}, 0, 0, w, h, "v", false)
+			builtinStyle{}.Select(SelectParams{Win: win, State: State{}, X: 0, Y: 0, W: w, H: h, Value: "v", Open: false})
 		})
 	if arrow.count() == 0 {
 		t.Fatal("the dropdown has no arrow in it")
@@ -400,11 +404,11 @@ func TestSelectAndDatePickerDrawTheirCarets(t *testing.T) {
 		return markOf(t, w, h,
 			func(win *antui.Window) {
 				resetIcons()
-				builtinStyle{}.DatePickerBox(win, State{}, 0, 0, w, h, "v", open)
+				builtinStyle{}.DatePickerBox(DatePickerBoxParams{Win: win, State: State{}, X: 0, Y: 0, W: w, H: h, Value: "v", Open: open})
 			},
 			func(win *antui.Window) {
 				blank(name)
-				builtinStyle{}.DatePickerBox(win, State{}, 0, 0, w, h, "v", open)
+				builtinStyle{}.DatePickerBox(DatePickerBoxParams{Win: win, State: State{}, X: 0, Y: 0, W: w, H: h, Value: "v", Open: open})
 			})
 	}
 	_, _, downFirst, downLast, ok := caret(IconCaret, false).ends()

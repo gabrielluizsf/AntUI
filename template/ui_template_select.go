@@ -54,7 +54,13 @@ func (t *uiTemplate) Select(win *antui.Window, x, y, w, h int, index *int, optio
 		}
 	}
 
-	t.style.Select(win, State{Hovered: hovered, Focused: focused, On: open}, x, y, w, h, options[*index], open)
+	t.style.Select(SelectParams{
+		Win:   win,
+		State: State{Hovered: hovered, Focused: focused, On: open},
+		X:     x, Y: y, W: w, H: h,
+		Value: options[*index],
+		Open:  open,
+	})
 
 	return t.selectResult(wasOpen, open, picked, index)
 }

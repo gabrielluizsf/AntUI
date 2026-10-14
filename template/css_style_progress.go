@@ -1,33 +1,32 @@
 package template
 
 import (
-	"github.com/gabrielluizsf/antui"
 	"github.com/gabrielluizsf/antui/canvas"
 	"github.com/gabrielluizsf/antui/template/css"
 )
 
-func (cs *cssStyle) Progress(win *antui.Window, x, y, w, h int, value float32) {
+func (cs *cssStyle) Progress(p ProgressParams) {
 	st := cs.styleFor(css.RoleProgress, State{})
-	value = clampFloat(value, 0, 1)
+	value := clampFloat(p.Value, 0, 1)
 	u := cs.u()
 
 	// A square progress whose border radius rounds it into a full circle is
 	// a ring: the value draws as an arc sweeping around a track, instead of
 	// a bar filling from the left.
 	r := st.Radius[css.SideTop] * u
-	if w == h && r >= min(w, h)/2 {
-		cs.progressRing(win, st, x, y, w, h, value)
+	if p.W == p.H && r >= min(p.W, p.H)/2 {
+		cs.progressRing(p.Win, st, p.X, p.Y, p.W, p.H, value)
 		return
 	}
 
-	cv := win.Canvas()
+	cv := p.Win.Canvas()
 	fill := cs.fill(st)
 	if r <= 0 {
-		r = h / 2
+		r = p.H / 2
 	}
-	filled := int(float32(w)*value + 0.5)
-	cv.FillRoundRect(canvas.Round(canvas.Area{X: x, Y: y, Width: w, Height: h}, r), canvas.Shade(fill, trackShade))
+	filled := int(float32(p.W)*value + 0.5)
+	cv.FillRoundRect(canvas.Round(canvas.Area{X: p.X, Y: p.Y, Width: p.W, Height: p.H}, r), canvas.Shade(fill, trackShade))
 	if filled > 0 {
-		cv.FillRoundRect(canvas.Round(canvas.Area{X: x, Y: y, Width: filled, Height: h}, r), fill)
+		cv.FillRoundRect(canvas.Round(canvas.Area{X: p.X, Y: p.Y, Width: filled, Height: p.H}, r), fill)
 	}
 }

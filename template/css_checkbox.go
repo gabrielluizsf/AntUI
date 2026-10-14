@@ -23,7 +23,13 @@ func (c *CSS) Checkbox(label string, value *bool) event.Event {
 	st = c.style.entryStyle(c.style.cur, css.RoleCheckbox, s)
 	if !interactive(st) {
 		c.paint(st, css.RoleCheckbox, label, x, y, w, h, func() {
-			c.style.Checkbox(c.win, s, x, cy, label, on)
+			c.style.Checkbox(CheckboxParams{
+				Win:   c.win,
+				State: s,
+				X:     x, Y: cy,
+				Label: label,
+				On:    on,
+			})
 		})
 		return event.Nothing
 	}

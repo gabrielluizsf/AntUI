@@ -30,8 +30,13 @@ func (t *uiTemplate) DatePicker(win *antui.Window, x, y, w, h int, value *Date) 
 	v = t.dateInput(win, value, id, hovered, focused, g, v)
 
 	firstWD, days, sel, hoverDay := dateCalendar(win, v, g)
-	t.style.DatePickerBox(win, State{Hovered: hovered, Focused: focused, On: v.open},
-		x, y, w, h, dateString(*value), v.open)
+	t.style.DatePickerBox(DatePickerBoxParams{
+		Win:   win,
+		State: State{Hovered: hovered, Focused: focused, On: v.open},
+		X:     x, Y: y, W: w, H: h,
+		Value: dateString(*value),
+		Open:  v.open,
+	})
 	if v.open {
 		p := datePaint{x: g.px, y: g.py, w: g.dw, h: g.dh, u: g.u,
 			year: v.year, month: v.month, firstWD: firstWD, days: days,

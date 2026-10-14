@@ -1,9 +1,7 @@
 package template
 
 import (
-	"github.com/gabrielluizsf/antui"
 	"github.com/gabrielluizsf/antui/canvas"
-	"github.com/gabrielluizsf/antui/template/css"
 )
 
 func (builtinStyle) Select(p SelectParams) {

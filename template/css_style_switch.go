@@ -1,31 +1,30 @@
 package template
 
 import (
-	"github.com/gabrielluizsf/antui"
 	"github.com/gabrielluizsf/antui/canvas"
 	"github.com/gabrielluizsf/antui/template/css"
 )
 
-func (cs *cssStyle) Switch(win *antui.Window, s State, x, y int, label string, on bool) {
-	st := cs.styleFor(css.RoleSwitch, s)
-	if on {
-		st = cs.styleFor(css.RoleSwitch, State{On: true, Focused: s.Focused, Hovered: s.Hovered})
+func (cs *cssStyle) Switch(p SwitchParams) {
+	st := cs.styleFor(css.RoleSwitch, p.State)
+	if p.On {
+		st = cs.styleFor(css.RoleSwitch, State{On: true, Focused: p.State.Focused, Hovered: p.State.Hovered})
 	}
 	u := cs.u()
 	trackW, trackH := switchTrackW*u, switchTrackH*u
 
 	fill := cs.fill(st)
-	if on {
+	if p.On {
 		fill = cs.ink(st)
 	}
-	cv := win.Canvas()
-	cv.FillRoundRect(canvas.Round(canvas.Area{X: x, Y: y, Width: trackW, Height: trackH}, trackH/2), cs.fade(st, fill))
-	cx := x + trackH/2
-	if on {
-		cx = x + trackW - trackH/2
+	cv := p.Win.Canvas()
+	cv.FillRoundRect(canvas.Round(canvas.Area{X: p.X, Y: p.Y, Width: trackW, Height: trackH}, trackH/2), cs.fade(st, fill))
+	cx := p.X + trackH/2
+	if p.On {
+		cx = p.X + trackW - trackH/2
 	}
 	thumb := canvas.Shade(fill, thumbShade)
-	if on {
+	if p.On {
 		thumb = cs.fill(st)
 	}
 	if thumb.A() == 0 {
@@ -34,6 +33,6 @@ func (cs *cssStyle) Switch(win *antui.Window, s State, x, y int, label string, o
 		// drawn as the dot at the end of an empty track.
 		thumb = cs.ink(st)
 	}
-	cv.FillCircle(canvas.Circle{X: cx, Y: y + trackH/2, R: trackH/2 - 2*u}, thumb)
-	cs.run(cv, st, x+trackW+labelGap*u, y+(trackH-cs.textHeight(st))/2, label)
+	cv.FillCircle(canvas.Circle{X: cx, Y: p.Y + trackH/2, R: trackH/2 - 2*u}, thumb)
+	cs.run(p.Win.Canvas(), st, p.X+trackW+labelGap*u, p.Y+(trackH-cs.textHeight(st))/2, p.Label)
 }

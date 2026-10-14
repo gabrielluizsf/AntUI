@@ -1,42 +1,42 @@
 package template
 
 import (
-	"github.com/gabrielluizsf/antui"
 	"github.com/gabrielluizsf/antui/canvas"
 )
 
-func (cyberStyle) Switch(win *antui.Window, s State, x, y int, label string, on bool) {
+func (cyberStyle) Switch(p SwitchParams) {
+	win := p.Win
 	cv := win.Canvas()
 	u := Scale(win)
 	v := vividFor(win)
 	trackW, trackH := switchTrackW*u, switchTrackH*u
 
-	if s.Focused || s.Hovered {
-		glow(cv, halo{x: x, y: y, w: trackW, h: trackH, radius: trackH, colour: v.neon, strength: int(float64(30) * v.glow), u: u})
+	if p.State.Focused || p.State.Hovered {
+		glow(cv, halo{x: p.X, y: p.Y, w: trackW, h: trackH, radius: trackH, colour: v.neon, strength: int(float64(30) * v.glow), u: u})
 	}
 	body := cyberPalette.panel
-	if s.Hovered {
+	if p.State.Hovered {
 		body = cyberPalette.panelHov
 	}
 	border := v.edge
-	if on || s.Focused {
+	if p.On || p.State.Focused {
 		border = v.neon
 	}
-	cv.FillRoundRect(canvas.Round(canvas.Area{X: x, Y: y, Width: trackW, Height: trackH}, trackH/2), body)
-	cv.RoundRect(canvas.Round(canvas.Area{X: x, Y: y, Width: trackW, Height: trackH}, trackH/2), border)
+	cv.FillRoundRect(canvas.Round(canvas.Area{X: p.X, Y: p.Y, Width: trackW, Height: trackH}, trackH/2), body)
+	cv.RoundRect(canvas.Round(canvas.Area{X: p.X, Y: p.Y, Width: trackW, Height: trackH}, trackH/2), border)
 
-	if on {
-		cv.FillRoundRect(canvas.Round(canvas.Area{X: x, Y: y, Width: trackH, Height: trackH}, trackH/2), canvas.Fade(v.neon, 120))
+	if p.On {
+		cv.FillRoundRect(canvas.Round(canvas.Area{X: p.X, Y: p.Y, Width: trackH, Height: trackH}, trackH/2), canvas.Fade(v.neon, 120))
 	}
 	colour := v.edge
-	if on {
+	if p.On {
 		colour = v.neon
 	}
-	cx := x + trackH/2
-	if on {
-		cx = x + trackW - trackH/2
+	cx := p.X + trackH/2
+	if p.On {
+		cx = p.X + trackW - trackH/2
 	}
-	cv.FillCircle(canvas.Circle{X: cx, Y: y + trackH/2, R: trackH/2 - 3*u}, colour)
-	cv.Circle(canvas.Circle{X: cx, Y: y + trackH/2, R: trackH/2 - 4*u}, cyberPalette.panelAct)
-	cv.TextScaled(x+trackW+labelGap*u, y+(trackH-textHeight(u))/2, label, v.text, u)
+	cv.FillCircle(canvas.Circle{X: cx, Y: p.Y + trackH/2, R: trackH/2 - 3*u}, colour)
+	cv.Circle(canvas.Circle{X: cx, Y: p.Y + trackH/2, R: trackH/2 - 4*u}, cyberPalette.panelAct)
+	cv.TextScaled(p.X+trackW+labelGap*u, p.Y+(trackH-textHeight(u))/2, p.Label, v.text, u)
 }
