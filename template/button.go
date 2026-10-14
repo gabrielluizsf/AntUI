@@ -3,28 +3,29 @@ package template
 import (
 	"github.com/gabrielluizsf/antui"
 	"github.com/gabrielluizsf/antui/canvas"
+	"github.com/gabrielluizsf/antui/template/css"
 )
 
-func (builtinStyle) Button(win *antui.Window, s State, x, y, w, h int, label string) {
-	cv := win.Canvas()
-	th := win.Theme()
-	u := Scale(win)
+func (builtinStyle) Button(p ButtonParams) {
+	cv := p.Win.Canvas()
+	th := p.Win.Theme()
+	u := Scale(p.Win)
 	fill := th.Accent
 	switch {
-	case s.Pressed:
+	case p.State.Pressed:
 		fill = canvas.Shade(th.Accent, -0.18)
-	case s.Hovered:
+	case p.State.Hovered:
 		fill = th.AccentHover
 	}
-	cv.FillRoundRect(canvas.Round(canvas.Area{X: x, Y: y, Width: w, Height: h}, th.Radius), fill)
+	cv.FillRoundRect(canvas.Round(canvas.Area{X: p.X, Y: p.Y, Width: p.W, Height: p.H}, th.Radius), fill)
 
-	if s.Focused && !s.Pressed {
-		cv.RoundRect(canvas.Round(canvas.Area{X: x - focusRing*u, Y: y - focusRing*u, Width: w + 2*focusRing*u, Height: h + 2*focusRing*u}, th.Radius+focusRing*u), th.Accent)
+	if p.State.Focused && !p.State.Pressed {
+		cv.RoundRect(canvas.Round(canvas.Area{X: p.X - focusRing*u, Y: p.Y - focusRing*u, Width: p.W + 2*focusRing*u, Height: p.H + 2*focusRing*u}, th.Radius+focusRing*u), th.Accent)
 	}
 
-	textY := y + (h-textHeight(u))/2
-	if s.Pressed {
+	textY := p.Y + (p.H-textHeight(u))/2
+	if p.State.Pressed {
 		textY += u
 	}
-	cv.TextScaled(x+(w-textWidth(u, label))/2, textY, label, th.TextOnAccent, u)
+	cv.TextScaled(p.X+(p.W-textWidth(u, p.Label))/2, textY, p.Label, th.TextOnAccent, u)
 }
