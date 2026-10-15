@@ -16,12 +16,12 @@ import (
 // A protocol-relative `//host/path` names no scheme: it takes the base's where
 // there is one to take it from, and is otherwise the https a drawing with no
 // page above it means.
+//
+// A base that names no scheme (or that starts with a Windows drive letter) is a
+// path on this machine, not a URL, and is joined with the path package rather
+// than parsed as a URL: `C:\dir\` parsed as a URL would read `C` as a scheme.
 func resolveHref(base, href string) string {
-	// A Windows absolute path is a local filesystem path, not a URL.
-	if isWindowsAbsPath(href) {
-		return href
-	}
-	if href == "" {
+	if href == "" || isWindowsAbsPath(href) {
 		return href
 	}
 	if strings.HasPrefix(href, "//") {
@@ -30,9 +30,15 @@ func resolveHref(base, href string) string {
 		}
 		return "https:" + href
 	}
-	if base == "" {
+	// No base to complete it against, or an address that is already whole.
+	if base == "" || hrefScheme(href) != "" {
 		return href
 	}
+
+	if hrefScheme(base) == "" {
+		return joinLocal(base, href)
+	}
+
 	b, err := url.Parse(base)
 	if err != nil {
 		return href
