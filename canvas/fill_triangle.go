@@ -1,7 +1,11 @@
 package canvas
 
 // FillTriangle fills a triangle. Either winding works.
-func (cv *Canvas) FillTriangle(x0, y0, x1, y1, x2, y2 int, c Color) {
+func (cv *Canvas) FillTriangle(points [3]Point, c Color) {
+	p0, p1, p2 := points[0], points[1], points[2]
+	x0, y0 := int(p0.X), int(p0.Y)
+	x1, y1 := int(p1.X), int(p1.Y)
+	x2, y2 := int(p2.X), int(p2.Y)
 	minX := max(min(x0, min(x1, x2)), cv.Clip.X)
 	maxX := min(max(x0, max(x1, x2)), cv.Clip.X+cv.Clip.Width-1)
 	minY := max(min(y0, min(y1, y2)), cv.Clip.Y)

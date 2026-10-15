@@ -16,7 +16,7 @@ func TestDamageCoversEveryDrawing(t *testing.T) {
 		"clear":        func() { cv.Clear(RGB(0x10, 0x12, 0x18)) },
 		"fill rect":    func() { cv.FillRect(Area{20, 20, 200, 120}, RGB(0x3E, 0x63, 0xDD)) },
 		"rect":         func() { cv.Rect(Area{4, 4, 300, 220}, RGBA(0xFF, 0xFF, 0xFF, 0x80)) },
-		"line":         func() { cv.Line(0, 239, 319, 0, Red) },
+		"line":         func() { cv.Line(Point{X:0,Y:239}, Point{X:319,Y:0}, Red) },
 		"circle":       func() { cv.Circle(Circle{160, 120, 60}, White) },
 		"fill circle":  func() { cv.FillCircle(Circle{80, 80, 40}, Green) },
 		"fill ellipse": func() { cv.FillEllipse(Ellipse{240, 80, 40, 20}, Blue) },
@@ -24,7 +24,7 @@ func TestDamageCoversEveryDrawing(t *testing.T) {
 			cv.FillRoundRect(Round(Area{20, 150, 120, 60}, 12), Yellow)
 			cv.RoundRect(Round(Area{160, 150, 120, 60}, 12), Black)
 		},
-		"triangle": func() { cv.FillTriangle(10, 220, 60, 220, 35, 180, Cyan) },
+		"triangle": func() { cv.FillTriangle([3]Point{{X: 10, Y: 220}, {X: 60, Y: 220}, {X: 35, Y: 180}}, Cyan) },
 		"ring arc": func() { cv.RingArc(RingArcParams{Center: Point{X: 160, Y: 120}, Radius: 70, Thickness: 8, Start: 0.3, Sweep: 2.0, Color: RGB(0xFF, 0x88, 0x00)}) },
 		"text":     func() { cv.Text(20, 30, "AntUI 24:00", White) },
 		"face":     func() { cv.face().Draw(cv, 20, 50, "AntUI", White) },

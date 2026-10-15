@@ -55,7 +55,7 @@ func TestDrawingOutOfBoundsIsClipped(t *testing.T) {
 	cv.Pixel(-5, -5, White)
 	cv.Pixel(100, 100, White)
 	cv.FillRect(Area{-20, -20, 5, 5}, White)
-	cv.Line(-50, -50, 60, 60, White)
+	cv.Line(Point{X:-50,Y:-50}, Point{X:60,Y:60}, White)
 	cv.Text(-100, -100, "outside", White)
 
 	if got := cv.At(0, 0); got != White {
@@ -185,7 +185,7 @@ func TestShapes(t *testing.T) {
 
 	t.Run("filled triangle", func(t *testing.T) {
 		cv.Clear(Black)
-		cv.FillTriangle(0, 0, 39, 0, 0, 39, White)
+		cv.FillTriangle([3]Point{{X: 0, Y: 0}, {X: 39, Y: 0}, {X: 0, Y: 39}}, White)
 		if got := cv.At(2, 2); got != White {
 			t.Errorf("inside = %08X, want it painted", uint32(got))
 		}

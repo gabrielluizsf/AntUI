@@ -45,10 +45,10 @@ func (win *Window) Checkbox(x, y int, params CheckboxParams) bool {
 
 	if *value {
 		mark := win.theme.TextOnAccent
-		win.cv.Line(x+4, y+9, x+7, y+13, mark)
-		win.cv.Line(x+5, y+9, x+8, y+13, mark)
-		win.cv.Line(x+7, y+13, x+14, y+5, mark)
-		win.cv.Line(x+8, y+13, x+15, y+5, mark)
+		win.cv.Line(canvas.Point{X: float64(x + 4), Y: float64(y + 9)}, canvas.Point{X: float64(x + 7), Y: float64(y + 13)}, mark)
+		win.cv.Line(canvas.Point{X: float64(x + 5), Y: float64(y + 9)}, canvas.Point{X: float64(x + 8), Y: float64(y + 13)}, mark)
+		win.cv.Line(canvas.Point{X: float64(x + 7), Y: float64(y + 13)}, canvas.Point{X: float64(x + 14), Y: float64(y + 5)}, mark)
+		win.cv.Line(canvas.Point{X: float64(x + 8), Y: float64(y + 13)}, canvas.Point{X: float64(x + 15), Y: float64(y + 5)}, mark)
 	}
 
 	win.cv.Text(x+box+8, y+(box-canvas.TextHeight())/2, label, win.theme.Text)

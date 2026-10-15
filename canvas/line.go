@@ -1,7 +1,9 @@
 package canvas
 
 // Line draws a line with Bresenham's algorithm.
-func (cv *Canvas) Line(x0, y0, x1, y1 int, c Color) {
+func (cv *Canvas) Line(a, b Point, c Color) {
+	x0, y0 := int(a.X), int(a.Y)
+	x1, y1 := int(b.X), int(b.Y)
 	dx := abs(x1 - x0)
 	dy := abs(y1 - y0)
 	sx, sy := -1, -1

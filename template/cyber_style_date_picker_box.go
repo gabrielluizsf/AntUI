@@ -1,5 +1,7 @@
 package template
 
+import "github.com/gabrielluizsf/antui/canvas"
+
 func (cyberStyle) DatePickerBox(p DatePickerBoxParams) {
 	win := p.Win
 	cv := win.Canvas()
@@ -32,10 +34,10 @@ func (cyberStyle) DatePickerBox(p DatePickerBoxParams) {
 	ax := p.X + p.W - padding - aw
 	ay := p.Y + (p.H-ah)/2
 	if p.Open {
-		cv.Line(ax, ay+ah, ax+aw/2, ay, v.neon)
-		cv.Line(ax+aw/2, ay, ax+aw, ay+ah, v.neon)
+		cv.Line(canvas.Point{X: float64(float64(float64(ax))), Y: float64(float64(float64(ay+ah)))}, canvas.Point{X: float64(float64(float64(ax+aw/2))), Y: float64(float64(float64(ay)))}, v.neon)
+		cv.Line(canvas.Point{X: float64(float64(float64(ax+aw/2))), Y: float64(float64(float64(ay)))}, canvas.Point{X: float64(float64(float64(ax+aw))), Y: float64(float64(float64(ay+ah)))}, v.neon)
 	} else {
-		cv.Line(ax, ay, ax+aw/2, ay+ah, v.dim)
-		cv.Line(ax+aw/2, ay+ah, ax+aw, ay, v.dim)
+		cv.Line(canvas.Point{X: float64(float64(float64(ax))), Y: float64(float64(float64(ay)))}, canvas.Point{X: float64(float64(float64(ax+aw/2))), Y: float64(float64(float64(ay+ah)))}, v.dim)
+		cv.Line(canvas.Point{X: float64(float64(float64(ax+aw/2))), Y: float64(float64(float64(ay+ah)))}, canvas.Point{X: float64(float64(float64(ax+aw))), Y: float64(float64(float64(ay)))}, v.dim)
 	}
 }
