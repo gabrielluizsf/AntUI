@@ -25,7 +25,7 @@ func TestDamageCoversEveryDrawing(t *testing.T) {
 			cv.RoundRect(Round(Area{160, 150, 120, 60}, 12), Black)
 		},
 		"triangle": func() { cv.FillTriangle(10, 220, 60, 220, 35, 180, Cyan) },
-		"ring arc": func() { cv.RingArc(160, 120, 70, 8, 0.3, 2.0, RGB(0xFF, 0x88, 0x00)) },
+		"ring arc": func() { cv.RingArc(RingArcParams{Center: Point{X: 160, Y: 120}, Radius: 70, Thickness: 8, Start: 0.3, Sweep: 2.0, Color: RGB(0xFF, 0x88, 0x00)}) },
 		"text":     func() { cv.Text(20, 30, "AntUI 24:00", White) },
 		"face":     func() { cv.face().Draw(cv, 20, 50, "AntUI", White) },
 		"styled":   func() { cv.DrawStyled(20, 70, "styled", White, TextStyle{Bold: true, Scale: 2}) },

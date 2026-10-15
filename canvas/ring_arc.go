@@ -2,12 +2,22 @@ package canvas
 
 import "math"
 
-// RingArc draws a thick arc of the annulus between radius-thickness and radius,
-// centred on cx, cy. The arc starts at start radians and sweeps sweep radians;
-// a positive sweep turns clockwise, because the canvas y axis grows downward.
-// Both the radial and the angular edges are antialiased. A sweep of at least a
-// full turn paints the whole ring.
-func (cv *Canvas) RingArc(cx, cy, radius, thickness int, start, sweep float64, c Color) {
+// RingArcParams holds parameters for drawing a thick ring arc.
+type RingArcParams struct {
+	Center     Point
+	Radius     int
+	Thickness  int
+	Start      float64
+	Sweep      float64
+	Color      Color
+}
+
+// RingArc draws a thick arc of the annulus.
+func (cv *Canvas) RingArc(p RingArcParams) {
+	cx, cy := int(p.Center.X), int(p.Center.Y)
+	radius, thickness := p.Radius, p.Thickness
+	start, sweep := p.Start, p.Sweep
+	c := p.Color
 	if radius <= 0 || thickness <= 0 || sweep == 0 {
 		return
 	}

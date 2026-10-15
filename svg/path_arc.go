@@ -1,5 +1,7 @@
 package svg
 
+import "github.com/gabrielluizsf/antui/canvas"
+
 // arc reads an elliptical arc: the two radii, the rotation, the two flags and
 // the point it ends on. The flags are written as single digits that may run
 // into the numbers around them, which is why they are read as flags rather than
@@ -18,7 +20,7 @@ func (st *pathState) arc() bool {
 	if st.rel {
 		e = add(st.cur, e)
 	}
-	st.p.ArcTo(rx, ry, rot, large, sweep, e.X, e.Y)
+	st.p.ArcTo(canvas.ArcParams{RX: rx, RY: ry, Rot: rot, Large: large, Sweep: sweep, End: canvas.Point{X: e.X, Y: e.Y}})
 	st.cur, st.ctl, st.prevCubic, st.prevQuad = e, st.cur, false, false
 	return true
 }

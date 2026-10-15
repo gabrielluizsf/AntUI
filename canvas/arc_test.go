@@ -10,7 +10,7 @@ import (
 func TestRingArcFullRing(t *testing.T) {
 	cv, _ := NewCanvas(40, 40)
 	cx, cy, r, thick := 20, 20, 12, 4
-	cv.RingArc(cx, cy, r, thick, 0, 2*math.Pi, Red)
+	cv.RingArc(RingArcParams{Center: Point{X: float64(cx), Y: float64(cy)}, Radius: r, Thickness: thick, Start: 0, Sweep: 2 * math.Pi, Color: Red})
 	for _, p := range [][2]int{{cx, cy - r + 1}, {cx + r - 1, cy}, {cx, cy + r - 1}} {
 		if got := cv.At(p[0], p[1]); got.A() == 0 {
 			t.Errorf("ring at %v should be painted, got %v", p, got)
@@ -30,7 +30,7 @@ func TestRingArcSweepClipped(t *testing.T) {
 	cx, cy, r, thick := 20, 20, 12, 4
 	// Start at the top and sweep clockwise a quarter turn: the top-right
 	// diagonal is inside the arc; the bottom-right diagonal stays empty.
-	cv.RingArc(cx, cy, r, thick, -math.Pi/2, math.Pi/2, Red)
+	cv.RingArc(RingArcParams{Center: Point{X: float64(cx), Y: float64(cy)}, Radius: r, Thickness: thick, Start: -math.Pi / 2, Sweep: math.Pi / 2, Color: Red})
 	// In the sweep: one pixel in on the covered diagonal.
 	if got := cv.At(cx+8, cy-8); got.A() == 0 {
 		t.Errorf("inside the arc at (28,12) should be painted, got %v", got)
