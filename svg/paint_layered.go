@@ -25,7 +25,7 @@ import "github.com/gabrielluizsf/antui/canvas"
 // the same way: a picture drawn, cut to nothing, and laid over what was there
 // as nothing at all — and so does a mask whose reference the drawing could not
 // follow, which keeps nothing rather than keeping everything.
-func paintLayered(cv *canvas.Canvas, n *Node, m canvas.Matrix, current canvas.Color, masking []*maskDef, patterning []*pattern) {
+func paintLayered(cv *canvas.Canvas, n *Node, m canvas.Matrix, paints palette, masking []*maskDef, patterning []*pattern) {
 	if n.mask != nil && n.mask.def.content == nil {
 		// There is no picture to make: the mask keeps nothing, so nothing of
 		// what it masks is drawn.
@@ -37,7 +37,7 @@ func paintLayered(cv *canvas.Canvas, n *Node, m canvas.Matrix, current canvas.Co
 		// draw on and nothing to draw into either.
 		return
 	}
-	paintBody(layer, n, m, current, masking, patterning)
+	paintBody(layer, n, m, paints, masking, patterning)
 	if len(n.filters) > 0 {
 		// The scale the element is drawn at goes with the list because what
 		// the group's transform drew is bigger or smaller than the writing
@@ -46,13 +46,13 @@ func paintLayered(cv *canvas.Canvas, n *Node, m canvas.Matrix, current canvas.Co
 		// the children were drawn with it. What comes back may be another
 		// picture than the one that went in, since every filter primitive
 		// leaves a picture of its own behind.
-		layer = applyFilters(layer, n.filters, scalesOf(m.Mul(n.Style.Transform)), current)
+		layer = applyFilters(layer, n.filters, scalesOf(m.Mul(n.Style.Transform)), paints.current)
 	}
 	if n.clip != nil {
 		layer.MaskShapes(n.clip.measured(m)...)
 	}
 	if n.mask != nil {
-		paintMasked(layer, n, m, current, masking, patterning)
+		paintMasked(layer, n, m, paints, masking, patterning)
 	}
 	cv.BlitOver(0, 0, layer)
 }

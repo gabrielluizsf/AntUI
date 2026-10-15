@@ -14,7 +14,7 @@ import "github.com/gabrielluizsf/antui/canvas"
 // a picture rather than a program that does not come back. A pattern is left
 // off the same way, and the shape that asked for it takes the colour after the
 // `url(...)` if it brought one.
-func paintNodes(cv *canvas.Canvas, n *Node, m canvas.Matrix, current canvas.Color, masking []*maskDef, patterning []*pattern) {
+func paintNodes(cv *canvas.Canvas, n *Node, m canvas.Matrix, paints palette, masking []*maskDef, patterning []*pattern) {
 	if n.Style.Hidden {
 		return
 	}
@@ -25,8 +25,8 @@ func paintNodes(cv *canvas.Canvas, n *Node, m canvas.Matrix, current canvas.Colo
 		m = vectorEffectMatrix(m, n.Style)
 	}
 	if n.clip != nil || n.mask != nil || len(n.filters) > 0 {
-		paintLayered(cv, n, m, current, masking, patterning)
+		paintLayered(cv, n, m, paints, masking, patterning)
 		return
 	}
-	paintBody(cv, n, m, current, masking, patterning)
+	paintBody(cv, n, m, paints, masking, patterning)
 }

@@ -19,7 +19,7 @@ import "github.com/gabrielluizsf/antui/canvas"
 // covers is known. The stroke goes down before the fill the same way a shape's
 // does, so the part of it that falls inside the letters is covered by the fill
 // and the part that falls outside is the stroke showing.
-func paintText(cv *canvas.Canvas, n *Node, m canvas.Matrix, current canvas.Color, patterning []*pattern) {
+func paintText(cv *canvas.Canvas, n *Node, m canvas.Matrix, paints palette, patterning []*pattern) {
 	pieces := walkRuns(n.Runs, m)
 	if len(pieces) == 0 {
 		return
@@ -32,6 +32,6 @@ func paintText(cv *canvas.Canvas, n *Node, m canvas.Matrix, current canvas.Color
 	measured := *n
 	measured.box = writingBox(pieces)
 	for i := range pieces {
-		paintPiece(cv, &measured, &pieces[i], m, current, patterning)
+		paintPiece(cv, &measured, &pieces[i], m, paints, patterning)
 	}
 }

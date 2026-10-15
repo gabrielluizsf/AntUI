@@ -7,18 +7,18 @@ import "github.com/gabrielluizsf/antui/canvas"
 // of a stroke inside the letters covered by the fill and the half outside
 // showing as the outline it is.
 func paintPiece(cv *canvas.Canvas, n *Node, p *piece, m canvas.Matrix,
-	current canvas.Color, patterning []*pattern) {
+	paints palette, patterning []*pattern) {
 	st := p.run.Style
 	if st.HasStroke && st.Width > 0 {
 		c := st.Stroke
 		if st.StrokeCurrent {
-			c = current
+			c = paints.current
 		}
 		if c := fade(c, st.Opacity*st.StrokeOpacity); c.A() > 0 {
 			strokeWriting(cv, p.put, st.strokeWidth(m), c, p.scale)
 		}
 	}
-	shade, c, ok := fillShade(n, st, m, current, cv.Width, cv.Height, patterning)
+	shade, c, ok := fillShade(n, st, m, paints, cv.Width, cv.Height, patterning)
 	switch {
 	case !ok:
 		return

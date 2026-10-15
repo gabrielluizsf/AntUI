@@ -21,7 +21,7 @@ func (img *Image) paint(width, height int, current canvas.Color) *canvas.Canvas 
 	// shifted, which is what keeps a viewBox of "0 0 24 24" and one of
 	// "-12 -12 24 24" both filling the icon the same way.
 	m := fitTransform(img.ViewBox, float64(width*supersample), float64(height*supersample))
-	paintNodes(big, img.Root, m, current, nil, nil)
+	paintNodes(big, img.Root, m, palette{current: current}, nil, nil)
 
 	if supersample == 1 {
 		return big

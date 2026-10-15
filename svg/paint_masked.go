@@ -18,7 +18,7 @@ import "github.com/gabrielluizsf/antui/canvas"
 // otherwise land in two places at once. Its region is measured in the
 // drawing's own coordinates and taken to the canvas by the same transform the
 // element is, for the same reason.
-func paintMasked(layer *canvas.Canvas, n *Node, m canvas.Matrix, current canvas.Color, masking []*maskDef, patterning []*pattern) {
+func paintMasked(layer *canvas.Canvas, n *Node, m canvas.Matrix, paints palette, masking []*maskDef, patterning []*pattern) {
 	md := n.mask
 	for _, being := range masking {
 		if being == md.def {
@@ -42,7 +42,7 @@ func paintMasked(layer *canvas.Canvas, n *Node, m canvas.Matrix, current canvas.
 		if md.def.contentBoxUnits {
 			content = m.Mul(canvas.Translate(md.box[0], md.box[1])).Mul(canvas.Scale(md.box[2], md.box[3]))
 		}
-		paintNodes(ml, md.def.content, content, current, append(masking, md.def), patterning)
+		paintNodes(ml, md.def.content, content, paints, append(masking, md.def), patterning)
 	}
 	if md.cuts {
 		x0, y0, x1, y1 := regionArea(md.x, md.y, md.w, md.h, m)

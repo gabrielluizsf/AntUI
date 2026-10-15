@@ -14,7 +14,7 @@ import "github.com/gabrielluizsf/antui/canvas"
 // a pattern inside a marker finds the pattern already there rather than drawing
 // it again for ever. A marker the cycle cut left off has no marker to draw and
 // is passed over.
-func paintMarkers(cv *canvas.Canvas, n *Node, m canvas.Matrix, current canvas.Color, masking []*maskDef, patterning []*pattern) {
+func paintMarkers(cv *canvas.Canvas, n *Node, m canvas.Matrix, paints palette, masking []*maskDef, patterning []*pattern) {
 	for i := range n.markers {
 		place := &n.markers[i]
 		if place.def == nil || place.def.content == nil {
@@ -26,6 +26,6 @@ func paintMarkers(cv *canvas.Canvas, n *Node, m canvas.Matrix, current canvas.Co
 			wrap.Kids = []*Node{content}
 			content = wrap
 		}
-		paintNodes(cv, content, m.Mul(place.at), current, masking, patterning)
+		paintNodes(cv, content, m.Mul(place.at), paints, masking, patterning)
 	}
 }

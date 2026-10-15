@@ -31,7 +31,7 @@ func (pt *pattern) drawPicture(box [4]float64, x, y, w, h, s float64, current ca
 		boxT = canvas.Translate(box[0], box[1]).Mul(canvas.Scale(box[2], box[3]))
 	}
 	one := func(at canvas.Matrix) {
-		paintNodes(layer, pt.content, at, current, nil, append(patterning, pt))
+		paintNodes(layer, pt.content, at, palette{current: current}, nil, append(patterning, pt))
 	}
 	if pt.visible && pt.drawTiledPicture(box, x, y, w, h, base, boxT, one) {
 		return layer
