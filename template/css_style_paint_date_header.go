@@ -25,7 +25,7 @@ func (cs *cssStyle) paintDateHeader(cv *canvas.Canvas, st css.Style, p datePaint
 	// The arrows sit in the header, leaving the weekday and day rows aligned as
 	// one table below it.
 	ax, ay, aw := dateArrowRect(p.x, p.y, u, true)
-	DrawIcon(cv, IconCaretLeft, ax, ay, aw, aw, cs.ink(st))
+	drawIcon(cv, IconCaretLeft, ax, ay, aw, aw, cs.ink(st))
 	ax, ay, aw = dateArrowRect(p.x, p.y, u, false)
-	DrawIcon(cv, IconCaretRight, ax, ay, aw, aw, cs.ink(st))
+	drawIcon(cv, IconCaretRight, ax, ay, aw, aw, cs.ink(st))
 }

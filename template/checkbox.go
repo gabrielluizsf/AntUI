@@ -30,7 +30,7 @@ func (builtinStyle) Checkbox(p CheckboxParams) {
 	}
 
 	if p.On {
-		DrawIconIn(cv, IconCheck, p.X+2*u, p.Y+2*u, 14*u, th.TextOnAccent)
+		drawIconIn(cv, IconCheck, p.X+2*u, p.Y+2*u, 14*u, th.TextOnAccent)
 	}
 	cv.TextScaled(p.X+box+labelGap*u, p.Y+(box-textHeight(u))/2, p.Label, th.Text, u)
 }

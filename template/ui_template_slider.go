@@ -1,13 +1,16 @@
 package template
 
-import "github.com/gabrielluizsf/antui/canvas"
-
 import (
 	"github.com/gabrielluizsf/antui"
+	"github.com/gabrielluizsf/antui/canvas"
 	"github.com/gabrielluizsf/antui/template/event"
 )
 
-func (t *uiTemplate) Slider(win *antui.Window, x, y, w, h int, value *float32, minValue, maxValue float32) event.Event {
+func (t *uiTemplate) Slider(win *antui.Window, area canvas.Area, params antui.SliderParams) event.Event {
+	value := params.Value
+	minValue := params.Min
+	maxValue := params.Max
+	x, y, w, h := area.X, area.Y, area.Width, area.Height
 	if value == nil || w <= 0 || h <= 0 || maxValue <= minValue {
 		return event.Nothing
 	}

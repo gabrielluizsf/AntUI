@@ -1,13 +1,21 @@
 package css
 
-// Animate applies a @keyframes block at the progress t (0..1) over the base
+// animate applies a @keyframes block at the progress t (0..1) over the base
 // style and returns the animated style. The result owns its Set map, so the
 // cached base style is never touched; properties the frames wrote overlay
 // the base, and between two frames every animatable property the frames
 // mentioned interpolates, with the base style's value standing in for a
 // frame that omitted it. Properties the engine does not interpolate jump at
 // the 0.5 crossing.
-func Animate(base Style, kf *Keyframes, t float64, ctx Units) Style {
+type AnimateParams struct {
+	Base      Style
+	Keyframes *Keyframes
+	Progress  float64
+	Units     Units
+}
+
+func Animate(p AnimateParams) Style {
+	base, kf, t, ctx := p.Base, p.Keyframes, p.Progress, p.Units
 	if kf == nil || len(kf.Frames) == 0 {
 		return base
 	}
@@ -29,6 +37,10 @@ func Animate(base Style, kf *Keyframes, t float64, ctx Units) Style {
 			props[prop] = true
 		}
 	}
-	BlendKeyframes(&out, base, fa, fb, props, local, ctx)
+	blendKeyframes(&out, base, fa, fb, props, local, ctx)
 	return out
+}
+
+func animate(base Style, kf *Keyframes, t float64, ctx Units) Style {
+	return Animate(AnimateParams{Base: base, Keyframes: kf, Progress: t, Units: ctx})
 }

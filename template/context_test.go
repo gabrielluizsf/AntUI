@@ -1,6 +1,7 @@
 package template
 
 import (
+	"github.com/gabrielluizsf/antui/canvas"
 	"testing"
 
 	"github.com/gabrielluizsf/antui"
@@ -121,7 +122,7 @@ type navCart struct{}
 
 func (navHome) Draw(c *Context) {
 	c.Label(0, 0, "Home")
-	if c.Button(0, 40, 80, 30, "Shop").Is(event.Button, event.Click) {
+	if c.Button(canvas.Area{X: 0, Y: 40, Width: 80, Height: 30}, "Shop").Is(event.Button, event.Click) {
 		c.Go(navShop{})
 	}
 }
@@ -129,7 +130,7 @@ func (navHome) Draw(c *Context) {
 func (navShop) Draw(c *Context) {
 	c.Label(0, 0, "Shop")
 	c.BackButton()
-	if c.Button(0, 40, 80, 30, "Cart").Is(event.Button, event.Click) {
+	if c.Button(canvas.Area{X: 0, Y: 40, Width: 80, Height: 30}, "Cart").Is(event.Button, event.Click) {
 		c.Go(navCart{})
 	}
 }
@@ -137,7 +138,7 @@ func (navShop) Draw(c *Context) {
 func (navCart) Draw(c *Context) {
 	c.Label(0, 0, "Cart")
 	c.BackButton()
-	if c.Button(0, 40, 80, 30, "Home").Is(event.Button, event.Click) {
+	if c.Button(canvas.Area{X: 0, Y: 40, Width: 80, Height: 30}, "Home").Is(event.Button, event.Click) {
 		c.Go(navHome{})
 	}
 }

@@ -17,5 +17,6 @@ func (cs *cssStyle) applyFilters(cv *canvas.Canvas, filters []css.Filter, x, y, 
 		if f.Kind == canvas.FilterBlur {
 			amount = f.Amount * float64(u)
 		}
-		cv.FilterRegion(canvas.Area{X: x, Y: y, Width: w, Height: h}, f.Kind, amount)	}
+		cv.FilterRegion(canvas.Area{X: x, Y: y, Width: w, Height: h}, f.Kind, amount)
+	}
 }

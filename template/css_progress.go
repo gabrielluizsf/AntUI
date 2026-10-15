@@ -1,6 +1,9 @@
 package template
 
-import "github.com/gabrielluizsf/antui/template/css"
+import (
+	"github.com/gabrielluizsf/antui/canvas"
+	"github.com/gabrielluizsf/antui/template/css"
+)
 
 // Progress paints a read-only progress bar with progress from 0 to 1. When
 // the stylesheet rounds the box into a full circle, it paints a ring instead,
@@ -16,7 +19,7 @@ func (c *CSS) Progress(progress float32, center ...string) {
 		label = center[0]
 	}
 	c.paint(st, css.RoleProgress, "", x, y, w, h, func() {
-		c.ui.Progress(c.win, x, y, w, h, progress)
+		c.ui.Progress(c.win, canvas.Area{X: x, Y: y, Width: w, Height: h}, progress)
 		if label != "" {
 			tw := c.style.measure(st, label)
 			th := c.style.textHeight(st)

@@ -1,6 +1,7 @@
 package template
 
 import (
+	"github.com/gabrielluizsf/antui/canvas"
 	"github.com/gabrielluizsf/antui/template/css"
 	"github.com/gabrielluizsf/antui/template/event"
 )
@@ -16,7 +17,7 @@ func (c *CSS) TextArea(text *string) event.Event {
 	st = c.style.entryStyle(c.style.cur, css.RoleTextArea, s)
 	var e event.Event
 	c.paint(st, css.RoleTextArea, "", x, y, w, h, func() {
-		e = c.ui.TextArea(c.win, x, y, w, h, text)
+		e = c.ui.TextArea(c.win, canvas.Area{X: x, Y: y, Width: w, Height: h}, text)
 	})
 	return e
 }

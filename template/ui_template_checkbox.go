@@ -1,12 +1,15 @@
 package template
 
 import (
-	"github.com/gabrielluizsf/antui/canvas"
 	"github.com/gabrielluizsf/antui"
+	"github.com/gabrielluizsf/antui/canvas"
 	"github.com/gabrielluizsf/antui/template/event"
 )
 
-func (t *uiTemplate) Checkbox(win *antui.Window, x, y int, label string, value *bool) event.Event {
+func (t *uiTemplate) Checkbox(win *antui.Window, area canvas.Area, params antui.CheckboxParams) event.Event {
+	label := params.Label
+	value := params.Value
+	x, y := area.X, area.Y
 	if value == nil {
 		return event.Nothing
 	}

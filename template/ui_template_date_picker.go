@@ -1,8 +1,8 @@
 package template
 
 import (
-	"github.com/gabrielluizsf/antui/canvas"
 	"github.com/gabrielluizsf/antui"
+	"github.com/gabrielluizsf/antui/canvas"
 	"github.com/gabrielluizsf/antui/template/event"
 )
 
@@ -12,7 +12,8 @@ import (
 // or Enter picks the highlighted day. Picking sets value and closes the popup;
 // Escape or a click outside cancels. It reports when the calendar opened,
 // closed, or a new day was picked.
-func (t *uiTemplate) DatePicker(win *antui.Window, x, y, w, h int, value *Date) event.Event {
+func (t *uiTemplate) DatePicker(win *antui.Window, area canvas.Area, value *Date) event.Event {
+	x, y, w, h := area.X, area.Y, area.Width, area.Height
 	if value == nil || w <= 0 || h <= 0 {
 		return event.Nothing
 	}

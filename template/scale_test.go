@@ -46,8 +46,8 @@ func TestScaledScreensStillPaint(t *testing.T) {
 		tpl := Cyberpunk()
 		u := Scale(win)
 		win.Begin()
-		tpl.Button(win, 40*u, 40*u, 200*u, 80*u, "Launch")
-		tpl.Input(win, 40*u, 160*u, 300*u, 80*u, new(string))
+		tpl.Button(win, canvas.Area{X: 40 * u, Y: 40 * u, Width: 200 * u, Height: 80 * u}, "Launch")
+		tpl.Input(win, canvas.Area{X: 40 * u, Y: 160 * u, Width: 300 * u, Height: 80 * u}, new(string))
 		win.End()
 		n := 0
 		for _, c := range cv.Pixels {
@@ -82,8 +82,8 @@ func TestTemplateTabMovesBetweenInputs(t *testing.T) {
 	// Focus the title field by clicking it.
 	win.Begin()
 	testClick(t, win, 100, 100) // the "Title" input at 24,80 (scale 1)
-	tpl.Input(win, 24, 80, 472, 32, &title)
-	tpl.Input(win, 24, 154, 472, 32, &body)
+	tpl.Input(win, canvas.Area{X: 24, Y: 80, Width: 472, Height: 32}, &title)
+	tpl.Input(win, canvas.Area{X: 24, Y: 154, Width: 472, Height: 32}, &body)
 	win.End()
 	if win.WidgetFocus() == 0 {
 		t.Fatal("the title field should have focus after clicking it")
@@ -96,8 +96,8 @@ func TestTemplateTabMovesBetweenInputs(t *testing.T) {
 	win.Begin()
 	win.Push(antui.Event{Type: antui.EventText, Text: "A"})
 	win.Push(antui.Event{Type: antui.EventKeyDown, Key: antui.KeyTab})
-	tpl.Input(win, 24, 80, 472, 32, &title)
-	bodyEv := tpl.Input(win, 24, 154, 472, 32, &body)
+	tpl.Input(win, canvas.Area{X: 24, Y: 80, Width: 472, Height: 32}, &title)
+	bodyEv := tpl.Input(win, canvas.Area{X: 24, Y: 154, Width: 472, Height: 32}, &body)
 	win.End()
 	if title != "A" {
 		t.Errorf("title = %q, want it to hold the typed text", title)
@@ -116,8 +116,8 @@ func TestTemplateTabMovesBetweenInputs(t *testing.T) {
 	// And now typing lands in the body.
 	win.Begin()
 	win.Push(antui.Event{Type: antui.EventText, Text: "B"})
-	tpl.Input(win, 24, 80, 472, 32, &title)
-	bodyEv = tpl.Input(win, 24, 154, 472, 32, &body)
+	tpl.Input(win, canvas.Area{X: 24, Y: 80, Width: 472, Height: 32}, &title)
+	bodyEv = tpl.Input(win, canvas.Area{X: 24, Y: 154, Width: 472, Height: 32}, &body)
 	win.End()
 	if title != "A" || body != "B" {
 		t.Errorf("typing after Tab went to the wrong field: title=%q body=%q", title, body)

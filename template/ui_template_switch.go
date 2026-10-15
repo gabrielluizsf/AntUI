@@ -1,14 +1,17 @@
 package template
 
 import (
-	"github.com/gabrielluizsf/antui/canvas"
 	"github.com/gabrielluizsf/antui"
+	"github.com/gabrielluizsf/antui/canvas"
 	"github.com/gabrielluizsf/antui/template/event"
 )
 
 // Switch draws a flip toggle: a track with a thumb that slides between off
 // and on. It flips value when clicked and reports whether it flipped.
-func (t *uiTemplate) Switch(win *antui.Window, x, y int, label string, value *bool) event.Event {
+func (t *uiTemplate) Switch(win *antui.Window, area canvas.Area, params antui.CheckboxParams) event.Event {
+	label := params.Label
+	value := params.Value
+	x, y := area.X, area.Y
 	if value == nil {
 		return event.Nothing
 	}

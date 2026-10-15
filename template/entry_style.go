@@ -30,7 +30,7 @@ func (cs *cssStyle) entryStyle(e *widgetEntry, role string, requested State) css
 	if e.active {
 		elapsed := (now - e.started) * 1000
 		if elapsed < e.budget {
-			e.displayed = css.BlendTransition(e.from, e.to, elapsed, cs.unitsCtx(e.to))
+			e.displayed = css.BlendTransition(css.BlendTransitionParams{From: e.from, To: e.to, Elapsed: elapsed, Units: cs.unitsCtx(e.to)})
 			return e.displayed
 		}
 		e.active = false

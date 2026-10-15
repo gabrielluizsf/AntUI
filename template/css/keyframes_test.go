@@ -121,17 +121,17 @@ func TestAnimateMiddle(t *testing.T) {
 	base := Style{}
 	kf := sh.Keyframes("fade")
 	ctx := Units{Width: 800}
-	mid := Animate(base, kf, 0.5, ctx)
+	mid := animate(base, kf, 0.5, ctx)
 	if mid.Opacity != 0.5 {
-		t.Errorf("Animate(0.5).Opacity = %v, want 0.5", mid.Opacity)
+		t.Errorf("animate(0.5).Opacity = %v, want 0.5", mid.Opacity)
 	}
-	start := Animate(base, kf, 0, ctx)
+	start := animate(base, kf, 0, ctx)
 	if start.Opacity != 0 {
-		t.Errorf("Animate(0).Opacity = %v, want 0", start.Opacity)
+		t.Errorf("animate(0).Opacity = %v, want 0", start.Opacity)
 	}
-	end := Animate(base, kf, 1, ctx)
+	end := animate(base, kf, 1, ctx)
 	if end.Opacity != 1 {
-		t.Errorf("Animate(1).Opacity = %v, want 1", end.Opacity)
+		t.Errorf("animate(1).Opacity = %v, want 1", end.Opacity)
 	}
 }
 
@@ -144,9 +144,9 @@ func TestAnimateBaseUntouched(t *testing.T) {
 	`)
 	base := Style{}
 	kf := sh.Keyframes("pop")
-	out := Animate(base, kf, 1, ctx(800))
+	out := animate(base, kf, 1, ctx(800))
 	if out.Opacity != 0.5 {
-		t.Errorf("Animate(1).Opacity = %v, want 0.5", out.Opacity)
+		t.Errorf("animate(1).Opacity = %v, want 0.5", out.Opacity)
 	}
 	if base.Opacity != 0 {
 		t.Errorf("the base style was mutated: %v", base.Opacity)
@@ -165,9 +165,9 @@ func TestAnimateMissingBlock(t *testing.T) {
 		State:    StateNone,
 		Viewport: Viewport{Width: 800, Height: 800},
 	})
-	out := Animate(base, kf, 1, ctx(800))
+	out := animate(base, kf, 1, ctx(800))
 	if out.Opacity != 0.75 {
-		t.Errorf("Animate(nil block).Opacity = %v, want the base 0.75", out.Opacity)
+		t.Errorf("animate(nil block).Opacity = %v, want the base 0.75", out.Opacity)
 	}
 }
 

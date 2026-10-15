@@ -1,8 +1,8 @@
 package template
 
 import (
-	"github.com/gabrielluizsf/antui/canvas"
 	"github.com/gabrielluizsf/antui"
+	"github.com/gabrielluizsf/antui/canvas"
 	"github.com/gabrielluizsf/antui/template/event"
 )
 
@@ -10,7 +10,8 @@ import (
 // arrows and Home/End move the cursor between and along wrapped lines, and
 // text flows onto as many lines as will fit in the box. It reports when the
 // text changed or the field gained focus.
-func (t *uiTemplate) TextArea(win *antui.Window, x, y, w, h int, text *string) event.Event {
+func (t *uiTemplate) TextArea(win *antui.Window, area canvas.Area, text *string) event.Event {
+	x, y, w, h := area.X, area.Y, area.Width, area.Height
 	if text == nil {
 		return event.Nothing
 	}

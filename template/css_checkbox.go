@@ -1,6 +1,8 @@
 package template
 
 import (
+	"github.com/gabrielluizsf/antui"
+	"github.com/gabrielluizsf/antui/canvas"
 	"github.com/gabrielluizsf/antui/template/css"
 	"github.com/gabrielluizsf/antui/template/event"
 )
@@ -35,7 +37,7 @@ func (c *CSS) Checkbox(label string, value *bool) event.Event {
 	}
 	var e event.Event
 	c.paint(st, css.RoleCheckbox, label, x, y, w, h, func() {
-		e = c.ui.Checkbox(c.win, x, y, label, value)
+		e = c.ui.Checkbox(c.win, canvas.Area{X: x, Y: cy}, antui.CheckboxParams{Label: label, Value: value})
 	})
 	return e
 }

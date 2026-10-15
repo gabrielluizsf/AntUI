@@ -1,6 +1,7 @@
 package template
 
 import (
+	"github.com/gabrielluizsf/antui/canvas"
 	"github.com/gabrielluizsf/antui/template/css"
 	"github.com/gabrielluizsf/antui/template/event"
 )
@@ -15,7 +16,7 @@ func (c *CSS) Input(text *string) event.Event {
 	st = c.style.entryStyle(c.style.cur, css.RoleInput, s)
 	var e event.Event
 	c.paint(st, css.RoleInput, "", x, y, w, h, func() {
-		e = c.ui.Input(c.win, x, y, w, h, text)
+		e = c.ui.Input(c.win, canvas.Area{X: x, Y: y, Width: w, Height: h}, text)
 	})
 	return e
 }

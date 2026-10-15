@@ -1,6 +1,8 @@
 package template
 
 import (
+	"github.com/gabrielluizsf/antui"
+	"github.com/gabrielluizsf/antui/canvas"
 	"github.com/gabrielluizsf/antui/template/css"
 	"github.com/gabrielluizsf/antui/template/event"
 )
@@ -32,7 +34,7 @@ func (c *CSS) Radio(label string, value *int, option int) event.Event {
 	}
 	var e event.Event
 	c.paint(st, css.RoleRadio, label, x, y, w, h, func() {
-		e = c.ui.Radio(c.win, x, cy, label, value, option)
+		e = c.ui.Radio(c.win, canvas.Area{X: x, Y: cy}, antui.RadioParams{Label: label, Value: value, Option: option})
 	})
 	return e
 }

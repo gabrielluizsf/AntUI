@@ -27,7 +27,7 @@ func (cs *cssStyle) iconImage(name string, st css.Style) *canvas.Canvas {
 	if w <= 0 || h <= 0 {
 		w, h = IconSize*cs.u(), IconSize*cs.u()
 	}
-	return IconCanvas(name, w, h, cs.ink(st))
+	return IconCanvas(name, canvas.Area{Width: w, Height: h}, cs.ink(st))
 }
 
 // iconImageAt paints an icon at the size the background layer will use. This
@@ -37,5 +37,5 @@ func (cs *cssStyle) iconImageAt(name string, st css.Style, w, h int) *canvas.Can
 	if name == "" || w <= 0 || h <= 0 {
 		return nil
 	}
-	return IconCanvas(name, w, h, cs.ink(st))
+	return IconCanvas(name, canvas.Area{Width: w, Height: h}, cs.ink(st))
 }

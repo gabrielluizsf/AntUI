@@ -9,7 +9,8 @@ import "github.com/gabrielluizsf/antui/canvas"
 //
 // The canvas is the icon itself and belongs to the registry: blit from it as
 // many times as a frame needs and do not draw on it.
-func IconCanvas(name string, w, h int, tint canvas.Color) *canvas.Canvas {
+func IconCanvas(name string, area canvas.Area, tint canvas.Color) *canvas.Canvas {
+	w, h := area.Width, area.Height
 	if w <= 0 || h <= 0 {
 		return nil
 	}

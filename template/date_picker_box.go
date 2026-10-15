@@ -31,6 +31,6 @@ func (builtinStyle) DatePickerBox(p DatePickerBoxParams) {
 		name = IconCaretUp
 	}
 	caretBox := 10 * u
-	DrawIcon(cv, name,
+	drawIcon(cv, name,
 		p.X+p.W-padding-3*u-caretBox/2, p.Y+(p.H-caretBox)/2, caretBox, caretBox, th.TextMuted)
 }

@@ -1,12 +1,16 @@
 package template
 
 import (
-	"github.com/gabrielluizsf/antui/canvas"
 	"github.com/gabrielluizsf/antui"
+	"github.com/gabrielluizsf/antui/canvas"
 	"github.com/gabrielluizsf/antui/template/event"
 )
 
-func (t *uiTemplate) Radio(win *antui.Window, x, y int, label string, value *int, option int) event.Event {
+func (t *uiTemplate) Radio(win *antui.Window, area canvas.Area, params antui.RadioParams) event.Event {
+	label := params.Label
+	value := params.Value
+	option := params.Option
+	x, y := area.X, area.Y
 	if value == nil {
 		return event.Nothing
 	}

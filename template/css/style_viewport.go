@@ -7,10 +7,8 @@ package css
 // stand-in. The template computes every style of a frame against one
 // viewport, which is what makes a window that resizes take effect on the
 // next frame rather than halfway down the page.
-func (sh *Sheet) StyleViewport(tag string, classes []string, state State, vp Viewport) Style {
-	return sh.styleUnits(tag, classes, state, Units{
-		Width: vp.Width, Height: vp.Height, Scale: vp.Scale, Scheme: vp.Scheme,
-	}, true)
+func (sh *Sheet) StyleViewport(q StyleQuery) Style {
+	return sh.styleUnits(q.Tag, q.Classes, q.State, q.Units(), true)
 }
 
 // StyleViewportQuery computes the style against a StyleQuery.

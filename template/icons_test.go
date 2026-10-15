@@ -124,7 +124,7 @@ func TestBuiltinIconsAreRegisteredAndDraw(t *testing.T) {
 			t.Errorf("the built-in icon %q is not registered", name)
 			continue
 		}
-		if !DrawIcon(cv, name, i*30, 0, 24, 24, canvas.RGB(255, 255, 255)) {
+		if !drawIcon(cv, name, i*30, 0, 24, 24, canvas.RGB(255, 255, 255)) {
 			t.Errorf("the built-in icon %q did not draw", name)
 			continue
 		}
@@ -166,12 +166,12 @@ func TestSetIconChangesWhatEveryWidgetDraws(t *testing.T) {
 		t.Fatalf("SetIcon: %v", err)
 	}
 	_ = before
-	DrawIcon(cv, IconCheck, 0, 0, 24, 24, canvas.RGB(255, 255, 255))
+	drawIcon(cv, IconCheck, 0, 0, 24, 24, canvas.RGB(255, 255, 255))
 	if got := iconPainted(cv, 0, 0, 24, 24); got < 24*24-200 {
 		t.Errorf("the replaced tick painted %d pixels, want a filled square", got)
 	}
 	// The other icons are untouched by the change.
-	DrawIcon(cv, IconCaret, 0, 0, 0, 0, canvas.RGB(255, 255, 255))
+	drawIcon(cv, IconCaret, 0, 0, 0, 0, canvas.RGB(255, 255, 255))
 }
 
 func TestSetIconReportsADrawingItCannotRead(t *testing.T) {
@@ -210,7 +210,7 @@ func TestSetIconRegistersANewName(t *testing.T) {
 		t.Errorf("IconNames does not list the new icon: %v", IconNames())
 	}
 	win := blankWin(t, 30, 30)
-	if !DrawIcon(win.Canvas(), "save", 0, 0, 24, 24, canvas.RGB(255, 255, 255)) {
+	if !drawIcon(win.Canvas(), "save", 0, 0, 24, 24, canvas.RGB(255, 255, 255)) {
 		t.Error("the new icon did not draw")
 	}
 }
@@ -233,17 +233,17 @@ func TestIconCanvasIsRememberedAndRepaintedWhenItShouldBe(t *testing.T) {
 	// The picture of an icon at a size in a colour is drawn once and answered
 	// again, and drawn afresh when either of those changes — the second half is
 	// what a list of buttons where one is hovered depends on.
-	first := IconCanvas(IconCheck, 24, 24, canvas.RGB(255, 0, 0))
+	first := IconCanvas(IconCheck, canvas.Area{Width: 24, Height: 24}, canvas.RGB(255, 0, 0))
 	if first == nil {
 		t.Fatal("the tick did not paint")
 	}
-	if again := IconCanvas(IconCheck, 24, 24, canvas.RGB(255, 0, 0)); again != first {
+	if again := IconCanvas(IconCheck, canvas.Area{Width: 24, Height: 24}, canvas.RGB(255, 0, 0)); again != first {
 		t.Error("asking twice for the same icon drew it twice")
 	}
-	if other := IconCanvas(IconCheck, 24, 24, canvas.RGB(0, 0, 255)); other == first {
+	if other := IconCanvas(IconCheck, canvas.Area{Width: 24, Height: 24}, canvas.RGB(0, 0, 255)); other == first {
 		t.Error("a second colour answered the canvas of the first")
 	}
-	if bigger := IconCanvas(IconCheck, 48, 48, canvas.RGB(255, 0, 0)); bigger == nil || bigger.Width != 48 {
+	if bigger := IconCanvas(IconCheck, canvas.Area{Width: 48, Height: 48}, canvas.RGB(255, 0, 0)); bigger == nil || bigger.Width != 48 {
 		t.Error("a second size answered the canvas of the first")
 	}
 }
@@ -254,13 +254,13 @@ func TestDrawIconOfNothingIsNotAnError(t *testing.T) {
 	// the rest of itself.
 	win := blankWin(t, 20, 20)
 	cv := win.Canvas()
-	if DrawIcon(cv, "there-is-no-such-icon", 0, 0, 16, 16, canvas.White) {
+	if drawIcon(cv, "there-is-no-such-icon", 0, 0, 16, 16, canvas.White) {
 		t.Error("an icon that is not registered drew something")
 	}
-	if DrawIcon(nil, IconCheck, 0, 0, 16, 16, canvas.White) {
+	if drawIcon(nil, IconCheck, 0, 0, 16, 16, canvas.White) {
 		t.Error("drawing on nothing reported a drawing")
 	}
-	if DrawIcon(cv, IconCheck, 0, 0, 0, 16, canvas.White) {
+	if drawIcon(cv, IconCheck, 0, 0, 0, 16, canvas.White) {
 		t.Error("a size of nothing reported a drawing")
 	}
 	if got := iconPainted(cv, 0, 0, 20, 20); got != 20*20 {
@@ -540,7 +540,7 @@ func TestStylesheetIconFollowsTheWidgetScale(t *testing.T) {
 	if got := Scale(win); got != 2 {
 		t.Fatalf("a %d wide window has scale %d, want 2", ScaleBase*2, got)
 	}
-	icon := IconCanvas("caret", 24*Scale(win), 24*Scale(win), canvas.White)
+	icon := IconCanvas("caret", canvas.Area{Width: 24 * Scale(win), Height: 24 * Scale(win)}, canvas.White)
 	if icon == nil {
 		t.Fatal("the caret did not paint at the scale of the window")
 	}
@@ -561,7 +561,7 @@ func TestIconsAreSafeFromSeveralGoroutines(t *testing.T) {
 			cv := blankWin(t, 60, 60).Canvas()
 			name := []string{IconCheck, IconCaret, IconDot, IconCaretUp}[i%4]
 			for range 20 {
-				DrawIcon(cv, name, i*7, 0, 16, 16, canvas.RGB(255, uint8(i*30), 0))
+				drawIcon(cv, name, i*7, 0, 16, 16, canvas.RGB(255, uint8(i*30), 0))
 				IconNames()
 				_, _ = IconSource(name)
 			}

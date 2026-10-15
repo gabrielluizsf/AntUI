@@ -1,12 +1,13 @@
 package template
 
 import (
-	"github.com/gabrielluizsf/antui/canvas"
 	"github.com/gabrielluizsf/antui"
+	"github.com/gabrielluizsf/antui/canvas"
 	"github.com/gabrielluizsf/antui/template/event"
 )
 
-func (t *uiTemplate) Input(win *antui.Window, x, y, w, h int, text *string) event.Event {
+func (t *uiTemplate) Input(win *antui.Window, area canvas.Area, text *string) event.Event {
+	x, y, w, h := area.X, area.Y, area.Width, area.Height
 	if text == nil {
 		return event.Nothing
 	}

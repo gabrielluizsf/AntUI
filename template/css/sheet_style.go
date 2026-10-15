@@ -11,5 +11,5 @@ package css
 // vendor-prefixed properties, unknown properties and unrecognised media
 // conditions to the sheet's warning list.
 func (sh *Sheet) Style(q StyleQuery) Style {
-	return sh.StyleViewport(q.Tag, q.Classes, q.State, q.Viewport)
+	return sh.StyleViewport(q)
 }

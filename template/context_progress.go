@@ -1,5 +1,7 @@
 package template
 
-func (c *Context) Progress(x, y, w, h int, progress float32) {
-	c.tpl.Progress(c.win, x, y, w, h, progress)
+import "github.com/gabrielluizsf/antui/canvas"
+
+func (c *Context) Progress(area canvas.Area, progress float32) {
+	c.tpl.Progress(c.win, area, progress)
 }

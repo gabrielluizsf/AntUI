@@ -1,6 +1,8 @@
 package template
 
 import (
+	"github.com/gabrielluizsf/antui"
+	"github.com/gabrielluizsf/antui/canvas"
 	"github.com/gabrielluizsf/antui/template/css"
 	"github.com/gabrielluizsf/antui/template/event"
 )
@@ -32,7 +34,7 @@ func (c *CSS) Switch(label string, value *bool) event.Event {
 	}
 	var e event.Event
 	c.paint(st, css.RoleSwitch, label, x, y, w, h, func() {
-		e = c.ui.Switch(c.win, x, cy, label, value)
+		e = c.ui.Switch(c.win, canvas.Area{X: x, Y: cy}, antui.CheckboxParams{Label: label, Value: value})
 	})
 	return e
 }

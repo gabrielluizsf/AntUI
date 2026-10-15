@@ -1,6 +1,7 @@
 package template
 
 import (
+	"github.com/gabrielluizsf/antui/canvas"
 	"github.com/gabrielluizsf/antui/template/css"
 	"github.com/gabrielluizsf/antui/template/event"
 )
@@ -16,7 +17,7 @@ func (c *CSS) DatePicker(value *Date) event.Event {
 	st = c.style.entryStyle(c.style.cur, css.RoleDatePicker, s)
 	var e event.Event
 	c.paint(st, css.RoleDatePicker, "", x, y, w, h, func() {
-		e = c.ui.DatePicker(c.win, x, y, w, h, value)
+		e = c.ui.DatePicker(c.win, canvas.Area{X: x, Y: y, Width: w, Height: h}, value)
 	})
 	return e
 }

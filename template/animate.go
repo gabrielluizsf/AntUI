@@ -22,7 +22,7 @@ func (cs *cssStyle) animate(base css.Style) css.Style {
 		if !on {
 			continue
 		}
-		out = css.Animate(out, kf, a.Timing.Ease(t), cs.unitsCtx(out))
+		out = css.Animate(css.AnimateParams{Base: out, Keyframes: kf, Progress: a.Timing.Ease(t), Units: cs.unitsCtx(out)})
 	}
 	return out
 }

@@ -1,6 +1,7 @@
 package template
 
 import (
+	"github.com/gabrielluizsf/antui/canvas"
 	"github.com/gabrielluizsf/antui/template/css"
 	"github.com/gabrielluizsf/antui/template/event"
 )
@@ -26,7 +27,7 @@ func (c *CSS) Button(label string) event.Event {
 	}
 	var e event.Event
 	c.paint(st, css.RoleButton, label, x, y, w, h, func() {
-		e = c.ui.Button(c.win, x, y, w, h, label)
+		e = c.ui.Button(c.win, canvas.Area{X: x, Y: y, Width: w, Height: h}, label)
 	})
 	return e
 }

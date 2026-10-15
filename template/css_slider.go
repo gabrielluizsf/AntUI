@@ -1,6 +1,8 @@
 package template
 
 import (
+	"github.com/gabrielluizsf/antui"
+	"github.com/gabrielluizsf/antui/canvas"
 	"github.com/gabrielluizsf/antui/template/css"
 	"github.com/gabrielluizsf/antui/template/event"
 )
@@ -15,7 +17,7 @@ func (c *CSS) Slider(value *float32, minValue, maxValue float32) event.Event {
 	st = c.style.entryStyle(c.style.cur, css.RoleSlider, s)
 	var e event.Event
 	c.paint(st, css.RoleSlider, "", x, y, w, h, func() {
-		e = c.ui.Slider(c.win, x, y, w, h, value, minValue, maxValue)
+		e = c.ui.Slider(c.win, canvas.Area{X: x, Y: y, Width: w, Height: h}, antui.SliderParams{Value: value, Min: minValue, Max: maxValue})
 	})
 	return e
 }

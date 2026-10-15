@@ -12,5 +12,5 @@ import (
 // the app wears.
 type loadingPainter interface {
 	Background(win *antui.Window) canvas.Color
-	Progress(win *antui.Window, x, y, w, h int, progress float32)
+	Progress(win *antui.Window, area canvas.Area, progress float32)
 }

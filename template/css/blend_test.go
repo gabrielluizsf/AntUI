@@ -18,7 +18,7 @@ func TestBlendColors(t *testing.T) {
 		State:    StateNone,
 		Viewport: Viewport{Width: 800, Height: 800},
 	})
-	out := BlendStyles(a, b, 0.5, map[string]bool{"background-color": true}, Units{})
+	out := blendStyles(a, b, 0.5, map[string]bool{"background-color": true}, Units{})
 	if out.Background != 0xFF222222 {
 		t.Errorf("blend = %v, want 0xFF222222", out.Background)
 	}
@@ -37,7 +37,7 @@ func TestBlendStylesOnlyListed(t *testing.T) {
 		State:    StateNone,
 		Viewport: Viewport{Width: 800, Height: 800},
 	})
-	out := BlendStyles(a, b, 0.5, map[string]bool{"opacity": true}, Units{})
+	out := blendStyles(a, b, 0.5, map[string]bool{"opacity": true}, Units{})
 	if out.Opacity != 0.5 {
 		t.Errorf("opacity = %v, want 0.5", out.Opacity)
 	}
@@ -49,7 +49,7 @@ func TestBlendStylesOnlyListed(t *testing.T) {
 // TestBlendOpacity a plain float property moves linearly with the progress.
 func TestBlendOpacity(t *testing.T) {
 	a, b := Style{surfaceStyle: surfaceStyle{Opacity: 0.2}}, Style{surfaceStyle: surfaceStyle{Opacity: 0.8}}
-	out := BlendStyles(a, b, 0.25, map[string]bool{"opacity": true}, Units{})
+	out := blendStyles(a, b, 0.25, map[string]bool{"opacity": true}, Units{})
 	if math.Abs(out.Opacity-0.35) > 1e-9 {
 		t.Errorf("opacity = %v, want 0.35", out.Opacity)
 	}
@@ -68,7 +68,7 @@ func TestBlendLengthSameUnit(t *testing.T) {
 		State:    StateNone,
 		Viewport: Viewport{Width: 800, Height: 800},
 	})
-	out := BlendStyles(a, b, 0.5, map[string]bool{"width": true}, Units{Width: 800})
+	out := blendStyles(a, b, 0.5, map[string]bool{"width": true}, Units{Width: 800})
 	if !out.Width.IsPct() {
 		t.Fatalf("width unit = %v, want percent", out.Width.Unit())
 	}
@@ -82,7 +82,7 @@ func TestBlendLengthSameUnit(t *testing.T) {
 func TestBlendLengthCrossUnit(t *testing.T) {
 	a := Style{Width: Fixed(100)}
 	b := Style{Width: Pct(50)}
-	out := BlendStyles(a, b, 0.5, map[string]bool{"width": true}, Units{Width: 800})
+	out := blendStyles(a, b, 0.5, map[string]bool{"width": true}, Units{Width: 800})
 	if got := out.Width.Resolve(Units{Width: 800}); got != 250 {
 		t.Errorf("cross-unit width = %vpx, want 250", got)
 	}
@@ -92,8 +92,8 @@ func TestBlendLengthCrossUnit(t *testing.T) {
 // over at the half way point instead of pretending to be numbers.
 func TestBlendLengthKeywordsDiscrete(t *testing.T) {
 	a, b := Style{Width: Auto()}, Style{Width: Fixed(200)}
-	early := BlendStyles(a, b, 0.4, map[string]bool{"width": true}, Units{})
-	late := BlendStyles(a, b, 0.6, map[string]bool{"width": true}, Units{})
+	early := blendStyles(a, b, 0.4, map[string]bool{"width": true}, Units{})
+	late := blendStyles(a, b, 0.6, map[string]bool{"width": true}, Units{})
 	if !early.Width.Auto() || late.Width.Auto() {
 		t.Errorf("auto-to-px blend = %v (early), %v (late)", early.Width, late.Width)
 	}
@@ -106,16 +106,16 @@ func TestBlendTransitionDelayedDelay(t *testing.T) {
 	to := mustParse(t, `
 		button { background-color: #333333; transition: background-color 1s 0.5s; }
 	`).Style(StyleQuery{Tag: "button", State: StateNone, Viewport: Viewport{Width: 800, Height: 800}})
-	if hold := BlendTransition(from, to, 300, Units{}); hold.Background != 0xFF111111 {
+	if hold := blendTransition(from, to, 300, Units{}); hold.Background != 0xFF111111 {
 		t.Errorf("during the delay = %v, want the entry colour", hold.Background)
 	}
-	if mid := BlendTransition(from, to, 800, Units{}); mid.Background != 0xFF1B1B1B {
+	if mid := blendTransition(from, to, 800, Units{}); mid.Background != 0xFF1B1B1B {
 		t.Errorf("mid transition = %v, want 0xFF1B1B1B", mid.Background)
 	}
-	if done := BlendTransition(from, to, 1500, Units{}); done.Background != 0xFF333333 {
+	if done := blendTransition(from, to, 1500, Units{}); done.Background != 0xFF333333 {
 		t.Errorf("after the span = %v, want the target", done.Background)
 	}
-	if settled := BlendTransition(from, to, 20000, Units{}); settled.Background != 0xFF333333 {
+	if settled := blendTransition(from, to, 20000, Units{}); settled.Background != 0xFF333333 {
 		t.Errorf("long after = %v, want the target", settled.Background)
 	}
 }
@@ -130,7 +130,7 @@ func TestBlendTransitionAll(t *testing.T) {
 	if len(to.Transitions) != 1 || to.Transitions[0].Prop != "all" {
 		t.Fatalf("transitions = %+v", to.Transitions)
 	}
-	mid := BlendTransition(from, to, 250, Units{})
+	mid := blendTransition(from, to, 250, Units{})
 	if mid.Background != 0xFF222222 {
 		t.Errorf("all-transition at half = %v, want 0xFF222222", mid.Background)
 	}
@@ -141,7 +141,7 @@ func TestBlendTransitionAll(t *testing.T) {
 func TestBlendTransitionNoTransition(t *testing.T) {
 	from := mustParse(t, `button { background-color: #111111; }`).Style(StyleQuery{Tag: "button", State: StateNone, Viewport: Viewport{Width: 800, Height: 800}})
 	to := mustParse(t, `button { background-color: #333333; }`).Style(StyleQuery{Tag: "button", State: StateNone, Viewport: Viewport{Width: 800, Height: 800}})
-	if got := BlendTransition(from, to, 1000, Units{}); got.Background != 0xFF333333 {
+	if got := blendTransition(from, to, 1000, Units{}); got.Background != 0xFF333333 {
 		t.Errorf("no transition = %v, want the target", got.Background)
 	}
 }
@@ -151,12 +151,12 @@ func TestBlendTransitionNoTransition(t *testing.T) {
 func TestBlendTransformSameKind(t *testing.T) {
 	a := Style{Transform: []TransformFunc{{Kind: TransformTranslate, Dx: Fixed(0)}}}
 	b := Style{Transform: []TransformFunc{{Kind: TransformTranslate, Dx: Fixed(100)}}}
-	out := BlendStyles(a, b, 0.5, map[string]bool{"transform": true}, Units{})
+	out := blendStyles(a, b, 0.5, map[string]bool{"transform": true}, Units{})
 	if len(out.Transform) != 1 || out.Transform[0].Dx.Px(1) != 50 {
 		t.Errorf("translate blend = %+v", out.Transform)
 	}
 
-	mixed := BlendStyles(
+	mixed := blendStyles(
 		Style{Transform: []TransformFunc{{Kind: TransformScale, Sx: 1}}},
 		Style{Transform: []TransformFunc{{Kind: TransformRotate, Ax: Deg(45)}}},
 		0.6, map[string]bool{"transform": true}, Units{},
@@ -171,8 +171,8 @@ func TestBlendTransformSameKind(t *testing.T) {
 func TestBlendShadowDiscrete(t *testing.T) {
 	a := Style{}
 	b := Style{BoxShadow: []Shadow{{X: 0, Y: 2, Blur: 4, Color: 0x80000000}}}
-	early := BlendStyles(a, b, 0.4, map[string]bool{"box-shadow": true}, Units{})
-	late := BlendStyles(a, b, 0.6, map[string]bool{"box-shadow": true}, Units{})
+	early := blendStyles(a, b, 0.4, map[string]bool{"box-shadow": true}, Units{})
+	late := blendStyles(a, b, 0.6, map[string]bool{"box-shadow": true}, Units{})
 	if len(early.BoxShadow) != 0 || len(late.BoxShadow) != 1 {
 		t.Errorf("shadow swap = %v (early), %v (late)", early.BoxShadow, late.BoxShadow)
 	}
@@ -205,7 +205,7 @@ func TestBlendKeyframesBaseFallback(t *testing.T) {
 	kf := mustParse(t, `
 		@keyframes fade { from { background-color: #111111; } to { opacity: 1; } }
 	`).Keyframes("fade")
-	out := Animate(base, kf, 0.25, Units{})
+	out := animate(base, kf, 0.25, Units{})
 	if out.Background != 0xFF151515 {
 		t.Errorf("background = %v, want 0xFF151515 (quarter way from #111 to base #222)", out.Background)
 	}

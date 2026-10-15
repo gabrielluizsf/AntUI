@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"github.com/gabrielluizsf/antui"
+	"github.com/gabrielluizsf/antui/canvas"
 )
 
 // draw is one frame of the screen, run from Window.End just before the
@@ -29,6 +30,6 @@ func (l *loading) draw(win *antui.Window, painter loadingPainter) {
 	// [Scale] rather than a number of pixels the screen picked.
 	w := win.Width() * 3 / 5
 	h := 6 * Scale(win)
-	painter.Progress(win, (win.Width()-w)/2, (win.Height()-h)/2, w, h,
+	painter.Progress(win, canvas.Area{X: (win.Width() - w) / 2, Y: (win.Height() - h) / 2, Width: w, Height: h},
 		progressAt(elapsed, timeout))
 }

@@ -12,7 +12,7 @@ import (
 func (c *Context) BackButton() event.Event {
 	u := c.Scale()
 	w := (24 + canvas.TextWidth("Back")) * u
-	e := c.tpl.Button(c.win, 12*u, 12*u, w, 26*u, "Back")
+	e := c.tpl.Button(c.win, canvas.Area{X: 12 * u, Y: 12 * u, Width: w, Height: 26 * u}, "Back")
 	if e.Is(event.Button, event.Click) {
 		c.Back()
 	}

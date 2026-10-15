@@ -19,39 +19,39 @@ type Template interface {
 	Background(win *antui.Window) canvas.Color
 	// Label paints one line of text in the template's own voice, at its
 	// top-left corner.
-	Label(win *antui.Window, x, y int, text string)
+	Label(win *antui.Window, area canvas.Area, text string)
 	// Button draws a button and reports whether it was clicked.
-	Button(win *antui.Window, x, y, w, h int, label string) event.Event
+	Button(win *antui.Window, area canvas.Area, label string) event.Event
 	// Checkbox draws a labelled checkbox, flips value when clicked, and
 	// reports whether it flipped this frame.
-	Checkbox(win *antui.Window, x, y int, label string, value *bool) event.Event
+	Checkbox(win *antui.Window, area canvas.Area, params antui.CheckboxParams) event.Event
 	// Radio draws one option of a group. Clicking it sets value to option and
 	// reports true; clicking the already-selected option changes nothing.
-	Radio(win *antui.Window, x, y int, label string, value *int, option int) event.Event
+	Radio(win *antui.Window, area canvas.Area, params antui.RadioParams) event.Event
 	// Slider draws a horizontal slider and reports whether its value changed.
-	Slider(win *antui.Window, x, y, w, h int, value *float32, minValue, maxValue float32) event.Event
+	Slider(win *antui.Window, area canvas.Area, params antui.SliderParams) event.Event
 	// Input draws a single-line text field and reports whether its text
 	// changed.
-	Input(win *antui.Window, x, y, w, h int, text *string) event.Event
+	Input(win *antui.Window, area canvas.Area, text *string) event.Event
 	// Select draws a dropdown picker: a box showing the currently chosen
 	// option, and a menu of ALL options when it is open. Clicking the box
 	// opens or closes it; picking an option sets index to its position and
 	// closes the menu.
-	Select(win *antui.Window, x, y, w, h int, index *int, options []string) event.Event
+	Select(win *antui.Window, area canvas.Area, params SelectParams) event.Event
 	// TextArea draws a multi-line text field. Enter inserts a line break;
 	// the responsive parts — word wrap and scrolling — follow, but the
 	// paging keys (Home, End and the arrows) already move the cursor.
-	TextArea(win *antui.Window, x, y, w, h int, text *string) event.Event
+	TextArea(win *antui.Window, area canvas.Area, text *string) event.Event
 	// Switch draws a flip toggle like a checkbox but a sliding thumb. It
 	// flips value when clicked and reports whether it flipped this frame.
-	Switch(win *antui.Window, x, y int, label string, value *bool) event.Event
+	Switch(win *antui.Window, area canvas.Area, params antui.CheckboxParams) event.Event
 	// Progress paints a read-only progress bar with progress from 0 to 1.
 	// It never reports an event: a bar has nothing to say.
-	Progress(win *antui.Window, x, y, w, h int, progress float32)
+	Progress(win *antui.Window, area canvas.Area, progress float32)
 	// DatePicker draws a picker that works like a select: a box showing the
 	// chosen date, and a calendar that pops up below it when the box is
 	// clicked, for flipping months and picking a day.
-	DatePicker(win *antui.Window, x, y, w, h int, value *Date) event.Event
+	DatePicker(win *antui.Window, area canvas.Area, value *Date) event.Event
 	// Sounds is the bank the components' events ring through. A nil bank
 	// makes the template silent, which is a sound too.
 	Sounds() event.SoundBank

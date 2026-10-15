@@ -30,12 +30,12 @@ func (c *CSSClasses) GetStyleViewport(q StyleQuery) Style {
 		if st, ok := c.specs[key]; ok {
 			return st
 		}
-		st := c.sheet.StyleViewport(q.Tag, c.classesOf(q.Tag), q.State, q.Viewport)
+		st := c.sheet.StyleViewport(StyleQuery{Tag: q.Tag, Classes: c.classesOf(q.Tag), State: q.State, Viewport: q.Viewport})
 		if c.specs != nil {
 			c.specs[key] = st
 		}
 		return st
 	}
 	all := append(append([]string(nil), c.classesOf(q.Tag)...), q.Classes...)
-	return c.sheet.StyleViewport(q.Tag, all, q.State, q.Viewport)
+	return c.sheet.StyleViewport(StyleQuery{Tag: q.Tag, Classes: all, State: q.State, Viewport: q.Viewport})
 }

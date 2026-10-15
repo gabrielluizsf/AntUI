@@ -1,8 +1,8 @@
 package template
 
 import (
-	"github.com/gabrielluizsf/antui/canvas"
 	"github.com/gabrielluizsf/antui"
+	"github.com/gabrielluizsf/antui/canvas"
 	"github.com/gabrielluizsf/antui/template/event"
 )
 
@@ -10,7 +10,10 @@ import (
 // clicking it opens or closes a menu of all options right below it. Picking an
 // option sets index to its position. It reports when the menu opened, closed,
 // or a new option was picked.
-func (t *uiTemplate) Select(win *antui.Window, x, y, w, h int, index *int, options []string) event.Event {
+func (t *uiTemplate) Select(win *antui.Window, area canvas.Area, params SelectParams) event.Event {
+	x, y, w, h := area.X, area.Y, area.Width, area.Height
+	index := params.Index
+	options := params.Options
 	if index == nil || len(options) == 0 {
 		return event.Nothing
 	}

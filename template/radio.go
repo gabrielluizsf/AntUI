@@ -25,7 +25,7 @@ func (builtinStyle) Radio(p RadioParams) {
 		cv.Circle(canvas.Circle{X: p.X + size/2, Y: p.Y + size/2, R: size/2 + 3*u}, th.Accent)
 	}
 	if p.On {
-		DrawIconIn(cv, IconDot, p.X+4*u, p.Y+4*u, 10*u, th.Accent)
+		drawIconIn(cv, IconDot, p.X+4*u, p.Y+4*u, 10*u, th.Accent)
 	}
 	cv.TextScaled(p.X+size+labelGap*u, p.Y+(size-textHeight(u))/2, p.Label, th.Text, u)
 }

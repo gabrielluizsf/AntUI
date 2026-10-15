@@ -17,7 +17,7 @@ func TestCyberpunkButtonClicked(t *testing.T) {
 
 	// No click before interaction.
 	win.Begin()
-	if e := tpl.Button(win, 40, 80, 120, 36, "Go"); e.Ok() {
+	if e := tpl.Button(win, canvas.Area{X: 40, Y: 80, Width: 120, Height: 36}, "Go"); e.Ok() {
 		t.Errorf("no click should produce no event, got %v", e)
 	}
 	win.End()
@@ -25,7 +25,7 @@ func TestCyberpunkButtonClicked(t *testing.T) {
 	// Full press-release in one frame.
 	win.Begin()
 	testClick(t, win, 80, 100)
-	e := tpl.Button(win, 40, 80, 120, 36, "Go")
+	e := tpl.Button(win, canvas.Area{X: 40, Y: 80, Width: 120, Height: 36}, "Go")
 	win.End()
 	if !e.Is(event.Button, event.Click) {
 		t.Errorf("expected Click event, got %v", e)
@@ -41,7 +41,7 @@ func TestBuiltinButtonClicked(t *testing.T) {
 
 	win.Begin()
 	testClick(t, win, 100, 55)
-	e := tpl.Button(win, 60, 40, 100, 30, "OK")
+	e := tpl.Button(win, canvas.Area{X: 60, Y: 40, Width: 100, Height: 30}, "OK")
 	win.End()
 	if !e.Is(event.Button, event.Click) {
 		t.Errorf("expected Click event, got %v", e)
@@ -55,14 +55,14 @@ func TestButtonDragOffCancels(t *testing.T) {
 	// Press inside.
 	win.Begin()
 	testClick(t, win, 100, 55)
-	tpl.Button(win, 60, 40, 100, 30, "OK")
+	tpl.Button(win, canvas.Area{X: 60, Y: 40, Width: 100, Height: 30}, "OK")
 	win.End()
 
 	// Release outside the button.
 	win.Begin()
 	win.Push(antui.Event{Type: antui.EventMouseMove, X: 300, Y: 150})
 	win.Push(antui.Event{Type: antui.EventMouseUp, Button: antui.MouseLeft, X: 300, Y: 150})
-	e := tpl.Button(win, 60, 40, 100, 30, "OK")
+	e := tpl.Button(win, canvas.Area{X: 60, Y: 40, Width: 100, Height: 30}, "OK")
 	win.End()
 	if e.Ok() {
 		t.Error("releasing away from the button should cancel the click")
@@ -76,7 +76,7 @@ func TestCheckboxToggles(t *testing.T) {
 
 	win.Begin()
 	testClick(t, win, 20, 20)
-	e := tpl.Checkbox(win, 10, 10, "Enable", &value)
+	e := tpl.Checkbox(win, canvas.Area{X: 10, Y: 10}, antui.CheckboxParams{Label: "Enable", Value: &value})
 	win.End()
 	if !value || !e.Is(event.Checkbox, event.Toggle) {
 		t.Errorf("checkbox should toggle on, got value=%v event=%v", value, e)
@@ -91,7 +91,7 @@ func TestInputFiresFocusAndType(t *testing.T) {
 	// Click the field to focus it.
 	win.Begin()
 	testClick(t, win, 100, 105)
-	focus := tpl.Input(win, 50, 90, 200, 30, &text)
+	focus := tpl.Input(win, canvas.Area{X: 50, Y: 90, Width: 200, Height: 30}, &text)
 	win.End()
 	if !focus.Is(event.TextInput, event.Focus) {
 		t.Errorf("clicking a field should produce a Focus event, got %v", focus)
@@ -100,7 +100,7 @@ func TestInputFiresFocusAndType(t *testing.T) {
 	// Type a character.
 	win.Begin()
 	win.Push(antui.Event{Type: antui.EventText, Text: "A"})
-	typed := tpl.Input(win, 50, 90, 200, 30, &text)
+	typed := tpl.Input(win, canvas.Area{X: 50, Y: 90, Width: 200, Height: 30}, &text)
 	win.End()
 	if !typed.Is(event.TextInput, event.Type) {
 		t.Errorf("typing should produce a Type event, got %v", typed)
@@ -117,7 +117,7 @@ func TestOffscreenCanvasIsDrawable(t *testing.T) {
 	}
 	tpl := Cyberpunk()
 	win.Begin()
-	tpl.Button(win, 10, 10, 44, 44, "X")
+	tpl.Button(win, canvas.Area{X: 10, Y: 10, Width: 44, Height: 44}, "X")
 	win.End()
 	hot := false
 	for _, c := range cv.Pixels {
@@ -171,7 +171,7 @@ func TestSelectOpensPicksAndCloses(t *testing.T) {
 	// Click the box: the menu opens.
 	win.Begin()
 	testClick(t, win, 100, 40)
-	e := tpl.Select(win, 50, 25, 140, 30, &index, options)
+	e := tpl.Select(win, canvas.Area{X: 50, Y: 25, Width: 140, Height: 30}, SelectParams{Index: &index, Options: options})
 	win.End()
 	if !e.Is(event.Select, event.Open) {
 		t.Fatalf("expected Select/Open, got %v", e)
@@ -182,7 +182,7 @@ func TestSelectOpensPicksAndCloses(t *testing.T) {
 	// y+h*2 .. y+h*3.
 	win.Begin()
 	testClick(t, win, 100, 25+30*2+15)
-	e = tpl.Select(win, 50, 25, 140, 30, &index, options)
+	e = tpl.Select(win, canvas.Area{X: 50, Y: 25, Width: 140, Height: 30}, SelectParams{Index: &index, Options: options})
 	win.End()
 	if !e.Is(event.Select, event.Pick) {
 		t.Fatalf("expected Select/Pick, got %v", e)
@@ -201,7 +201,7 @@ func TestSelectKeyboardPicks(t *testing.T) {
 	// Click the box opens the menu and grabs the keyboard.
 	win.Begin()
 	testClick(t, win, 60, 40)
-	e := tpl.Select(win, 50, 25, 120, 30, &index, options)
+	e := tpl.Select(win, canvas.Area{X: 50, Y: 25, Width: 120, Height: 30}, SelectParams{Index: &index, Options: options})
 	win.End()
 	if !e.Is(event.Select, event.Open) {
 		t.Fatalf("expected Select/Open, got %v", e)
@@ -210,7 +210,7 @@ func TestSelectKeyboardPicks(t *testing.T) {
 	// Arrows walk the menu; nothing is committed yet.
 	win.Begin()
 	win.Push(antui.Event{Type: antui.EventKeyDown, Key: antui.KeyDown})
-	e = tpl.Select(win, 50, 25, 120, 30, &index, options)
+	e = tpl.Select(win, canvas.Area{X: 50, Y: 25, Width: 120, Height: 30}, SelectParams{Index: &index, Options: options})
 	win.End()
 	if e.Ok() {
 		t.Fatalf("walking the menu should not pick yet, got %v", e)
@@ -222,7 +222,7 @@ func TestSelectKeyboardPicks(t *testing.T) {
 	// Up wraps nowhere (top), then Enter commits index 1.
 	win.Begin()
 	win.Push(antui.Event{Type: antui.EventKeyDown, Key: antui.KeyUp})
-	e = tpl.Select(win, 50, 25, 120, 30, &index, options)
+	e = tpl.Select(win, canvas.Area{X: 50, Y: 25, Width: 120, Height: 30}, SelectParams{Index: &index, Options: options})
 	win.End()
 	if e.Ok() {
 		t.Fatalf("arrow between picks should not commit, got %v", e)
@@ -230,12 +230,12 @@ func TestSelectKeyboardPicks(t *testing.T) {
 
 	win.Begin()
 	win.Push(antui.Event{Type: antui.EventKeyDown, Key: antui.KeyDown})
-	e = tpl.Select(win, 50, 25, 120, 30, &index, options)
+	e = tpl.Select(win, canvas.Area{X: 50, Y: 25, Width: 120, Height: 30}, SelectParams{Index: &index, Options: options})
 	win.End()
 
 	win.Begin()
 	win.Push(antui.Event{Type: antui.EventKeyDown, Key: antui.KeyEnter})
-	e = tpl.Select(win, 50, 25, 120, 30, &index, options)
+	e = tpl.Select(win, canvas.Area{X: 50, Y: 25, Width: 120, Height: 30}, SelectParams{Index: &index, Options: options})
 	win.End()
 	if !e.Is(event.Select, event.Pick) {
 		t.Fatalf("expected Select/Pick on Enter, got %v", e)
@@ -253,13 +253,13 @@ func TestSelectAutoclosesOnOutsideClick(t *testing.T) {
 
 	win.Begin()
 	testClick(t, win, 60, 40)
-	tpl.Select(win, 50, 25, 100, 30, &index, options)
+	tpl.Select(win, canvas.Area{X: 50, Y: 25, Width: 100, Height: 30}, SelectParams{Index: &index, Options: options})
 	win.End()
 
 	// Click well below the open menu: it closes.
 	win.Begin()
 	testClick(t, win, 300, 250)
-	e := tpl.Select(win, 50, 25, 100, 30, &index, options)
+	e := tpl.Select(win, canvas.Area{X: 50, Y: 25, Width: 100, Height: 30}, SelectParams{Index: &index, Options: options})
 	win.End()
 	if !e.Is(event.Select, event.Close) {
 		t.Fatalf("expected Select/Close, got %v", e)
@@ -274,7 +274,7 @@ func TestTextAreaTypesAndWrapsCursor(t *testing.T) {
 	// Click to focus.
 	win.Begin()
 	testClick(t, win, 60, 60)
-	focus := tpl.TextArea(win, 20, 30, 300, 100, &text)
+	focus := tpl.TextArea(win, canvas.Area{X: 20, Y: 30, Width: 300, Height: 100}, &text)
 	win.End()
 	if !focus.Is(event.TextArea, event.Focus) {
 		t.Fatalf("expected TextArea/Focus, got %v", focus)
@@ -282,7 +282,7 @@ func TestTextAreaTypesAndWrapsCursor(t *testing.T) {
 
 	win.Begin()
 	win.Push(antui.Event{Type: antui.EventText, Text: "hi"})
-	typed := tpl.TextArea(win, 20, 30, 300, 100, &text)
+	typed := tpl.TextArea(win, canvas.Area{X: 20, Y: 30, Width: 300, Height: 100}, &text)
 	win.End()
 	if !typed.Is(event.TextArea, event.Type) {
 		t.Fatalf("expected TextArea/Type, got %v", typed)
@@ -294,7 +294,7 @@ func TestTextAreaTypesAndWrapsCursor(t *testing.T) {
 	// Enter inserts a line break at the cursor.
 	win.Begin()
 	win.Push(antui.Event{Type: antui.EventKeyDown, Key: antui.KeyEnter})
-	tpl.TextArea(win, 20, 30, 300, 100, &text)
+	tpl.TextArea(win, canvas.Area{X: 20, Y: 30, Width: 300, Height: 100}, &text)
 	win.End()
 	if text != "hi\n" {
 		t.Errorf("after Enter text = %q, want %q", text, "hi\n")
@@ -308,7 +308,7 @@ func TestSwitchToggles(t *testing.T) {
 
 	win.Begin()
 	testClick(t, win, 50, 60)
-	e := tpl.Switch(win, 20, 50, "Boost", &on)
+	e := tpl.Switch(win, canvas.Area{X: 20, Y: 50}, antui.CheckboxParams{Label: "Boost", Value: &on})
 	win.End()
 	if !on || !e.Is(event.Switch, event.Toggle) {
 		t.Fatalf("switch should toggle on, got on=%v event=%v", on, e)
@@ -321,7 +321,7 @@ func TestProgressIsInert(t *testing.T) {
 	win.Begin()
 	// A click on the bar must not blow up.
 	testClick(t, win, 200, 100)
-	tpl.Progress(win, 100, 90, 200, 16, 0.5)
+	tpl.Progress(win, canvas.Area{X: 100, Y: 90, Width: 200, Height: 16}, 0.5)
 	win.End()
 }
 
@@ -334,7 +334,7 @@ func TestDatePickerPicksADay(t *testing.T) {
 	value := Date{Year: 2026, Month: 9, Day: 1}
 	win.Begin()
 	testClick(t, win, 85, 25)
-	e := tpl.DatePicker(win, 10, 10, 150, 30, &value)
+	e := tpl.DatePicker(win, canvas.Area{X: 10, Y: 10, Width: 150, Height: 30}, &value)
 	win.End()
 	if !e.Is(event.DatePicker, event.Open) {
 		t.Fatalf("clicking the box should open the calendar, got %v", e)
@@ -349,7 +349,7 @@ func TestDatePickerPicksADay(t *testing.T) {
 	cx, cy, cc, _ := dayCellRect(g.px, g.py, g.u, (2+10-1)%7, (2+10-1)/7)
 	win.Begin()
 	testClick(t, win, cx+cc/2, cy+cc/2)
-	e = tpl.DatePicker(win, 10, 10, 150, 30, &value)
+	e = tpl.DatePicker(win, canvas.Area{X: 10, Y: 10, Width: 150, Height: 30}, &value)
 	win.End()
 	if !e.Is(event.DatePicker, event.Change) {
 		t.Fatalf("expected DatePicker/Change, got %v", e)
@@ -360,7 +360,7 @@ func TestDatePickerPicksADay(t *testing.T) {
 
 	// The popup closed, so a non-drawing frame reports nothing.
 	win.Begin()
-	e = tpl.DatePicker(win, 10, 10, 150, 30, &value)
+	e = tpl.DatePicker(win, canvas.Area{X: 10, Y: 10, Width: 150, Height: 30}, &value)
 	win.End()
 	if e.Ok() {
 		t.Errorf("closed datepicker should report nothing, got %v", e)
@@ -375,7 +375,7 @@ func TestDatePickerMarkerFollowsMouse(t *testing.T) {
 	// Open the calendar: clicking the box focuses it.
 	win.Begin()
 	testClick(t, win, 85, 25)
-	tpl.DatePicker(win, 10, 10, 150, 30, &value)
+	tpl.DatePicker(win, canvas.Area{X: 10, Y: 10, Width: 150, Height: 30}, &value)
 	win.End()
 
 	// Wandering over the grid moves the marker along, without clicking.
@@ -384,7 +384,7 @@ func TestDatePickerMarkerFollowsMouse(t *testing.T) {
 	cx, cy, cc, _ := dayCellRect(g.px, g.py, g.u, (2+10-1)%7, (2+10-1)/7)
 	win.Begin()
 	win.Push(antui.Event{Type: antui.EventMouseMove, X: cx + cc/2, Y: cy + cc/2})
-	e := tpl.DatePicker(win, 10, 10, 150, 30, &value)
+	e := tpl.DatePicker(win, canvas.Area{X: 10, Y: 10, Width: 150, Height: 30}, &value)
 	win.End()
 	if e.Ok() {
 		t.Fatalf("hovering a day should not pick it, got %v", e)
@@ -396,7 +396,7 @@ func TestDatePickerMarkerFollowsMouse(t *testing.T) {
 	// Enter commits whatever the marker is sitting on: day 10 now.
 	win.Begin()
 	win.Push(antui.Event{Type: antui.EventKeyDown, Key: antui.KeyEnter})
-	e = tpl.DatePicker(win, 10, 10, 150, 30, &value)
+	e = tpl.DatePicker(win, canvas.Area{X: 10, Y: 10, Width: 150, Height: 30}, &value)
 	win.End()
 	if !e.Is(event.DatePicker, event.Change) {
 		t.Fatalf("expected DatePicker/Change on Enter, got %v", e)
@@ -416,7 +416,7 @@ func TestDatePickerArrowsWorkWhileMouseResting(t *testing.T) {
 	// Open the calendar: clicking the box focuses it.
 	win.Begin()
 	testClick(t, win, 85, 25)
-	tpl.DatePicker(win, 10, 10, 150, 30, &value)
+	tpl.DatePicker(win, canvas.Area{X: 10, Y: 10, Width: 150, Height: 30}, &value)
 	win.End()
 
 	// Rest the pointer over day 10, then walk one day right with the arrow.
@@ -424,18 +424,18 @@ func TestDatePickerArrowsWorkWhileMouseResting(t *testing.T) {
 	cx, cy, cc, _ := dayCellRect(g.px, g.py, g.u, (2+10-1)%7, (2+10-1)/7)
 	win.Begin()
 	win.Push(antui.Event{Type: antui.EventMouseMove, X: cx + cc/2, Y: cy + cc/2})
-	tpl.DatePicker(win, 10, 10, 150, 30, &value)
+	tpl.DatePicker(win, canvas.Area{X: 10, Y: 10, Width: 150, Height: 30}, &value)
 	win.End()
 
 	// The mouse sits still now; Right must keep the keyboard's day.
 	win.Begin()
 	win.Push(antui.Event{Type: antui.EventKeyDown, Key: antui.KeyRight})
-	tpl.DatePicker(win, 10, 10, 150, 30, &value)
+	tpl.DatePicker(win, canvas.Area{X: 10, Y: 10, Width: 150, Height: 30}, &value)
 	win.End()
 
 	win.Begin()
 	win.Push(antui.Event{Type: antui.EventKeyDown, Key: antui.KeyEnter})
-	e := tpl.DatePicker(win, 10, 10, 150, 30, &value)
+	e := tpl.DatePicker(win, canvas.Area{X: 10, Y: 10, Width: 150, Height: 30}, &value)
 	win.End()
 	if !e.Is(event.DatePicker, event.Change) {
 		t.Fatalf("expected DatePicker/Change on Enter, got %v", e)
@@ -455,13 +455,13 @@ func TestDatePickerKeyboardPicksACloser(t *testing.T) {
 	// Open the calendar: clicking the box focuses it.
 	win.Begin()
 	testClick(t, win, 85, 25)
-	tpl.DatePicker(win, 10, 10, 150, 30, &value)
+	tpl.DatePicker(win, canvas.Area{X: 10, Y: 10, Width: 150, Height: 30}, &value)
 	win.End()
 
 	// Arrow right highlights day 2; Enter commits it and closes.
 	win.Begin()
 	win.Push(antui.Event{Type: antui.EventKeyDown, Key: antui.KeyRight})
-	e := tpl.DatePicker(win, 10, 10, 150, 30, &value)
+	e := tpl.DatePicker(win, canvas.Area{X: 10, Y: 10, Width: 150, Height: 30}, &value)
 	win.End()
 	if e.Ok() {
 		t.Errorf("walking days should not pick yet, got %v", e)
@@ -472,7 +472,7 @@ func TestDatePickerKeyboardPicksACloser(t *testing.T) {
 
 	win.Begin()
 	win.Push(antui.Event{Type: antui.EventKeyDown, Key: antui.KeyEnter})
-	e = tpl.DatePicker(win, 10, 10, 150, 30, &value)
+	e = tpl.DatePicker(win, canvas.Area{X: 10, Y: 10, Width: 150, Height: 30}, &value)
 	win.End()
 	if !e.Is(event.DatePicker, event.Change) {
 		t.Fatalf("expected DatePicker/Change on Enter, got %v", e)
@@ -490,17 +490,17 @@ func TestDatePickerEscapeCancels(t *testing.T) {
 	// Open, walk to another day, then Escape without committing.
 	win.Begin()
 	testClick(t, win, 85, 25)
-	tpl.DatePicker(win, 10, 10, 150, 30, &value)
+	tpl.DatePicker(win, canvas.Area{X: 10, Y: 10, Width: 150, Height: 30}, &value)
 	win.End()
 
 	win.Begin()
 	win.Push(antui.Event{Type: antui.EventKeyDown, Key: antui.KeyRight})
-	tpl.DatePicker(win, 10, 10, 150, 30, &value)
+	tpl.DatePicker(win, canvas.Area{X: 10, Y: 10, Width: 150, Height: 30}, &value)
 	win.End()
 
 	win.Begin()
 	win.Push(antui.Event{Type: antui.EventKeyDown, Key: antui.KeyEscape})
-	e := tpl.DatePicker(win, 10, 10, 150, 30, &value)
+	e := tpl.DatePicker(win, canvas.Area{X: 10, Y: 10, Width: 150, Height: 30}, &value)
 	win.End()
 	if !e.Is(event.DatePicker, event.Close) {
 		t.Fatalf("expected DatePicker/Close on Escape, got %v", e)

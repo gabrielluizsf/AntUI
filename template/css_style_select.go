@@ -22,6 +22,6 @@ func (cs *cssStyle) Select(p SelectParams) {
 		name = IconCaretUp
 	}
 	caretBox := 10 * u
-	DrawIcon(p.Win.Canvas(), name,
+	drawIcon(p.Win.Canvas(), name,
 		p.X+p.W-padR-3*u-caretBox/2, p.Y+(p.H-caretBox)/2, caretBox, caretBox, cs.ink(st))
 }

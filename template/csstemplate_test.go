@@ -250,7 +250,7 @@ func TestCSSInputClickPositionsCaret(t *testing.T) {
 	// A click in the middle of the fifth glyph ('e') puts the caret after it.
 	win.Begin()
 	testClick(t, win, x+4*glyph+glyph/2, y+h/2)
-	ut.Input(win, x, y, w, h, &text)
+	ut.Input(win, canvas.Area{X: x, Y: y, Width: w, Height: h}, &text)
 	win.End()
 	if c := win.WidgetCursor(); c != 5 {
 		t.Fatalf("clicking 'e' should drop the caret at 5, got %d", c)
@@ -259,7 +259,7 @@ func TestCSSInputClickPositionsCaret(t *testing.T) {
 	// The caret stays where the click put it: typing lands between e and f.
 	win.Begin()
 	win.Push(antui.Event{Type: antui.EventText, Text: "X"})
-	ut.Input(win, x, y, w, h, &text)
+	ut.Input(win, canvas.Area{X: x, Y: y, Width: w, Height: h}, &text)
 	win.End()
 	if text != "abcdeXf" {
 		t.Fatalf("typing after the click = %q, want %q", text, "abcdeXf")
@@ -279,7 +279,7 @@ func TestCSSTextAreaClickPositionsCaret(t *testing.T) {
 	// before the 'e'.
 	win.Begin()
 	testClick(t, win, x+16+4, y+lineH+16)
-	ut.TextArea(win, x, y, w, h, &text)
+	ut.TextArea(win, canvas.Area{X: x, Y: y, Width: w, Height: h}, &text)
 	win.End()
 	if c := win.WidgetCursor(); c != 5 {
 		t.Fatalf("clicking 'e' on the second line should give cursor 5, got %d", c)
@@ -288,7 +288,7 @@ func TestCSSTextAreaClickPositionsCaret(t *testing.T) {
 	// And typing goes in at the clicked spot.
 	win.Begin()
 	win.Push(antui.Event{Type: antui.EventText, Text: "Y"})
-	ut.TextArea(win, x, y, w, h, &text)
+	ut.TextArea(win, canvas.Area{X: x, Y: y, Width: w, Height: h}, &text)
 	win.End()
 	if text != "abc\ndYef" {
 		t.Fatalf("typing after the click = %q, want %q", text, "abc\ndYef")

@@ -15,7 +15,7 @@ import "github.com/gabrielluizsf/antui"
 //
 //	func (Home) Draw(c *Context) {
 //	    c.Label(0, 0, "Home")
-//	    if c.Button(c.Center(160), 120, 160, 40, "To Shop").Is(event.Button, event.Click) {
+//	    if c.Button(canvas.Area{X: c.Center(160), Y: 120, Width: 160, Height: 40}, "To Shop").Is(event.Button, event.Click) {
 //	        c.Go(Shop{})
 //	    }
 //	}

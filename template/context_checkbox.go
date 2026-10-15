@@ -1,7 +1,11 @@
 package template
 
-import "github.com/gabrielluizsf/antui/template/event"
+import (
+	"github.com/gabrielluizsf/antui"
+	"github.com/gabrielluizsf/antui/canvas"
+	"github.com/gabrielluizsf/antui/template/event"
+)
 
-func (c *Context) Checkbox(x, y int, label string, value *bool) event.Event {
-	return c.tpl.Checkbox(c.win, x, y, label, value)
+func (c *Context) Checkbox(area canvas.Area, params antui.CheckboxParams) event.Event {
+	return c.tpl.Checkbox(c.win, area, params)
 }

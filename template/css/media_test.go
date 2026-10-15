@@ -8,7 +8,7 @@ import (
 // mediaWidth reads one class's width against a whole window, the way the
 // drawing asks for it, and reports the rule as absent when it did not apply.
 func mediaWidth(sh *Sheet, vp Viewport, cls string) (int, bool) {
-	st := sh.StyleViewport("div", []string{cls}, StateNone, vp)
+	st := sh.StyleViewport(StyleQuery{Tag: "div", Classes: []string{cls}, State: StateNone, Viewport: vp})
 	if !st.Has("width") {
 		return 0, false
 	}

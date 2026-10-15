@@ -29,6 +29,6 @@ func (builtinStyle) Select(p SelectParams) {
 	// bigger than the arrow so that the arrow itself comes out at the size the
 	// drawing says it is, centred in the square whatever the scale.
 	caretBox := 10 * u
-	DrawIcon(cv, IconCaret,
+	drawIcon(cv, IconCaret,
 		p.X+p.W-padding-3*u-caretBox/2, p.Y+(p.H-caretBox)/2, caretBox, caretBox, th.TextMuted)
 }
