@@ -41,8 +41,8 @@ func TestDamageCoversEveryDrawing(t *testing.T) {
 			cv.FillRect(Area{200, 100, 100, 40}, RGB(0x66, 0x44, 0x22))
 			cv.MaskRoundRect(Rounded{Area{200, 100, 100, 40}, 16, 16})
 		},
-		"blur":        func() { cv.Blur(Area{X: 10, Y: 10, Width: 80, Height: 60}, 3) },
-		"filter":      func() { cv.FilterRegion(Area{X: 100, Y: 10, Width: 60, Height: 40}, FilterBlur, 2) },		"scale alpha": func() { ScaleAlpha(cv, 0.5) },
+		"blur":   func() { cv.Blur(Area{X: 10, Y: 10, Width: 80, Height: 60}, 3) },
+		"filter": func() { cv.FilterRegion(Area{X: 100, Y: 10, Width: 60, Height: 40}, FilterBlur, 2) }, "scale alpha": func() { ScaleAlpha(cv, 0.5) },
 		"box shadow":  func() { cv.BoxShadow(20, 20, 100, 50, 8, 8, 4, 4, 6, 2, RGBA(0, 0, 0, 0x99), false) },
 		"blit":        func() { cv.Blit(120, 30, layer(t)) },
 		"blit over":   func() { cv.BlitOver(140, 30, layer(t)) },

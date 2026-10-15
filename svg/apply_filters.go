@@ -53,6 +53,7 @@ func applyFilters(cv *canvas.Canvas, filters []filterOp, s scale2, current canva
 			cv.BlurXY(canvas.Area{X: 0, Y: 0, Width: cv.Width, Height: cv.Height}, radius(f.amount*s.x), radius(f.amount*s.y))
 			continue
 		}
-		cv.FilterRegion(canvas.Area{X: 0, Y: 0, Width: cv.Width, Height: cv.Height}, f.kind, f.amount)	}
+		cv.FilterRegion(canvas.Area{X: 0, Y: 0, Width: cv.Width, Height: cv.Height}, f.kind, f.amount)
+	}
 	return cv
 }
