@@ -57,6 +57,18 @@ func asDataURI(picture []byte) string {
 	return "data:image/png;base64," + base64.StdEncoding.EncodeToString(picture)
 }
 
+// fileURLOf is the `file:` address of a path on this machine, written the way
+// every platform writes it: three slashes, and on Windows one more before the
+// drive letter (`file:///C:/dir/x.png`), which url.URL does not add by itself
+// when there is no host.
+func fileURLOf(path string) string {
+	p := filepath.ToSlash(path)
+	if !strings.HasPrefix(p, "/") {
+		p = "/" + p
+	}
+	return (&url.URL{Scheme: "file", Path: p}).String()
+}
+
 // mustParse reads a drawing and fails the test rather than carrying on without
 // one, which is what every test here asks for first.
 func mustParse(t *testing.T, src string) *Image {
@@ -629,17 +641,15 @@ func TestXMLBaseTakesARelativeAddressToWhereItSays(t *testing.T) {
 		solidPicture(t, 4, 4, color.NRGBA{R: 255, A: 255}), 0o644); err != nil {
 		t.Fatal(err)
 	}
-	for _, tc := range []struct{ name, place string }{
-		{"on the drawing", ""},
-		{"on the group holding it", `<g xml:base="%[1]s"><image href="picture.png" x="0" y="0" width="4" height="4"/></g>`},
+	const image = `<image href="picture.png" x="0" y="0" width="4" height="4"/>`
+	for _, tc := range []struct{ name, src string }{
+		{"on the drawing",
+			fmt.Sprintf(`<svg viewBox="0 0 4 4" xml:base="%s">%s</svg>`, dir, image)},
+		{"on the group holding it",
+			fmt.Sprintf(`<svg viewBox="0 0 4 4"><g xml:base="%s">%s</g></svg>`, dir, image)},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
-			body := tc.place
-			if body == "" {
-				body = `<image href="picture.png" x="0" y="0" width="4" height="4"/>`
-			}
-			img := mustParse(t, fmt.Sprintf(
-				`<svg viewBox="0 0 4 4" xml:base="%s">%s</svg>`, dir, fmt.Sprintf(body, dir)))
+			img := mustParse(t, tc.src)
 			if got := img.Warnings().String(); got != "no warnings" {
 				t.Errorf("the base said something was wrong: %s", got)
 			}
@@ -703,25 +713,26 @@ func TestXMLBaseTakesOverFromTheFileTheDrawingWasReadFrom(t *testing.T) {
 func TestASchemeIsSaidForWhatItMeansRatherThanReadAsAPath(t *testing.T) {
 	// An address of a scheme this draws nothing from is said for its scheme:
 	// it is a resource that did not arrive, not a file name with a colon in it,
-	// and the file system would be asked for a name nobody wrote.
-	pic := filepath.Join(t.TempDir(), "picture.png")
-	fileURL := url.URL{
-		Scheme: "file",
-		Path:   filepath.ToSlash(pic),
-	}
-	href := fileURL.String()
+	// and the file system would be asked for a name nobody wrote. The file
+	// address names a host that is not this one, so it is refused for that and
+	// never turned into a path to open.
 	for _, tc := range []struct{ name, href, want string }{
 		{"a scheme with no reader", "ftp://example.com/picture.png", `"ftp:" is not one a picture is read from`},
-		{"a file on another machine", href, "is not this machine"},
+		{"a file on another machine", "file://otherhost/elsewhere/picture.png", "is not this machine"},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			img := mustParse(t, fmt.Sprintf(
 				`<svg viewBox="0 0 4 4"><image href="%s" width="4" height="4"/></svg>`, tc.href))
-			if got := img.Warnings().String(); !strings.Contains(got, tc.want) {
+			got := img.Warnings().String()
+			if !strings.Contains(got, tc.want) {
 				t.Errorf("the warnings say:\n%s\nand should contain %q", got, tc.want)
 			}
-			if strings.Contains(img.Warnings().String(), pic) {
-				t.Errorf("an address nobody wrote as a file was asked of the file system: %s", img.Warnings())
+			// What the file system says when it is asked for a name that is not
+			// there, on any platform: it means the address was opened as a file.
+			for _, fsSays := range []string{"no such file", "cannot find the", "not found"} {
+				if strings.Contains(got, fsSays) {
+					t.Errorf("an address nobody wrote as a file was asked of the file system: %s", got)
+				}
 			}
 		})
 	}
@@ -734,13 +745,8 @@ func TestAFileAddressIsReadFromThePathItNames(t *testing.T) {
 	if err := os.WriteFile(path, solidPicture(t, 4, 4, color.NRGBA{R: 255, A: 255}), 0o644); err != nil {
 		t.Fatal(err)
 	}
-	fileURL := url.URL{
-		Scheme: "file",
-		Path:   filepath.ToSlash(path),
-	}
-	href := fileURL.String()
 	img := mustParse(t, fmt.Sprintf(
-		`<svg viewBox="0 0 4 4"><image href="%s" x="0" y="0" width="4" height="4"/></svg>`, href))
+		`<svg viewBox="0 0 4 4"><image href="%s" x="0" y="0" width="4" height="4"/></svg>`, fileURLOf(path)))
 	if got := img.Warnings().String(); got != "no warnings" {
 		t.Errorf("a file: address said something was wrong: %s", got)
 	}
@@ -768,6 +774,8 @@ func TestHrefSchemeNamesOnlyWhatASchemeIs(t *testing.T) {
 		{"/dir:name/pic.png", ""},
 		{"1bad:thing", ""},
 		{"://noname", ""},
+		{`C:\dir\pic.png`, ""},
+		{"C:/dir/pic.png", ""},
 	} {
 		if got := hrefScheme(tc.href); got != tc.want {
 			t.Errorf("hrefScheme(%q) = %q, want %q", tc.href, got, tc.want)
@@ -785,5 +793,23 @@ func TestResolveHrefKeepsAnAddressItCannotRead(t *testing.T) {
 	}
 	if got := resolveHref("/base/", bad); got != bad {
 		t.Errorf("an unreadable href changed the address: %q, want %q", got, bad)
+	}
+}
+
+func TestResolveHrefJoinsALocalBaseAsAPathNotAURL(t *testing.T) {
+	// A base that is a folder or a file on this machine is joined as a path:
+	// a Windows drive letter is not the scheme of a URL, and a trailing
+	// separator on the href is kept because it is what makes a base a folder.
+	sep := string(filepath.Separator)
+	dir := filepath.Join("some", "dir")
+	for _, tc := range []struct{ base, href, want string }{
+		{dir + sep, "pic.png", filepath.Join(dir, "pic.png")},
+		{filepath.Join(dir, "drawing.svg"), "pic.png", filepath.Join(dir, "pic.png")},
+		{dir + sep, "nested/", filepath.Join(dir, "nested") + sep},
+		{dir + sep, "nested/pic.png", filepath.Join(dir, "nested", "pic.png")},
+	} {
+		if got := resolveHref(tc.base, tc.href); got != tc.want {
+			t.Errorf("resolveHref(%q, %q) = %q, want %q", tc.base, tc.href, got, tc.want)
+		}
 	}
 }
