@@ -6,7 +6,7 @@ package font
 // TrueType leaves the on-curve points between two off-curve ones out, and
 // they are the midpoint — so a run of control points is a run of curves that
 // meet smoothly, written down as half the data.
-func Emit(r *raster, c Contour, scale, ox, oy float64) {
+func emit(r *raster, c Contour, scale, ox, oy float64) {
 	n := len(c.X)
 	if n < 2 {
 		return

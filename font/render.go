@@ -32,7 +32,7 @@ func Render(contours []Contour, scale float64) Mask {
 
 	r := newRaster(w, h)
 	for _, c := range contours {
-		Emit(r, c, scale, float64(left), float64(top))
+		emit(r, c, scale, float64(left), float64(top))
 	}
 	return Mask{W: w, H: h, Left: left, Top: top, Alpha: r.mask(), Stride: w}
 }

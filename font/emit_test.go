@@ -16,7 +16,7 @@ func TestEmit_TooFewPoints(t *testing.T) {
 		On: []bool{true},
 	}
 
-	Emit(r, c, 1.0, 0, 0)
+	emit(r, c, 1.0, 0, 0)
 	mask := r.mask()
 
 	// The mask should be completely empty (all 0s)
@@ -42,7 +42,7 @@ func TestEmit_AllOnCurve(t *testing.T) {
 
 	// We pass oy=10.0 so the Y coordinates (2, 2, 8, 8) are mapped
 	// to 8, 8, 2, 2 (oy - y), which fits inside our 10x10 raster.
-	Emit(r, c, 1.0, 0, 10.0)
+	emit(r, c, 1.0, 0, 10.0)
 	mask := r.mask()
 
 	hasFill := false
@@ -65,7 +65,7 @@ func TestEmit_WithOffCurve(t *testing.T) {
 	}
 
 	// Passing oy=10.0 to ensure coordinates fall inside the raster bounds.
-	Emit(r, c, 1.0, 0, 10.0)
+	emit(r, c, 1.0, 0, 10.0)
 	mask := r.mask()
 
 	hasFill := false
@@ -88,7 +88,7 @@ func TestEmit_AllOffCurve(t *testing.T) {
 	}
 
 	// Passing oy=20.0 to match the raster height.
-	Emit(r, c, 1.0, 0, 20.0)
+	emit(r, c, 1.0, 0, 20.0)
 	mask := r.mask()
 
 	hasFill := false
@@ -112,7 +112,7 @@ func TestEmit_ScalingAndOffset(t *testing.T) {
 
 	// scale = 5.0, ox = -2.0, oy = 8.0
 	// This moves the tiny square into the visible 10x10 raster space
-	Emit(r, c, 5.0, -2.0, 8.0)
+	emit(r, c, 5.0, -2.0, 8.0)
 	mask := r.mask()
 
 	hasFill := false
