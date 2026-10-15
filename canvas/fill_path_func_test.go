@@ -12,7 +12,7 @@ import "testing"
 func TestFillPathFuncPaintsAColourDecidedPerPixel(t *testing.T) {
 	cv := newTestCanvas(t, 8, 4)
 	p := NewPath()
-	p.AddRect(Point{X:0,Y:0}, Point{X:8,Y:4})
+	p.AddRect(Point{X: 0, Y: 0}, Point{X: 8, Y: 4})
 	cv.FillPathFunc(p, FillNonZero, func(x, y int) Color {
 		return RGB(uint8(x*255/7), uint8(y*255/3), 0)
 	})
@@ -33,7 +33,7 @@ func TestFillPathFuncPaintsAColourDecidedPerPixel(t *testing.T) {
 func TestFillPathFuncFoldsCoverageIntoTheShade(t *testing.T) {
 	cv := newTestCanvas(t, 4, 4)
 	p := NewPath()
-	p.AddRect(Point{X:0.5,Y:0}, Point{X:4,Y:4})
+	p.AddRect(Point{X: 0.5, Y: 0}, Point{X: 4, Y: 4})
 	cv.FillPathFunc(p, FillNonZero, func(x, y int) Color { return RGB(255, 0, 0) })
 
 	for x, want := range map[int]int{0: 128, 1: 255, 2: 255, 3: 255} {
@@ -77,7 +77,7 @@ func TestFillPathFuncMatchesAFlatFillOfTheSameColour(t *testing.T) {
 func TestFillPathFuncAsksOnlyForThePixelsTheShapeCovers(t *testing.T) {
 	cv := newTestCanvas(t, 8, 8)
 	p := NewPath()
-	p.AddRect(Point{X:2,Y:3}, Point{X:3,Y:2})
+	p.AddRect(Point{X: 2, Y: 3}, Point{X: 3, Y: 2})
 
 	asked := map[[2]int]bool{}
 	cv.FillPathFunc(p, FillNonZero, func(x, y int) Color {
@@ -102,7 +102,7 @@ func TestFillPathFuncAsksOnlyForThePixelsTheShapeCovers(t *testing.T) {
 func TestFillPathFuncPaintsNothingThereIsNothingToAsk(t *testing.T) {
 	cv := newTestCanvas(t, 4, 4)
 	p := NewPath()
-	p.AddRect(Point{X:0,Y:0}, Point{X:4,Y:4})
+	p.AddRect(Point{X: 0, Y: 0}, Point{X: 4, Y: 4})
 
 	cv.FillPathFunc(nil, FillNonZero, func(x, y int) Color { return RGB(255, 0, 0) })
 	cv.FillPathFunc(p, FillNonZero, nil)

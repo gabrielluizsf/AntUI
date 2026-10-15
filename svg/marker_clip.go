@@ -17,7 +17,7 @@ func markerClip(onto canvas.Matrix, w, h float64, visible bool) *clipRegion {
 		return nil
 	}
 	p := canvas.NewPath()
-	p.AddRect(canvas.Point{X:0,Y:0}, canvas.Point{X:w,Y:h})
+	p.AddRect(canvas.Point{X: 0, Y: 0}, canvas.Point{X: w, Y: h})
 	p.Transform(inv)
 	return &clipRegion{shapes: []canvas.MaskShape{{Path: p, Rule: canvas.FillNonZero}}}
 }

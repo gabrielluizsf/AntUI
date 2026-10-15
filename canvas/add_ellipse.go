@@ -9,9 +9,9 @@ func (p *Path) AddEllipse(center, radii Point) {
 		return
 	}
 	p.MoveTo(cx+rx, cy)
-	p.CubicTo(Point{X:cx+rx,Y:cy+kappa*ry}, Point{X:cx+kappa*rx,Y:cy+ry}, Point{X:cx,Y:cy+ry})
-	p.CubicTo(Point{X:cx-kappa*rx,Y:cy+ry}, Point{X:cx-rx,Y:cy+kappa*ry}, Point{X:cx-rx,Y:cy})
-	p.CubicTo(Point{X:cx-rx,Y:cy-kappa*ry}, Point{X:cx-kappa*rx,Y:cy-ry}, Point{X:cx,Y:cy-ry})
-	p.CubicTo(Point{X:cx+kappa*rx,Y:cy-ry}, Point{X:cx+rx,Y:cy-kappa*ry}, Point{X:cx+rx,Y:cy})
+	p.CubicTo(Point{X: cx + rx, Y: cy + kappa*ry}, Point{X: cx + kappa*rx, Y: cy + ry}, Point{X: cx, Y: cy + ry})
+	p.CubicTo(Point{X: cx - kappa*rx, Y: cy + ry}, Point{X: cx - rx, Y: cy + kappa*ry}, Point{X: cx - rx, Y: cy})
+	p.CubicTo(Point{X: cx - rx, Y: cy - kappa*ry}, Point{X: cx - kappa*rx, Y: cy - ry}, Point{X: cx, Y: cy - ry})
+	p.CubicTo(Point{X: cx + kappa*rx, Y: cy - ry}, Point{X: cx + rx, Y: cy - kappa*ry}, Point{X: cx + rx, Y: cy})
 	p.Close()
 }
