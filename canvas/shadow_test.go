@@ -4,7 +4,7 @@ import "testing"
 
 func TestOuterShadowSitsBehindTheBox(t *testing.T) {
 	cv, _ := NewCanvas(40, 40)
-	cv.BoxShadow(15, 15, 10, 10, 0, 0, 0, 0, 0, 0, Black, false)
+	cv.BoxShadow(BoxShadowParams{X: 15, Y: 15, Width: 10, Height: 10, RX: 0, RY: 0, DX: 0, DY: 0, Blur: 0, Spread: 0, Color: Black, Inset: false})
 	if a := cv.At(20, 20).A(); a != 255 {
 		t.Fatalf("inside the shadow should be opaque: %d", a)
 	}
@@ -15,7 +15,7 @@ func TestOuterShadowSitsBehindTheBox(t *testing.T) {
 
 func TestOuterShadowOffsetAndSpread(t *testing.T) {
 	cv, _ := NewCanvas(40, 40)
-	cv.BoxShadow(15, 15, 10, 10, 0, 0, 0, 0, 0, 3, Black, false)
+	cv.BoxShadow(BoxShadowParams{X: 15, Y: 15, Width: 10, Height: 10, RX: 0, RY: 0, DX: 0, DY: 0, Blur: 0, Spread: 3, Color: Black, Inset: false})
 	if a := cv.At(13, 20).A(); a == 0 {
 		t.Fatal("spread should grow the shadow past the box edge")
 	}
@@ -26,7 +26,7 @@ func TestOuterShadowOffsetAndSpread(t *testing.T) {
 
 func TestOuterShadowOffset(t *testing.T) {
 	cv, _ := NewCanvas(40, 40)
-	cv.BoxShadow(15, 15, 10, 10, 0, 0, 5, 0, 0, 0, Black, false)
+	cv.BoxShadow(BoxShadowParams{X: 15, Y: 15, Width: 10, Height: 10, RX: 0, RY: 0, DX: 5, DY: 0, Blur: 0, Spread: 0, Color: Black, Inset: false})
 	if a := cv.At(27, 20).A(); a != 255 {
 		t.Fatal("offset shadow should cover the shifted area")
 	}
@@ -37,7 +37,7 @@ func TestOuterShadowOffset(t *testing.T) {
 
 func TestInsetShadowHugsTheEdges(t *testing.T) {
 	cv, _ := NewCanvas(40, 40)
-	cv.BoxShadow(10, 10, 20, 20, 0, 0, 0, 0, 4, 0, Black, true)
+	cv.BoxShadow(BoxShadowParams{X: 10, Y: 10, Width: 20, Height: 20, RX: 0, RY: 0, DX: 0, DY: 0, Blur: 4, Spread: 0, Color: Black, Inset: true})
 	edge := cv.At(10, 20).A()
 	centre := cv.At(20, 20).A()
 	if edge == 0 {
@@ -54,7 +54,7 @@ func TestInsetShadowHugsTheEdges(t *testing.T) {
 func TestShadowAlphaScalesWithColour(t *testing.T) {
 	cv, _ := NewCanvas(20, 20)
 	cv.FillRect(Area{0, 0, 20, 20}, White)
-	cv.BoxShadow(5, 5, 10, 10, 0, 0, 0, 0, 0, 0, Fade(Black, 128), false)
+	cv.BoxShadow(BoxShadowParams{X: 5, Y: 5, Width: 10, Height: 10, RX: 0, RY: 0, DX: 0, DY: 0, Blur: 0, Spread: 0, Color: Fade(Black, 128), Inset: false})
 	got := cv.At(10, 10)
 	if got.R() < 120 || got.R() > 136 {
 		t.Fatalf("half-transparent black over white should be mid grey: %v", got)
@@ -63,7 +63,7 @@ func TestShadowAlphaScalesWithColour(t *testing.T) {
 
 func TestBlurredShadowStaysSoftOnEmptyCanvas(t *testing.T) {
 	cv, _ := NewCanvas(60, 60)
-	cv.BoxShadow(10, 10, 20, 20, 0, 0, 0, 0, 8, 0, Fade(Black, 255), false)
+	cv.BoxShadow(BoxShadowParams{X: 10, Y: 10, Width: 20, Height: 20, RX: 0, RY: 0, DX: 0, DY: 0, Blur: 8, Spread: 0, Color: Fade(Black, 255), Inset: false})
 	// Blit blending for an opaque framebuffer forces every touched pixel
 	// opaque, which would turn the whole padded layer into a solid slab —
 	// the shadow "bigger than the box". The far canvas edge sits beyond any

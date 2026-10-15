@@ -2,6 +2,7 @@ package template
 
 import (
 	"github.com/gabrielluizsf/antui"
+	"github.com/gabrielluizsf/antui/canvas"
 	"github.com/gabrielluizsf/antui/template/css"
 )
 
@@ -9,6 +10,9 @@ import (
 func (cs *cssStyle) paintShadow(win *antui.Window, sh css.Shadow, b shadowBox) {
 	u := cs.u()
 	col := cs.effectColor(win, b.st, sh.Color)
-	win.Canvas().BoxShadow(b.x, b.y, b.w, b.h, b.rx, b.ry,
-		sh.X*u, sh.Y*u, sh.Blur*u, sh.Spread*u, col, b.inset)
+	win.Canvas().BoxShadow(canvas.BoxShadowParams{
+		X: b.x, Y: b.y, Width: b.w, Height: b.h, RX: b.rx, RY: b.ry,
+		DX: sh.X * u, DY: sh.Y * u, Blur: sh.Blur * u, Spread: sh.Spread * u,
+		Color: col, Inset: b.inset,
+	})
 }

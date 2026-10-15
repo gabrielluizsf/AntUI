@@ -43,7 +43,7 @@ func TestDamageCoversEveryDrawing(t *testing.T) {
 		},
 		"blur":   func() { cv.Blur(Area{X: 10, Y: 10, Width: 80, Height: 60}, 3) },
 		"filter": func() { cv.FilterRegion(Area{X: 100, Y: 10, Width: 60, Height: 40}, FilterBlur, 2) }, "scale alpha": func() { ScaleAlpha(cv, 0.5) },
-		"box shadow":  func() { cv.BoxShadow(20, 20, 100, 50, 8, 8, 4, 4, 6, 2, RGBA(0, 0, 0, 0x99), false) },
+		"box shadow":  func() { cv.BoxShadow(BoxShadowParams{X: 20, Y: 20, Width: 100, Height: 50, RX: 8, RY: 8, DX: 4, DY: 4, Blur: 6, Spread: 2, Color: RGBA(0, 0, 0, 0x99), Inset: false}) },
 		"blit":        func() { cv.Blit(120, 30, layer(t)) },
 		"blit over":   func() { cv.BlitOver(140, 30, layer(t)) },
 		"blit scaled": func() { cv.BlitScaled(Area{X: 160, Y: 30, Width: 64, Height: 64}, layer(t)) },
