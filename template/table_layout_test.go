@@ -249,10 +249,10 @@ func TestTablePaintsItsOwnBox(t *testing.T) {
 		tb.TableRow(func(r *CSS) { r.Button("a") })
 	})
 	win.End()
-	if px := win.Canvas().At(100, 5); px != canvas.RGBA(0, 255, 0, 255) {
+	if px := win.Canvas().At(100, 5); px != canvas.RGBA(canvas.RGBAParams{R: 0, G: 255, B: 0, A: 255}) {
 		t.Errorf("the table face at the top of the box is %v, want the green background", px)
 	}
-	if px := win.Canvas().At(5, 5); px != canvas.RGBA(30, 40, 50, 255) {
+	if px := win.Canvas().At(5, 5); px != canvas.RGBA(canvas.RGBAParams{R: 30, G: 40, B: 50, A: 255}) {
 		t.Errorf("outside the table the window is %v, want it untouched", px)
 	}
 }

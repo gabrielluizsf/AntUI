@@ -466,7 +466,7 @@ func TestStylesheetURLPaintsARegisteredIconInTheTextsColour(t *testing.T) {
 
 	// The same icon on a box whose text is another colour comes out that colour,
 	// which is the whole reason the icon is painted per box and not once.
-	win.Canvas().FillRect(canvas.Area{X: 0, Y: 0, Width: 60, Height: 60}, canvas.RGBA(30, 40, 50, 255))
+	win.Canvas().FillRect(canvas.Area{X: 0, Y: 0, Width: 60, Height: 60}, canvas.RGBA(canvas.RGBAParams{R: 30, G: 40, B: 50, A: 255}))
 	paint(blue)
 	found = false
 	for y := 0; y < 60 && !found; y++ {

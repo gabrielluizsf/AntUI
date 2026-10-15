@@ -26,7 +26,7 @@ func (win *Window) drawInput(s inputState, text *string) {
 	win.cv.SetClip(canvas.Area{X: s.x + padding, Y: s.y + 1, Width: s.w - 2*padding, Height: s.h - 2})
 
 	textY := s.y + (s.h-canvas.TextHeight())/2
-	win.cv.Text(s.x+padding-scroll, textY, *text, win.theme.Text)
+	win.cv.Text(canvas.Point{X: float64(s.x + padding - scroll), Y: float64(textY)}, *text, win.theme.Text)
 
 	if s.focused && int64(win.uiBlink*2)%2 == 0 {
 		win.cv.FillRect(canvas.Area{X: s.x + padding - scroll + cursorPx, Y: textY - 1, Width: 1, Height: canvas.TextHeight() + 2}, win.theme.Text)

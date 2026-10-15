@@ -47,6 +47,6 @@ func (win *Window) Radio(x, y int, params RadioParams) bool {
 		win.cv.FillCircle(canvas.Circle{X: x + size/2, Y: y + size/2, R: size/2 - 4}, win.theme.Accent)
 	}
 
-	win.cv.Text(x+size+8, y+(size-canvas.TextHeight())/2, label, win.theme.Text)
+	win.cv.Text(canvas.Point{X: float64(x + size + 8), Y: float64(y + (size-canvas.TextHeight())/2)}, label, win.theme.Text)
 	return clicked
 }

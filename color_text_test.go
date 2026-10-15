@@ -15,7 +15,7 @@ func TestColorText(t *testing.T) {
 	}{
 		{"#3E63DD", canvas.RGB(0x3E, 0x63, 0xDD), ""},
 		{"3E63DD", canvas.RGB(0x3E, 0x63, 0xDD), "#3E63DD"},
-		{"#803E63DD", canvas.RGBA(0x3E, 0x63, 0xDD, 0x80), ""},
+		{"#803E63DD", canvas.RGBA(canvas.RGBAParams{R: 0x3E, G: 0x63, B: 0xDD, A: 0x80}), ""},
 		{"#FF3E63DD", canvas.RGB(0x3E, 0x63, 0xDD), "#3E63DD"},
 		// Six digits mean opaque, not transparent.
 		{"#000000", canvas.Black, ""},

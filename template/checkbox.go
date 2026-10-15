@@ -32,5 +32,5 @@ func (builtinStyle) Checkbox(p CheckboxParams) {
 	if p.On {
 		drawIconIn(cv, IconCheck, p.X+2*u, p.Y+2*u, 14*u, th.TextOnAccent)
 	}
-	cv.TextScaled(p.X+box+labelGap*u, p.Y+(box-textHeight(u))/2, p.Label, th.Text, u)
+	cv.TextScaled(canvas.Point{X: float64(p.X + box + labelGap*u), Y: float64(p.Y + (box-textHeight(u))/2)}, p.Label, canvas.TextStyle{Color: th.Text, Scale: u})
 }

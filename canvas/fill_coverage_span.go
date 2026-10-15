@@ -10,7 +10,7 @@ func (cv *Canvas) fillCoverageSpan(s span, c Color) {
 	}
 	switch {
 	case a != c.A():
-		sc := RGBA(c.R(), c.G(), c.B(), a)
+		sc := RGBA(RGBAParams{R: c.R(), G: c.G(), B: c.B(), A: a})
 		for x := s.x0; x < s.x1; x++ {
 			cv.Pixel(x, s.y, sc)
 		}

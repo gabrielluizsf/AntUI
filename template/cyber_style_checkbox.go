@@ -28,5 +28,5 @@ func (cyberStyle) Checkbox(p CheckboxParams) {
 		cv.FillRect(canvas.Area{X: p.X + 4*u, Y: p.Y + 9*u, Width: 3 * u, Height: 3 * u}, v.neon)
 		cv.FillRect(canvas.Area{X: p.X + 6*u, Y: p.Y + 9*u, Width: 8 * u, Height: 3 * u}, v.neon)
 	}
-	cv.TextScaled(p.X+box+labelGap*u, p.Y+(box-textHeight(u))/2, p.Label, v.text, u)
+	cv.TextScaled(canvas.Point{X: float64(p.X + box + labelGap*u), Y: float64(p.Y + (box-textHeight(u))/2)}, p.Label, canvas.TextStyle{Color: v.text, Scale: u})
 }

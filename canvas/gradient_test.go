@@ -16,7 +16,7 @@ func TestLinearGradientRunsTopToBottom(t *testing.T) {
 	cv.FillGradient(Area{X: 0, Y: 0, Width: 20, Height: 20}, Gradient{
 		Kind:  GLinear,
 		Angle: math.Pi,
-		Stops: []GradientStop{off(RGBA(255, 0, 0, 255)), off(RGBA(0, 0, 255, 255))},
+		Stops: []GradientStop{off(RGBA(RGBAParams{R: 255, G: 0, B: 0, A: 255})), off(RGBA(RGBAParams{R: 0, G: 0, B: 255, A: 255}))},
 	})
 	if got := cv.At(10, 0); got.A() == 0 || got == cv.At(10, 19) {
 		t.Errorf("top should be the first stop red, got %v", got)
@@ -31,7 +31,7 @@ func TestLinearGradientRunsLeftToRight(t *testing.T) {
 	cv.FillGradient(Area{X: 0, Y: 0, Width: 20, Height: 20}, Gradient{
 		Kind:  GLinear,
 		Angle: math.Pi / 2, // to right
-		Stops: []GradientStop{off(RGBA(255, 0, 0, 255)), off(RGBA(0, 0, 255, 255))},
+		Stops: []GradientStop{off(RGBA(RGBAParams{R: 255, G: 0, B: 0, A: 255})), off(RGBA(RGBAParams{R: 0, G: 0, B: 255, A: 255}))},
 	})
 	if got := cv.At(0, 10); got.A() == 0 || got == cv.At(19, 10) {
 		t.Errorf("left should be the first stop red, got %v", got)
@@ -46,9 +46,9 @@ func TestGradientSpreadsUnsetStopsEvenly(t *testing.T) {
 	cv.FillGradient(Area{X: 0, Y: 0, Width: 40, Height: 40}, Gradient{
 		Kind: GLinear,
 		Stops: []GradientStop{
-			off(RGBA(255, 0, 0, 255)),
-			off(RGBA(0, 255, 0, 255)),
-			off(RGBA(0, 0, 255, 255)),
+			off(RGBA(RGBAParams{R: 255, G: 0, B: 0, A: 255})),
+			off(RGBA(RGBAParams{R: 0, G: 255, B: 0, A: 255})),
+			off(RGBA(RGBAParams{R: 0, G: 0, B: 255, A: 255})),
 		},
 	})
 	mid := cv.At(10, 20)
@@ -62,9 +62,9 @@ func TestSingleStopGradientIsSolid(t *testing.T) {
 	cv, _ := NewCanvas(20, 20)
 	cv.FillGradient(Area{X: 0, Y: 0, Width: 20, Height: 20}, Gradient{
 		Kind:  GLinear,
-		Stops: []GradientStop{off(RGBA(1, 2, 3, 255))},
+		Stops: []GradientStop{off(RGBA(RGBAParams{R: 1, G: 2, B: 3, A: 255}))},
 	})
-	if got, want := cv.At(10, 10), RGBA(1, 2, 3, 255); got != want {
+	if got, want := cv.At(10, 10), RGBA(RGBAParams{R: 1, G: 2, B: 3, A: 255}); got != want {
 		t.Errorf("single stop should paint solid, got %v want %v", got, want)
 	}
 }
@@ -75,7 +75,7 @@ func TestRadialGradientCentred(t *testing.T) {
 		Kind:    GRadial,
 		CenterX: 0.5,
 		CenterY: 0.5,
-		Stops:   []GradientStop{off(RGBA(255, 0, 0, 255)), off(RGBA(0, 0, 255, 255))},
+		Stops:   []GradientStop{off(RGBA(RGBAParams{R: 255, G: 0, B: 0, A: 255})), off(RGBA(RGBAParams{R: 0, G: 0, B: 255, A: 255}))},
 	})
 	cx := cv.At(10, 10)
 	e := cv.At(20, 10)
@@ -93,7 +93,7 @@ func TestConicStartsPointingUp(t *testing.T) {
 		Kind:    GConic,
 		CenterX: 0.5,
 		CenterY: 0.5,
-		Stops:   []GradientStop{off(RGBA(255, 0, 0, 255)), off(RGBA(0, 0, 255, 255))},
+		Stops:   []GradientStop{off(RGBA(RGBAParams{R: 255, G: 0, B: 0, A: 255})), off(RGBA(RGBAParams{R: 0, G: 0, B: 255, A: 255}))},
 	})
 	top := cv.At(10, 1)     // overhead: the start angle, first stop
 	bottom := cv.At(10, 20) // a half turn back round

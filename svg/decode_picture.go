@@ -33,7 +33,7 @@ func decodePicture(data []byte) (*canvas.Canvas, error) {
 				cv.Put(x, y, canvas.Transparent)
 				continue
 			}
-			cv.Put(x, y, canvas.RGBA(uint8(r*0xFF/a), uint8(g*0xFF/a), uint8(bl*0xFF/a), uint8(a>>8)))
+			cv.Put(x, y, canvas.RGBA(canvas.RGBAParams{R: uint8(r * 0xFF / a), G: uint8(g * 0xFF / a), B: uint8(bl * 0xFF / a), A: uint8(a >> 8)}))
 		}
 	}
 	return cv, nil

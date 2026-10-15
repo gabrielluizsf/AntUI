@@ -27,5 +27,5 @@ func (builtinStyle) Radio(p RadioParams) {
 	if p.On {
 		drawIconIn(cv, IconDot, p.X+4*u, p.Y+4*u, 10*u, th.Accent)
 	}
-	cv.TextScaled(p.X+size+labelGap*u, p.Y+(size-textHeight(u))/2, p.Label, th.Text, u)
+	cv.TextScaled(canvas.Point{X: float64(p.X + size + labelGap*u), Y: float64(p.Y + (size-textHeight(u))/2)}, p.Label, canvas.TextStyle{Color: th.Text, Scale: u})
 }

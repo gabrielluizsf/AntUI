@@ -292,7 +292,7 @@ func TestFlexContainerBoxPaints(t *testing.T) {
 	win.Begin()
 	tpl.Flex(func(f *CSS) { f.layout(css.RoleButton, "A") })
 	win.End()
-	if got := win.Canvas().At(10, 10); got != canvas.RGBA(255, 0, 0, 255) {
+	if got := win.Canvas().At(10, 10); got != canvas.RGBA(canvas.RGBAParams{R: 255, G: 0, B: 0, A: 255}) {
 		t.Errorf("container background pixel = %v, want red", got)
 	}
 }

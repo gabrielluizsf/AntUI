@@ -156,7 +156,7 @@ func TestStrokePathLonePoint(t *testing.T) {
 func TestStrokePathClosedRing(t *testing.T) {
 	cv := newTestCanvas(t, 60, 60)
 	p := NewPath()
-	p.AddEllipse(Point{X:30,Y:30}, Point{X:20,Y:20})
+	p.AddEllipse(Point{X: 30, Y: 30}, Point{X: 20, Y: 20})
 	cv.StrokePath(p, RGB(255, 0, 0), StrokeStyle{Width: 4})
 
 	// On the ring, on it and inside it, but not in the middle of it: a closed
@@ -280,7 +280,7 @@ func TestStrokePathCurve(t *testing.T) {
 	// join.
 	cv := newTestCanvas(t, 80, 80)
 	p := NewPath()
-	p.AddEllipse(Point{X:40,Y:40}, Point{X:30,Y:20})
+	p.AddEllipse(Point{X: 40, Y: 40}, Point{X: 30, Y: 20})
 	cv.StrokePath(p, RGB(255, 0, 0), StrokeStyle{Width: 4})
 
 	// The top of the ellipse, its bottom, and the two sides. The ellipse is
@@ -362,7 +362,7 @@ func TestStrokePathAlpha(t *testing.T) {
 	p := NewPath()
 	p.MoveTo(2, 10)
 	p.LineTo(18, 10)
-	cv.StrokePath(p, RGBA(255, 255, 255, 128), StrokeStyle{Width: 4})
+	cv.StrokePath(p, RGBA(RGBAParams{R: 255, G: 255, B: 255, A: 128}), StrokeStyle{Width: 4})
 	if got := coverageAt(cv, 10, 10); !near(got, 128, 2) {
 		t.Errorf("coverage = %d, want about 128", got)
 	}
@@ -446,7 +446,7 @@ func TestStrokePathRectCorners(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			cv := newTestCanvas(t, 60, 60)
 			p := NewPath()
-			p.AddRect(Point{X:10,Y:10}, Point{X:40,Y:40})
+			p.AddRect(Point{X: 10, Y: 10}, Point{X: 40, Y: 40})
 			cv.StrokePath(p, RGB(255, 0, 0), StrokeStyle{Width: 6, Join: join})
 
 			// The middle of each side.

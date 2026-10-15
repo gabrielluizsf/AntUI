@@ -2,6 +2,7 @@ package template
 
 import (
 	"github.com/gabrielluizsf/antui"
+	"github.com/gabrielluizsf/antui/canvas"
 	"github.com/gabrielluizsf/antui/template/css"
 )
 
@@ -35,6 +36,7 @@ func (cs *cssStyle) drawTextLine(win *antui.Window, st css.Style, x, y, w, h int
 	if len(st.TextShadow) > 0 {
 		cs.paintTextShadows(win, st, tx, ty, text, o)
 	}
-	cv.DrawStyled(tx, ty, text, cs.ink(st), o)
+	o.Color = cs.ink(st)
+	cv.DrawStyled(canvas.Point{X: float64(tx), Y: float64(ty)}, text, o)
 	cs.decorate(cv, st, tx, ty, tw, th, o.Scale)
 }

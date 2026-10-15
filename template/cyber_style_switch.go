@@ -38,5 +38,5 @@ func (cyberStyle) Switch(p SwitchParams) {
 	}
 	cv.FillCircle(canvas.Circle{X: cx, Y: p.Y + trackH/2, R: trackH/2 - 3*u}, colour)
 	cv.Circle(canvas.Circle{X: cx, Y: p.Y + trackH/2, R: trackH/2 - 4*u}, cyberPalette.panelAct)
-	cv.TextScaled(p.X+trackW+labelGap*u, p.Y+(trackH-textHeight(u))/2, p.Label, v.text, u)
+	cv.TextScaled(canvas.Point{X: float64(p.X + trackW + labelGap*u), Y: float64(p.Y + (trackH-textHeight(u))/2)}, p.Label, canvas.TextStyle{Color: v.text, Scale: u})
 }

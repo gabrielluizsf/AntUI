@@ -26,7 +26,7 @@ func filledLayer(t *testing.T, w, h int) *Canvas {
 func TestMaskShapesKeepsOnlyWhatIsUnderAShape(t *testing.T) {
 	cv := filledLayer(t, 8, 8)
 	p := NewPath()
-	p.AddRect(Point{X:2,Y:2}, Point{X:4,Y:4})
+	p.AddRect(Point{X: 2, Y: 2}, Point{X: 4, Y: 4})
 	cv.MaskShapes(MaskShape{Path: p, Rule: FillNonZero})
 
 	if got := cv.At(4, 4); got != RGB(255, 0, 0) {
@@ -46,8 +46,8 @@ func TestMaskShapesKeepsOnlyWhatIsUnderAShape(t *testing.T) {
 func TestMaskShapesUnionsItsShapes(t *testing.T) {
 	cv := filledLayer(t, 8, 8)
 	a, b := NewPath(), NewPath()
-	a.AddRect(Point{X:0,Y:0}, Point{X:4,Y:4})
-	b.AddRect(Point{X:3,Y:3}, Point{X:4,Y:4})
+	a.AddRect(Point{X: 0, Y: 0}, Point{X: 4, Y: 4})
+	b.AddRect(Point{X: 3, Y: 3}, Point{X: 4, Y: 4})
 	cv.MaskShapes(MaskShape{Path: a, Rule: FillNonZero}, MaskShape{Path: b, Rule: FillNonZero})
 
 	for _, at := range [][2]int{{1, 1}, {6, 6}, {3, 3}, {3, 1}, {1, 3}} {
@@ -87,7 +87,7 @@ func TestMaskShapesOfNoShapesEmptiesTheClipRegion(t *testing.T) {
 // wants to cut with without spelling out the four corners each time.
 func pathAt(x, y, w, h float64) *Path {
 	p := NewPath()
-	p.AddRect(Point{X:x,Y:y}, Point{X:w,Y:h})
+	p.AddRect(Point{X: x, Y: y}, Point{X: w, Y: h})
 	return p
 }
 
@@ -128,8 +128,8 @@ func TestMaskShapesKeepsTheSoftEdge(t *testing.T) {
 func TestMaskShapesHonoursTheRule(t *testing.T) {
 	nested := func() *Path {
 		p := NewPath()
-		p.AddRect(Point{X:0,Y:0}, Point{X:8,Y:8})
-		p.AddRect(Point{X:2,Y:2}, Point{X:4,Y:4})
+		p.AddRect(Point{X: 0, Y: 0}, Point{X: 8, Y: 8})
+		p.AddRect(Point{X: 2, Y: 2}, Point{X: 4, Y: 4})
 		return p
 	}
 	for _, tc := range []struct {
@@ -173,7 +173,6 @@ func TestMaskShapesHonoursTheRule(t *testing.T) {
 // TestMaskShapesOnlyReachesInsideTheClip: the clip region is what the mask is
 // allowed to touch, the same as every other draw call. A pixel beside it keeps
 // whatever it had, because a mask is not a way to paint over the rest of the
-// canvas.
 func TestMaskShapesOnlyReachesInsideTheClip(t *testing.T) {
 	cv := filledLayer(t, 8, 8)
 	cv.SetClip(Area{X: 0, Y: 0, Width: 4, Height: 4})
@@ -194,13 +193,13 @@ func TestMaskShapesOnlyReachesInsideTheClip(t *testing.T) {
 // being cut, and one that keeps everything it had is not written back at all.
 func TestMaskShapesCutsOnlyTheAlphaOfAPixelThatWasNeverDrawn(t *testing.T) {
 	cv := newLayer(t, 4, 4)
-	cv.Pixel(1, 1, RGBA(0, 0, 255, 255))
+	cv.Pixel(1, 1, RGBA(RGBAParams{R: 0, G: 0, B: 255, A: 255}))
 	cv.MaskShapes(MaskShape{Path: pathAt(0, 0, 4, 4), Rule: FillNonZero})
 
 	if got := cv.At(0, 0); got != 0 {
 		t.Errorf("a pixel nothing was drawn on came out %#08x, want it clear", uint32(got))
 	}
-	if got := cv.At(1, 1); got != RGBA(0, 0, 255, 255) {
+	if got := cv.At(1, 1); got != RGBA(RGBAParams{R: 0, G: 0, B: 255, A: 255}) {
 		t.Errorf("the pixel that was drawn on came out %#08x, want it as it was", uint32(got))
 	}
 }
@@ -337,7 +336,7 @@ func TestMaskByKeepsByHowMuchOfThePictureIsThere(t *testing.T) {
 	pic := newLayer(t, 6, 2)
 	pic.FillRect(Area{0, 0, 2, 2}, RGB(0, 0, 0))
 	pic.FillRect(Area{2, 0, 2, 2}, RGB(255, 255, 255))
-	pic.FillRect(Area{4, 0, 2, 2}, RGBA(255, 255, 255, 128))
+	pic.FillRect(Area{4, 0, 2, 2}, RGBA(RGBAParams{R: 255, G: 255, B: 255, A: 128}))
 	cv.MaskBy(pic, MaskAlpha)
 
 	if got := cv.At(0, 0).A(); got != 255 {

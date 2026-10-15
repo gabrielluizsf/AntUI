@@ -42,5 +42,5 @@ func bilinearAt(src *Canvas, x0, y0, x1, y1 int, s, t float64) Color {
 		}
 		return uint8(v + 0.5)
 	}
-	return RGBA(to(pr), to(pg), to(pb), uint8(pa+0.5))
+	return RGBA(RGBAParams{R: to(pr), G: to(pg), B: to(pb), A: uint8(pa + 0.5)})
 }

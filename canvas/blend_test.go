@@ -20,12 +20,12 @@ func TestBlendRowMatchesTheReference(t *testing.T) {
 		for _, n := range []int{1, 2, 3, 4, 5, 7, 8, 9, 15, 16, 17, 33, 64} {
 			src := make([]Color, n)
 			for i := range src {
-				src[i] = RGBA(uint8(i*37), uint8(i*11+5), uint8(i*97), uint8(alpha))
+				src[i] = RGBA(RGBAParams{R: uint8(i * 37), G: uint8(i*11 + 5), B: uint8(i * 97), A: uint8(alpha)})
 			}
 			want := make([]Color, n)
 			got := make([]Color, n)
 			for i := range want {
-				c := RGBA(uint8(i*53+7), uint8(i*29), uint8(i*3+1), uint8(i*17))
+				c := RGBA(RGBAParams{R: uint8(i*53 + 7), G: uint8(i * 29), B: uint8(i*3 + 1), A: uint8(i * 17)})
 				want[i], got[i] = c, c
 			}
 
@@ -48,11 +48,11 @@ func TestBlendRowSolidMatchesTheReference(t *testing.T) {
 	}
 	for alpha := range 256 {
 		for _, n := range []int{1, 3, 4, 5, 8, 17, 64} {
-			c := RGBA(200, 30, 90, uint8(alpha))
+			c := RGBA(RGBAParams{R: 200, G: 30, B: 90, A: uint8(alpha)})
 			want := make([]Color, n)
 			got := make([]Color, n)
 			for i := range want {
-				p := RGBA(uint8(i*13), uint8(255-i*5), uint8(i*61), uint8(i*23))
+				p := RGBA(RGBAParams{R: uint8(i * 13), G: uint8(255 - i*5), B: uint8(i * 61), A: uint8(i * 23)})
 				want[i], got[i] = p, p
 			}
 
@@ -120,7 +120,7 @@ func BenchmarkBlendRow(b *testing.B) {
 	src := make([]Color, 800)
 	dst := make([]Color, 800)
 	for i := range src {
-		src[i] = RGBA(uint8(i), uint8(i*3), uint8(i*7), 160)
+		src[i] = RGBA(RGBAParams{R: uint8(i), G: uint8(i * 3), B: uint8(i * 7), A: 160})
 	}
 	b.Run("simd", func(b *testing.B) {
 		for b.Loop() {
@@ -136,7 +136,7 @@ func BenchmarkBlendRow(b *testing.B) {
 
 func BenchmarkBlendRowSolid(b *testing.B) {
 	dst := make([]Color, 800)
-	c := RGBA(200, 30, 90, 160)
+	c := RGBA(RGBAParams{R: 200, G: 30, B: 90, A: 160})
 	b.Run("simd", func(b *testing.B) {
 		for b.Loop() {
 			BlendRowSolid(dst, c)

@@ -25,5 +25,5 @@ func (builtinStyle) Button(p ButtonParams) {
 	if p.State.Pressed {
 		textY += u
 	}
-	cv.TextScaled(p.X+(p.W-textWidth(u, p.Label))/2, textY, p.Label, th.TextOnAccent, u)
+	cv.TextScaled(canvas.Point{X: float64(p.X + (p.W-textWidth(u, p.Label))/2), Y: float64(textY)}, p.Label, canvas.TextStyle{Color: th.TextOnAccent, Scale: u})
 }

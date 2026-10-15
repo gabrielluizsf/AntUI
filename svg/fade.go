@@ -8,5 +8,5 @@ func fade(c canvas.Color, opacity float64) canvas.Color {
 		return c
 	}
 	a := int(float64(c.A())*clampFloat(opacity, 0, 1) + 0.5)
-	return canvas.RGBA(c.R(), c.G(), c.B(), uint8(a))
+	return canvas.RGBA(canvas.RGBAParams{R: c.R(), G: c.G(), B: c.B(), A: uint8(a)})
 }

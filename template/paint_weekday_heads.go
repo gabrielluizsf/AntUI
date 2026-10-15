@@ -10,7 +10,7 @@ func paintWeekdayHeads(cv *canvas.Canvas, p datePaint, colour canvas.Color) {
 	gx, _, _, _ := dateGridRect(p.x, p.y, p.u)
 	for d := 0; d < 7; d++ {
 		cx := gx + d*c
-		cv.TextScaled(cx+(c-textWidth(p.u, "S"))/2, p.weekHeadY(),
-			dayHeadName((p.firstWD+d)%7), colour, p.u)
+		cv.TextScaled(canvas.Point{X: float64(cx + (c-textWidth(p.u, "S"))/2), Y: float64(p.weekHeadY())},
+			dayHeadName((p.firstWD+d)%7), canvas.TextStyle{Color: colour, Scale: p.u})
 	}
 }

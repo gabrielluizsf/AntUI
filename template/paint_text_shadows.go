@@ -21,7 +21,8 @@ func (cs *cssStyle) paintTextShadows(win *antui.Window, st css.Style, tx, ty int
 		dx, dy := sh.X*u, sh.Y*u
 		blur := sh.Blur * u
 		if blur <= 0 {
-			cv.DrawStyled(tx+dx, ty+dy, text, col, o)
+			o.Color = col
+			cv.DrawStyled(canvas.Point{X: float64(tx + dx), Y: float64(ty + dy)}, text, o)
 			continue
 		}
 		pad := blur + 2
@@ -29,7 +30,8 @@ func (cs *cssStyle) paintTextShadows(win *antui.Window, st css.Style, tx, ty int
 		if err != nil {
 			continue
 		}
-		layer.DrawStyled(pad, pad, text, col|0xFF000000, o)
+		o.Color = col | 0xFF000000
+		layer.DrawStyled(canvas.Point{X: float64(pad), Y: float64(pad)}, text, o)
 		layer.Blur(canvas.Area{X: 0, Y: 0, Width: layer.Width, Height: layer.Height}, max(blur/2, 1))
 		canvas.ScaleAlpha(layer, float64(col.A())/255)
 		cv.BlitOver(tx+dx-pad, ty+dy-pad, layer)

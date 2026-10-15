@@ -10,7 +10,7 @@ func TestRGBChannels(t *testing.T) {
 	if got := [4]uint8{c.R(), c.G(), c.B(), c.A()}; got != [4]uint8{0x11, 0x22, 0x33, 0xFF} {
 		t.Errorf("channels = %v, want [11 22 33 FF]", got)
 	}
-	if got := RGBA(1, 2, 3, 4); got != 0x04010203 {
+	if got := RGBA(RGBAParams{R: 1, G: 2, B: 3, A: 4}); got != 0x04010203 {
 		t.Errorf("RGBA = %08X, want 04010203", uint32(got))
 	}
 }

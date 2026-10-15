@@ -10,7 +10,7 @@ import (
 // the opposite way round from how the same word is written down.
 func TestPackRGBAIsByteOrder(t *testing.T) {
 	var got [4]byte
-	binary.LittleEndian.PutUint32(got[:], packRGBA(RGBA(0x11, 0x22, 0x33, 0x44)))
+	binary.LittleEndian.PutUint32(got[:], packRGBA(RGBA(RGBAParams{R: 0x11, G: 0x22, B: 0x33, A: 0x44})))
 	want := [4]byte{0x11, 0x22, 0x33, 0x44} // R, G, B, A
 	if got != want {
 		t.Fatalf("packRGBA laid the bytes out as %v, want %v (R, G, B, A)", got, want)
@@ -41,7 +41,7 @@ func TestPackRGBASwapsRedAndBlue(t *testing.T) {
 // would still pass.
 func TestPackRGBARoundTrips(t *testing.T) {
 	unpack := func(v uint32) Color {
-		return RGBA(uint8(v), uint8(v>>8), uint8(v>>16), uint8(v>>24))
+		return RGBA(RGBAParams{R: uint8(v), G: uint8(v >> 8), B: uint8(v >> 16), A: uint8(v >> 24)})
 	}
 	for _, c := range []Color{
 		0x00000000, 0xFFFFFFFF, 0x01020304, 0xFF0000FF, 0x00FF00FF, 0x0000FFFF,

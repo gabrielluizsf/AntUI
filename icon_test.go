@@ -20,10 +20,10 @@ func aLogo(t *testing.T, size int) *canvas.Canvas {
 		for x := range size {
 			// A quarter of it transparent, so the scaling has alpha to carry.
 			if x < size/2 && y < size/2 {
-				cv.Put(x, y, canvas.RGBA(0, 0, 0, 0))
+				cv.Put(x, y, canvas.RGBA(canvas.RGBAParams{R: 0, G: 0, B: 0, A: 0}))
 				continue
 			}
-			cv.Put(x, y, canvas.RGBA(uint8(x*255/size), uint8(y*255/size), 200, 255))
+			cv.Put(x, y, canvas.RGBA(canvas.RGBAParams{R: uint8(x * 255 / size), G: uint8(y * 255 / size), B: 200, A: 255}))
 		}
 	}
 	return cv

@@ -15,16 +15,16 @@ func paintDateDays(cv *canvas.Canvas, th *antui.Theme, p datePaint) {
 		switch day {
 		case p.selected:
 			cv.FillRoundRect(canvas.Round(canvas.Area{X: cx, Y: cy, Width: cc, Height: cc}, 2*p.u), th.Accent)
-			cv.TextScaled(tx, ty, num, th.TextOnAccent, p.u)
+			cv.TextScaled(canvas.Point{X: float64(tx), Y: float64(ty)}, num, canvas.TextStyle{Color: th.TextOnAccent, Scale: p.u})
 		case p.hover:
 			cv.FillRoundRect(canvas.Round(canvas.Area{X: cx, Y: cy, Width: cc, Height: cc}, 2*p.u), th.SurfaceHover)
-			cv.TextScaled(tx, ty, num, th.Text, p.u)
+			cv.TextScaled(canvas.Point{X: float64(tx), Y: float64(ty)}, num, canvas.TextStyle{Color: th.Text, Scale: p.u})
 		default:
 			colour := th.Text
 			if day == p.today {
 				colour = th.Accent
 			}
-			cv.TextScaled(tx, ty, num, colour, p.u)
+			cv.TextScaled(canvas.Point{X: float64(tx), Y: float64(ty)}, num, canvas.TextStyle{Color: colour, Scale: p.u})
 		}
 		if day == p.today && day != p.selected {
 			cv.Circle(canvas.Circle{X: cx + cc/2, Y: cy + cc/2, R: cc / 2}, th.Accent)

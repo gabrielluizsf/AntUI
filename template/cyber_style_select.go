@@ -28,17 +28,17 @@ func (cyberStyle) Select(p SelectParams) {
 	if p.Value == "" {
 		colour = v.dim
 	}
-	cv.TextScaled(p.X+padding, textY, p.Value, colour, u)
+	cv.TextScaled(canvas.Point{X: float64(p.X + padding), Y: float64(textY)}, p.Value, canvas.TextStyle{Color: colour, Scale: u})
 
 	// The caret arrow.
 	aw, ah := 6*u, 4*u
 	ax := p.X + p.W - padding - aw
 	ay := p.Y + (p.H-ah)/2
 	if p.Open {
-		cv.Line(canvas.Point{X: float64(float64(float64(ax))), Y: float64(float64(float64(ay+ah)))}, canvas.Point{X: float64(float64(float64(ax+aw/2))), Y: float64(float64(float64(ay)))}, v.neon)
-		cv.Line(canvas.Point{X: float64(float64(float64(ax+aw/2))), Y: float64(float64(float64(ay)))}, canvas.Point{X: float64(float64(float64(ax+aw))), Y: float64(float64(float64(ay+ah)))}, v.neon)
+		cv.Line(canvas.Point{X: float64(ax), Y: float64(ay + ah)}, canvas.Point{X: float64(ax + aw/2), Y: float64(ay)}, v.neon)
+		cv.Line(canvas.Point{X: float64(ax + aw/2), Y: float64(ay)}, canvas.Point{X: float64(ax + aw), Y: float64(ay + ah)}, v.neon)
 	} else {
-		cv.Line(canvas.Point{X: float64(float64(float64(ax))), Y: float64(float64(float64(ay)))}, canvas.Point{X: float64(float64(float64(ax+aw/2))), Y: float64(float64(float64(ay+ah)))}, v.dim)
-		cv.Line(canvas.Point{X: float64(float64(float64(ax+aw/2))), Y: float64(float64(float64(ay+ah)))}, canvas.Point{X: float64(float64(float64(ax+aw))), Y: float64(float64(float64(ay)))}, v.dim)
+		cv.Line(canvas.Point{X: float64(ax), Y: float64(ay)}, canvas.Point{X: float64(ax + aw/2), Y: float64(ay + ah)}, v.dim)
+		cv.Line(canvas.Point{X: float64(ax + aw/2), Y: float64(ay + ah)}, canvas.Point{X: float64(ax + aw), Y: float64(ay)}, v.dim)
 	}
 }

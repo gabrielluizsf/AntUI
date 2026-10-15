@@ -35,6 +35,6 @@ func (win *Window) Button(area canvas.Area, label string) bool {
 	if pressed {
 		textY++
 	}
-	win.cv.Text(x+(w-canvas.TextWidth(label))/2, textY, label, win.theme.TextOnAccent)
+	win.cv.Text(canvas.Point{X: float64(x + (w-canvas.TextWidth(label))/2), Y: float64(textY)}, label, win.theme.TextOnAccent)
 	return clicked
 }

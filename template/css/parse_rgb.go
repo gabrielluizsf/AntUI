@@ -43,5 +43,5 @@ func parseRGB(s string) (canvas.Color, error) {
 	if err != nil {
 		return 0, err
 	}
-	return canvas.RGBA(r, g, b, a), nil
+	return canvas.RGBA(canvas.RGBAParams{R: r, G: g, B: b, A: a}), nil
 }

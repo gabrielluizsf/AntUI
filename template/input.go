@@ -27,7 +27,7 @@ func (builtinStyle) Input(p InputParams) {
 	cv.SetClip(canvas.Area{X: p.X + padding, Y: p.Y + u, Width: p.W - 2*padding, Height: p.H - 2*u})
 
 	textY := p.Y + (p.H-textHeight(u))/2
-	cv.TextScaled(p.X+padding-scroll, textY, p.Text, th.Text, u)
+	cv.TextScaled(canvas.Point{X: float64(p.X + padding - scroll), Y: float64(textY)}, p.Text, canvas.TextStyle{Color: th.Text, Scale: u})
 
 	if p.State.Focused && p.Caret {
 		cv.FillRect(canvas.Area{X: p.X + padding - scroll + cursorPx, Y: textY - u, Width: u, Height: textHeight(u) + 2*u}, th.Text)

@@ -91,8 +91,8 @@ func TestDesktopWindowRunsAnApp(t *testing.T) {
 			win.Clear(canvas.RGB(0x10, 0x12, 0x18))
 			win.FillRect(canvas.Area{X: 20, Y: 20, Width: 200, Height: 120}, swatch)
 			win.Circle(canvas.Circle{X: win.Width() / 2, Y: win.Height() / 2, R: 60}, canvas.White)
-			win.Line(canvas.Point{X: 0, Y: float64(win.Height() - 1)}, canvas.Point{X: float64(win.Width() - 1), Y: 0}, canvas.RGBA(0xFF, 0, 0, 0xFF))
-			win.Rect(canvas.Area{X: 4, Y: 4, Width: win.Width() - 8, Height: win.Height() - 8}, canvas.RGBA(0xFF, 0xFF, 0xFF, 0x80))
+			win.Line(canvas.Point{X: 0, Y: float64(win.Height() - 1)}, canvas.Point{X: float64(win.Width() - 1), Y: 0}, canvas.RGBA(canvas.RGBAParams{R: 0xFF, G: 0, B: 0, A: 0xFF}))
+			win.Rect(canvas.Area{X: 4, Y: 4, Width: win.Width() - 8, Height: win.Height() - 8}, canvas.RGBA(canvas.RGBAParams{R: 0xFF, G: 0xFF, B: 0xFF, A: 0x80}))
 			win.Text(canvas.Point{X: 20, Y: 160}, "AntUI builds desktop apps the simple way.", canvas.White)
 			win.End()
 			frames++

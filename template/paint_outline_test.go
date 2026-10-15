@@ -16,7 +16,7 @@ func TestSolidOutlineKeepsSquareCornersSquare(t *testing.T) {
 	st := css.Style{
 		OutlineWidth:  2,
 		OutlineStyle:  css.BorderSolid,
-		OutlineColor:  canvas.RGBA(23, 23, 28, 36),
+		OutlineColor:  canvas.RGBA(canvas.RGBAParams{R: 23, G: 23, B: 28, A: 36}),
 		OutlineOffset: 1,
 	}
 	cs := &cssStyle{win: win}

@@ -1,8 +1,17 @@
 package canvas
 
-// Draw writes a string into a canvas with the baseline of the first line at
-// y, and returns the width of the widest line.
-func (f *Face) Draw(cv *Canvas, x, y int, text string, c Color) int {
+// FaceDrawParams groups the arguments of Face.Draw so it stays small.
+type FaceDrawParams struct {
+	Canvas *Canvas
+	Pos    Point
+	Text   string
+	Color  Color
+}
+
+// Draw writes a string into the canvas in p.Canvas with the baseline of the
+// first line at p.Pos.Y, and returns the width of the widest line.
+func (f *Face) Draw(p FaceDrawParams) int {
+	cv, x, y, text, c := p.Canvas, int(p.Pos.X), int(p.Pos.Y), p.Text, p.Color
 	if f == nil || f.file == nil {
 		return cv.textBitmap(x, y-f.Ascent(), text, c, f.scaleOf())
 	}

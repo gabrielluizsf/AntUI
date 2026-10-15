@@ -42,17 +42,17 @@ func TestCSSMediaFollowsWindowResize(t *testing.T) {
 		@media (min-width: 701px) { body { background-color: #FF0000; } }
 	`)
 
-	if got := windowBg(win, cs); got != canvas.RGBA(0, 0, 255, 255) {
+	if got := windowBg(win, cs); got != canvas.RGBA(canvas.RGBAParams{R: 0, G: 0, B: 255, A: 255}) {
 		t.Errorf("400 wide: background %v, want the blue max-width rule", got)
 	}
 
 	win.ResizeCanvas(900, 400)
-	if got := windowBg(win, cs); got != canvas.RGBA(255, 0, 0, 255) {
+	if got := windowBg(win, cs); got != canvas.RGBA(canvas.RGBAParams{R: 255, G: 0, B: 0, A: 255}) {
 		t.Errorf("after growing to 900: background %v, want the red min-width rule", got)
 	}
 
 	win.ResizeCanvas(300, 400)
-	if got := windowBg(win, cs); got != canvas.RGBA(0, 0, 255, 255) {
+	if got := windowBg(win, cs); got != canvas.RGBA(canvas.RGBAParams{R: 0, G: 0, B: 255, A: 255}) {
 		t.Errorf("after shrinking to 300: background %v, want the blue rule again", got)
 	}
 }
@@ -68,7 +68,7 @@ func TestCSSMediaFollowsWindowHeight(t *testing.T) {
 	}
 
 	win.ResizeCanvas(400, 700)
-	if got := windowBg(win, cs); got != canvas.RGBA(0, 255, 0, 255) {
+	if got := windowBg(win, cs); got != canvas.RGBA(canvas.RGBAParams{R: 0, G: 255, B: 0, A: 255}) {
 		t.Errorf("after growing to 700 tall: background %v, want the green min-height rule", got)
 	}
 }
@@ -85,17 +85,17 @@ func TestCSSMediaFollowsSystemScheme(t *testing.T) {
 
 	// An offscreen window has no system to ask, so both sides are
 	// unanswered, both rules stand, and the sheet's own order decides.
-	if got := windowBg(win, cs); got != canvas.RGBA(255, 0, 0, 255) {
+	if got := windowBg(win, cs); got != canvas.RGBA(canvas.RGBAParams{R: 255, G: 0, B: 0, A: 255}) {
 		t.Errorf("a system that has not said: background %v, want the light rule — both stand, the later one wins", got)
 	}
 
 	win.SetSystemDark(true)
-	if got := windowBg(win, cs); got != canvas.RGBA(0, 0, 255, 255) {
+	if got := windowBg(win, cs); got != canvas.RGBA(canvas.RGBAParams{R: 0, G: 0, B: 255, A: 255}) {
 		t.Errorf("on a dark system: background %v, want the dark rule", got)
 	}
 
 	win.SetSystemDark(false)
-	if got := windowBg(win, cs); got != canvas.RGBA(255, 0, 0, 255) {
+	if got := windowBg(win, cs); got != canvas.RGBA(canvas.RGBAParams{R: 255, G: 0, B: 0, A: 255}) {
 		t.Errorf("on a light system: background %v, want the light rule", got)
 	}
 }
@@ -107,7 +107,7 @@ func TestCSSMediaFollowsDisplayDensity(t *testing.T) {
 	win := blankWin(t, 400, 400)
 	cs := mediaPainter(t, win, `@media (min-resolution: 144dpi) { body { background-color: #00FF00; } }`)
 
-	if got := windowBg(win, cs); got != canvas.RGBA(0, 255, 0, 255) {
+	if got := windowBg(win, cs); got != canvas.RGBA(canvas.RGBAParams{R: 0, G: 255, B: 0, A: 255}) {
 		t.Errorf("a display that has not said: background %v, want the green rule — no answer drops nothing", got)
 	}
 
@@ -117,7 +117,7 @@ func TestCSSMediaFollowsDisplayDensity(t *testing.T) {
 	}
 
 	win.SetDisplayScale(2)
-	if got := windowBg(win, cs); got != canvas.RGBA(0, 255, 0, 255) {
+	if got := windowBg(win, cs); got != canvas.RGBA(canvas.RGBAParams{R: 0, G: 255, B: 0, A: 255}) {
 		t.Errorf("at two pixels a point (192dpi): background %v, want the green rule", got)
 	}
 }

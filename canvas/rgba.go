@@ -1,6 +1,11 @@
 package canvas
 
-// RGBA builds a colour with an explicit alpha.
-func RGBA(r, g, b, a uint8) Color {
-	return Color(uint32(a)<<24 | uint32(r)<<16 | uint32(g)<<8 | uint32(b))
+// RGBAParams groups components of an RGBA colour.
+type RGBAParams struct {
+	R, G, B, A uint8
+}
+
+// RGBA packs the colour components.
+func RGBA(p RGBAParams) Color {
+	return Color(uint32(p.A)<<24 | uint32(p.R)<<16 | uint32(p.G)<<8 | uint32(p.B))
 }

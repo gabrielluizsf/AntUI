@@ -54,5 +54,5 @@ func parseHex(s string) (canvas.Color, error) {
 	if err {
 		return 0, fmt.Errorf("css: %q is not a hex colour", s)
 	}
-	return canvas.RGBA(r, g, b, a), nil
+	return canvas.RGBA(canvas.RGBAParams{R: r, G: g, B: b, A: a}), nil
 }

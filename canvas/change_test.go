@@ -15,8 +15,8 @@ func TestDamageCoversEveryDrawing(t *testing.T) {
 	paints := map[string]func(){
 		"clear":        func() { cv.Clear(RGB(0x10, 0x12, 0x18)) },
 		"fill rect":    func() { cv.FillRect(Area{20, 20, 200, 120}, RGB(0x3E, 0x63, 0xDD)) },
-		"rect":         func() { cv.Rect(Area{4, 4, 300, 220}, RGBA(0xFF, 0xFF, 0xFF, 0x80)) },
-		"line":         func() { cv.Line(Point{X:0,Y:239}, Point{X:319,Y:0}, Red) },
+		"rect":         func() { cv.Rect(Area{4, 4, 300, 220}, RGBA(RGBAParams{R: 0xFF, G: 0xFF, B: 0xFF, A: 0x80})) },
+		"line":         func() { cv.Line(Point{X: 0, Y: 239}, Point{X: 319, Y: 0}, Red) },
 		"circle":       func() { cv.Circle(Circle{160, 120, 60}, White) },
 		"fill circle":  func() { cv.FillCircle(Circle{80, 80, 40}, Green) },
 		"fill ellipse": func() { cv.FillEllipse(Ellipse{240, 80, 40, 20}, Blue) },
@@ -25,10 +25,14 @@ func TestDamageCoversEveryDrawing(t *testing.T) {
 			cv.RoundRect(Round(Area{160, 150, 120, 60}, 12), Black)
 		},
 		"triangle": func() { cv.FillTriangle([3]Point{{X: 10, Y: 220}, {X: 60, Y: 220}, {X: 35, Y: 180}}, Cyan) },
-		"ring arc": func() { cv.RingArc(RingArcParams{Center: Point{X: 160, Y: 120}, Radius: 70, Thickness: 8, Start: 0.3, Sweep: 2.0, Color: RGB(0xFF, 0x88, 0x00)}) },
-		"text":     func() { cv.Text(20, 30, "AntUI 24:00", White) },
-		"face":     func() { cv.face().Draw(cv, 20, 50, "AntUI", White) },
-		"styled":   func() { cv.DrawStyled(20, 70, "styled", White, TextStyle{Bold: true, Scale: 2}) },
+		"ring arc": func() {
+			cv.RingArc(RingArcParams{Center: Point{X: 160, Y: 120}, Radius: 70, Thickness: 8, Start: 0.3, Sweep: 2.0, Color: RGB(0xFF, 0x88, 0x00)})
+		},
+		"text": func() { cv.Text(Point{X: 20, Y: 30}, "AntUI 24:00", White) },
+		"face": func() {
+			cv.face().Draw(FaceDrawParams{Canvas: cv, Pos: Point{X: 20, Y: 50}, Text: "AntUI", Color: White})
+		},
+		"styled": func() { cv.DrawStyled(Point{X: 20, Y: 70}, "styled", TextStyle{Color: White, Bold: true, Scale: 2}) },
 		"gradient": func() {
 			cv.FillGradient(Area{X: 220, Y: 20, Width: 80, Height: 60}, Gradient{Kind: GLinear, Stops: []GradientStop{
 				{Offset: 0, Color: Red}, {Offset: 1, Color: Blue}}})
@@ -43,7 +47,9 @@ func TestDamageCoversEveryDrawing(t *testing.T) {
 		},
 		"blur":   func() { cv.Blur(Area{X: 10, Y: 10, Width: 80, Height: 60}, 3) },
 		"filter": func() { cv.FilterRegion(Area{X: 100, Y: 10, Width: 60, Height: 40}, FilterBlur, 2) }, "scale alpha": func() { ScaleAlpha(cv, 0.5) },
-		"box shadow":  func() { cv.BoxShadow(BoxShadowParams{X: 20, Y: 20, Width: 100, Height: 50, RX: 8, RY: 8, DX: 4, DY: 4, Blur: 6, Spread: 2, Color: RGBA(0, 0, 0, 0x99), Inset: false}) },
+		"box shadow": func() {
+			cv.BoxShadow(BoxShadowParams{X: 20, Y: 20, Width: 100, Height: 50, RX: 8, RY: 8, DX: 4, DY: 4, Blur: 6, Spread: 2, Color: RGBA(RGBAParams{R: 0, G: 0, B: 0, A: 0x99}), Inset: false})
+		},
 		"blit":        func() { cv.Blit(120, 30, layer(t)) },
 		"blit over":   func() { cv.BlitOver(140, 30, layer(t)) },
 		"blit scaled": func() { cv.BlitScaled(Area{X: 160, Y: 30, Width: 64, Height: 64}, layer(t)) },
@@ -111,7 +117,7 @@ func TestDamageIgnoresPaintThatWasPaintedOver(t *testing.T) {
 	// A shadow, then the card that covers it, then a border on top: three
 	// writes over the same pixels that finish where they started.
 	overdraw := func() {
-		cv.FillRect(Area{10, 10, 40, 40}, RGBA(0, 0, 0, 0x40))
+		cv.FillRect(Area{10, 10, 40, 40}, RGBA(RGBAParams{R: 0, G: 0, B: 0, A: 0x40}))
 		cv.FillRect(Area{12, 12, 36, 36}, White)
 		cv.Rect(Area{12, 12, 36, 36}, Black)
 	}

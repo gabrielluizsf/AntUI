@@ -35,5 +35,5 @@ func parseHWB(s string) (canvas.Color, error) {
 		}
 	}
 	c := hwbToRGB(h, w, b)
-	return canvas.RGBA(c[0], c[1], c[2], a), nil
+	return canvas.RGBA(canvas.RGBAParams{R: c[0], G: c[1], B: c[2], A: a}), nil
 }

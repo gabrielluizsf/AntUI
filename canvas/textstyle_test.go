@@ -50,7 +50,8 @@ func TestDrawStyledWidthMatches(t *testing.T) {
 	cv, _ := NewCanvas(200, 40)
 	o := TextStyle{LetterSpacing: 2, WordSpacing: 4}
 	want := cv.TextWidthStyled("hello world", o)
-	if got := cv.DrawStyled(0, 30, "hello world", White, o); got != want {
+	o.Color = White
+	if got := cv.DrawStyled(Point{X: 0, Y: 30}, "hello world", o); got != want {
 		t.Fatalf("draw width %d, measured %d", got, want)
 	}
 }
@@ -58,8 +59,8 @@ func TestDrawStyledWidthMatches(t *testing.T) {
 func TestDrawStyledBoldAddsInk(t *testing.T) {
 	plain, _ := NewCanvas(60, 40)
 	bold, _ := NewCanvas(60, 40)
-	plain.DrawStyled(0, 30, "H", White, TextStyle{})
-	bold.DrawStyled(0, 30, "H", White, TextStyle{Bold: true})
+	plain.DrawStyled(Point{X: 0, Y: 30}, "H", TextStyle{Color: White})
+	bold.DrawStyled(Point{X: 0, Y: 30}, "H", TextStyle{Color: White, Bold: true})
 	if inkCount(bold) <= inkCount(plain) {
 		t.Fatalf("bold should add ink, plain %d bold %d", inkCount(plain), inkCount(bold))
 	}
@@ -68,8 +69,8 @@ func TestDrawStyledBoldAddsInk(t *testing.T) {
 func TestDrawStyledItalicLeans(t *testing.T) {
 	plain, _ := NewCanvas(60, 40)
 	italic, _ := NewCanvas(60, 40)
-	plain.DrawStyled(10, 10, "H", White, TextStyle{})
-	italic.DrawStyled(10, 10, "H", White, TextStyle{Italic: true})
+	plain.DrawStyled(Point{X: 10, Y: 10}, "H", TextStyle{Color: White})
+	italic.DrawStyled(Point{X: 10, Y: 10}, "H", TextStyle{Color: White, Italic: true})
 	py, iy := topInkRow(plain), topInkRow(italic)
 	if py < 0 || iy < 0 {
 		t.Fatal("expected some ink from either draw")

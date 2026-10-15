@@ -38,12 +38,12 @@ func hueRotateMat(deg float64) colorMat {
 // apply runs the matrix on one colour.
 func (m colorMat) apply(c Color) Color {
 	r, g, b := float64(c.R()), float64(c.G()), float64(c.B())
-	return RGBA(
-		clampByte(m[0]*r+m[1]*g+m[2]*b),
-		clampByte(m[3]*r+m[4]*g+m[5]*b),
-		clampByte(m[6]*r+m[7]*g+m[8]*b),
-		c.A(),
-	)
+	return RGBA(RGBAParams{
+		R: clampByte(m[0]*r + m[1]*g + m[2]*b),
+		G: clampByte(m[3]*r + m[4]*g + m[5]*b),
+		B: clampByte(m[6]*r + m[7]*g + m[8]*b),
+		A: c.A(),
+	})
 }
 
 // lerpMat mixes two matrices, t running from a to b.

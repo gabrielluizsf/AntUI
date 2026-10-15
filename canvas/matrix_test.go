@@ -71,7 +71,7 @@ func bwin(t *testing.T, w, h int) *Canvas {
 	if err != nil {
 		t.Fatal(err)
 	}
-	cv.FillRect(Area{0, 0, w, h}, RGBA(30, 40, 50, 255))
+	cv.FillRect(Area{0, 0, w, h}, RGBA(RGBAParams{R: 30, G: 40, B: 50, A: 255}))
 	return cv
 }
 
@@ -124,10 +124,10 @@ func TestBlitMatrixRotate(t *testing.T) {
 		t.Errorf("near the south vertex of the rotated square = %v, want red", got)
 	}
 	// A point a full diagonal away from the centre is outside the square.
-	if got := dst.At(7, 7); got != RGBA(30, 40, 50, 255) {
+	if got := dst.At(7, 7); got != RGBA(RGBAParams{R: 30, G: 40, B: 50, A: 255}) {
 		t.Errorf("outside the rotated square = %v, want blank", got)
 	}
-	if got := dst.At(35, 15); got != RGBA(30, 40, 50, 255) {
+	if got := dst.At(35, 15); got != RGBA(RGBAParams{R: 30, G: 40, B: 50, A: 255}) {
 		t.Errorf("east of the rotated square = %v, want blank", got)
 	}
 }
@@ -153,7 +153,7 @@ func TestBlitMatrixSingularCompositesNothing(t *testing.T) {
 	src.FillRect(Area{0, 0, 5, 5}, Red)
 	dst := bwin(t, 40, 40)
 	dst.BlitMatrix(src, Scale(0, 0), Area{0, 0, 5, 5})
-	if got := dst.At(2, 2); got != RGBA(30, 40, 50, 255) {
+	if got := dst.At(2, 2); got != RGBA(RGBAParams{R: 30, G: 40, B: 50, A: 255}) {
 		t.Errorf("a collapsed scale must paint nothing, got %v", got)
 	}
 }

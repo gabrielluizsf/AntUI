@@ -51,7 +51,7 @@ func (cv *Canvas) shadeSpan(s span, shade func(x, y int) Color) {
 			continue
 		}
 		if a != c.A() {
-			c = RGBA(c.R(), c.G(), c.B(), a)
+			c = RGBA(RGBAParams{R: c.R(), G: c.G(), B: c.B(), A: a})
 		}
 		cv.Pixel(x, s.y, c)
 	}

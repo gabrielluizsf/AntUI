@@ -21,12 +21,12 @@ func TestFilterGrayscaleAndInvert(t *testing.T) {
 
 func TestFilterBrightnessContrast(t *testing.T) {
 	cv, _ := NewCanvas(2, 2)
-	cv.FillRect(Area{0, 0, 2, 2}, RGBA(100, 100, 100, 255))
+	cv.FillRect(Area{0, 0, 2, 2}, RGBA(RGBAParams{R: 100, G: 100, B: 100, A: 255}))
 	cv.FilterRegion(Area{X: 0, Y: 0, Width: 2, Height: 2}, FilterBrightness, 0)
 	if got := cv.At(0, 0); got.R() != 0 {
 		t.Fatalf("brightness 0: %v", got)
 	}
-	cv.FillRect(Area{0, 0, 2, 2}, RGBA(100, 100, 100, 255))
+	cv.FillRect(Area{0, 0, 2, 2}, RGBA(RGBAParams{R: 100, G: 100, B: 100, A: 255}))
 	cv.FilterRegion(Area{X: 0, Y: 0, Width: 2, Height: 2}, FilterContrast, 2)
 	if got := cv.At(0, 0); got.R() != 73 {
 		t.Fatalf("contrast 2: got %d want 73", got.R())

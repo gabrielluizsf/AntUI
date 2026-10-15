@@ -166,7 +166,7 @@ func colorFace(t *testing.T, path string, r rune, pixels float64) *Face {
 // picture twice as large.
 func TestFaceDrawsAColorPicture(t *testing.T) {
 	const path = "../testdata/fonts/Roboto-Regular.ttf"
-	want := RGBA(0, 0, 255, 255)
+	want := RGBA(RGBAParams{R: 0, G: 0, B: 255, A: 255})
 	face := colorFace(t, path, 'A', 16)
 	if face.colorGlyph('A') == nil {
 		t.Fatal("the face holds no picture for A")
@@ -183,7 +183,7 @@ func TestFaceDrawsAColorPicture(t *testing.T) {
 	}
 	// The picture is five pixels across, one to the right of the pen and
 	// six above the baseline Draw is given.
-	if got := face.Draw(cv, 10, 20, "A", White); got != 7 {
+	if got := face.Draw(FaceDrawParams{Canvas: cv, Pos: Point{X: 10, Y: 20}, Text: "A", Color: White}); got != 7 {
 		t.Errorf("the pen moved on by %d, want the picture's 7", got)
 	}
 	for _, p := range [][2]int{{11, 14}, {13, 16}, {15, 18}} {
@@ -209,7 +209,7 @@ func TestFaceDrawsAColorPicture(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if got := big.Draw(wide, 10, 40, "A", White); got != 14 {
+	if got := big.Draw(FaceDrawParams{Canvas: wide, Pos: Point{X: 10, Y: 40}, Text: "A", Color: White}); got != 14 {
 		t.Errorf("the pen moved on by %d, want twice the picture's advance", got)
 	}
 	for _, p := range [][2]int{{12, 28}, {16, 32}, {21, 37}} {
@@ -230,7 +230,7 @@ func TestFaceDrawsAColorPicture(t *testing.T) {
 		t.Fatal(err)
 	}
 	baseline := 20 + face.Ascent()
-	styled.DrawStyled(10, 20, "A", White, TextStyle{Face: face, Bold: true})
+	styled.DrawStyled(Point{X: 10, Y: 20}, "A", TextStyle{Color: White, Face: face, Bold: true})
 	if got := styled.At(16, baseline-6); got != want {
 		t.Errorf("beside the picture = %v, want the doubled stroke's %v", got, want)
 	}
@@ -239,7 +239,7 @@ func TestFaceDrawsAColorPicture(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	slanted.DrawStyled(10, 20, "A", White, TextStyle{Face: face, Italic: true})
+	slanted.DrawStyled(Point{X: 10, Y: 20}, "A", TextStyle{Color: White, Face: face, Italic: true})
 	if got := slanted.At(11, baseline-6); got != 0 {
 		t.Errorf("the top row of the picture did not lean: At(11,%d) = %v", baseline-6, got)
 	}
@@ -259,7 +259,7 @@ func TestFaceDrawsAColorPicture(t *testing.T) {
 func TestFaceTakesAColorPictureDownTheChain(t *testing.T) {
 	const robotoPath = "../testdata/fonts/Roboto-Regular.ttf"
 	const monoPath = "../testdata/fonts/DejaVuSansMono.ttf"
-	want := RGBA(0, 0, 255, 255)
+	want := RGBA(RGBAParams{R: 0, G: 0, B: 255, A: 255})
 
 	roboto := loadFace(t, robotoPath, 16)
 	if roboto.file.Cmap.Glyph('→') != 0 {
@@ -278,7 +278,7 @@ func TestFaceTakesAColorPictureDownTheChain(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if got := chained.Draw(cv, 10, 20, "→", White); got != 7 {
+	if got := chained.Draw(FaceDrawParams{Canvas: cv, Pos: Point{X: 10, Y: 20}, Text: "→", Color: White}); got != 7 {
 		t.Errorf("the pen moved on by %d, want the picture's 7", got)
 	}
 	if got := cv.At(11, 14); got != want {

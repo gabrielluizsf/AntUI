@@ -14,5 +14,5 @@ func finishOK(r, g, b float64, alpha string, hasAlpha bool) (canvas.Color, error
 			return 0, err
 		}
 	}
-	return canvas.RGBA(toByte(r), toByte(g), toByte(b), a), nil
+	return canvas.RGBA(canvas.RGBAParams{R: toByte(r), G: toByte(g), B: toByte(b), A: a}), nil
 }

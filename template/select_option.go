@@ -31,5 +31,5 @@ func (builtinStyle) SelectOption(p SelectOptionParams) {
 	if p.Selected {
 		colour = th.TextOnAccent
 	}
-	cv.TextScaled(p.X+10*u, textY, p.Label, colour, u)
+	cv.TextScaled(canvas.Point{X: float64(p.X + 10*u), Y: float64(textY)}, p.Label, canvas.TextStyle{Color: colour, Scale: u})
 }

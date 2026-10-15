@@ -32,5 +32,5 @@ func (builtinStyle) Switch(p SwitchParams) {
 	if p.State.Focused {
 		cv.Circle(canvas.Circle{X: p.X + trackW/2, Y: p.Y + trackH/2, R: trackH/2 + 3*u}, th.Accent)
 	}
-	cv.TextScaled(p.X+trackW+labelGap*u, p.Y+(trackH-textHeight(u))/2, p.Label, th.Text, u)
+	cv.TextScaled(canvas.Point{X: float64(p.X + trackW + labelGap*u), Y: float64(p.Y + (trackH-textHeight(u))/2)}, p.Label, canvas.TextStyle{Color: th.Text, Scale: u})
 }

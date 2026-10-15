@@ -15,8 +15,7 @@ func blitMask(cv *Canvas, m *font.Mask, x, baseline int, c Color) {
 			if v == 0 {
 				continue
 			}
-			cv.Pixel(x+m.Left+col, top+row, RGBA(c.R(), c.G(), c.B(),
-				uint8(v*alpha/255)))
+			cv.Pixel(x+m.Left+col, top+row, RGBA(RGBAParams{R: c.R(), G: c.G(), B: c.B(), A: uint8(v * alpha / 255)}))
 		}
 	}
 }

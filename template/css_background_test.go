@@ -31,7 +31,7 @@ func blankWin(t *testing.T, w, h int) *antui.Window {
 	if err != nil {
 		t.Fatal(err)
 	}
-	win.Canvas().FillRect(canvas.Area{X: 0, Y: 0, Width: w, Height: h}, canvas.RGBA(30, 40, 50, 255))
+	win.Canvas().FillRect(canvas.Area{X: 0, Y: 0, Width: w, Height: h}, canvas.RGBA(canvas.RGBAParams{R: 30, G: 40, B: 50, A: 255}))
 	return win
 }
 
@@ -49,7 +49,7 @@ func TestCSSBackgroundGradientPaint(t *testing.T) {
 	if bottom.B() <= bottom.R() || bottom.B() <= 200 {
 		t.Errorf("bottom of the box should be blue, got %v", bottom)
 	}
-	if got := win.Canvas().At(2, 2); got != canvas.RGBA(30, 40, 50, 255) {
+	if got := win.Canvas().At(2, 2); got != canvas.RGBA(canvas.RGBAParams{R: 30, G: 40, B: 50, A: 255}) {
 		t.Errorf("outside the box should be untouched, got %v", got)
 	}
 }
@@ -84,7 +84,7 @@ func TestCSSBackgroundImagePaint(t *testing.T) {
 	if got := win.Canvas().At(12, 12); got != canvas.Red {
 		t.Errorf("image pixel = %v, want red", got)
 	}
-	if got := win.Canvas().At(22, 22); got != canvas.RGBA(30, 40, 50, 255) {
+	if got := win.Canvas().At(22, 22); got != canvas.RGBA(canvas.RGBAParams{R: 30, G: 40, B: 50, A: 255}) {
 		t.Errorf("a no-repeat image must not tile, got %v", got)
 	}
 }
@@ -120,7 +120,7 @@ func TestCSSBackgroundPositionAndSize(t *testing.T) {
 	if got := win.Canvas().At(10+9*u, 10+4*u); got != canvas.Red {
 		t.Errorf("inside the placed tile = %v, want red", got)
 	}
-	if got := win.Canvas().At(10, 10+3*u); got != canvas.RGBA(30, 40, 50, 255) {
+	if got := win.Canvas().At(10, 10+3*u); got != canvas.RGBA(canvas.RGBAParams{R: 30, G: 40, B: 50, A: 255}) {
 		t.Errorf("left of the offset tile must stay blank, got %v", got)
 	}
 }
@@ -155,7 +155,7 @@ func TestCSSBackgroundClipInsideBorder(t *testing.T) {
 
 	// The image anchors to the padding box, so the border ring stays blank.
 	cs.paintBackground(win, st, 10, 10, 20, 20, 0, 0)
-	if got := win.Canvas().At(10, 12); got != canvas.RGBA(30, 40, 50, 255) {
+	if got := win.Canvas().At(10, 12); got != canvas.RGBA(canvas.RGBAParams{R: 30, G: 40, B: 50, A: 255}) {
 		t.Errorf("under the border the clip must clear, got %v", got)
 	}
 	if got := win.Canvas().At(14, 14); got != canvas.Red {
@@ -188,7 +188,7 @@ func TestCSSBackgroundUnknownImagePaintsNothing(t *testing.T) {
 	st := bgRule(t, "background-image: url(missing);")
 	cs := newCSSStyle(win)
 	cs.paintBackground(win, st, 10, 10, 20, 20, 0, 0)
-	if got := win.Canvas().At(15, 15); got != canvas.RGBA(30, 40, 50, 255) {
+	if got := win.Canvas().At(15, 15); got != canvas.RGBA(canvas.RGBAParams{R: 30, G: 40, B: 50, A: 255}) {
 		t.Errorf("an unregistered image must paint nothing, got %v", got)
 	}
 }
@@ -204,7 +204,7 @@ func TestCSSBackgroundConicAndRadialPaint(t *testing.T) {
 		cs.paintBackground(win, st, 10, 10, 20, 20, 0, 0)
 
 		px := win.Canvas().At(20, 20)
-		if px.A() == 0 && px == canvas.RGBA(30, 40, 50, 255) {
+		if px.A() == 0 && px == canvas.RGBA(canvas.RGBAParams{R: 30, G: 40, B: 50, A: 255}) {
 			t.Errorf("%s painted nothing where a gradient should sit", rule)
 		}
 	}

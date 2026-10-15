@@ -9,5 +9,6 @@ import (
 // text (switches, calendar cells).
 func (cs *cssStyle) run(cv *canvas.Canvas, st css.Style, x, y int, text string) {
 	o := cs.textOpts(st)
-	cv.DrawStyled(x, y, transformText(text, st.TextTransform), cs.ink(st), o)
+	o.Color = cs.ink(st)
+	cv.DrawStyled(canvas.Point{X: float64(x), Y: float64(y)}, transformText(text, st.TextTransform), o)
 }

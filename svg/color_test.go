@@ -17,13 +17,13 @@ func TestParseColorHex(t *testing.T) {
 	}{
 		{"#f00", canvas.RGB(255, 0, 0)},
 		{"#ff0000", canvas.RGB(255, 0, 0)},
-		{"#0f08", canvas.RGBA(0, 255, 0, 136)},
-		{"#00ff0088", canvas.RGBA(0, 255, 0, 136)},
+		{"#0f08", canvas.RGBA(canvas.RGBAParams{R: 0, G: 255, B: 0, A: 136})},
+		{"#00ff0088", canvas.RGBA(canvas.RGBAParams{R: 0, G: 255, B: 0, A: 136})},
 		{"#abc", canvas.RGB(170, 187, 204)},
 		{"#FFFFFF", canvas.RGB(255, 255, 255)},
 		{"#3e63dd", canvas.RGB(0x3E, 0x63, 0xDD)},
 		{"3e63dd", canvas.RGB(0x3E, 0x63, 0xDD)},
-		{"#3e63dd80", canvas.RGBA(0x3E, 0x63, 0xDD, 0x80)},
+		{"#3e63dd80", canvas.RGBA(canvas.RGBAParams{R: 0x3E, G: 0x63, B: 0xDD, A: 0x80})},
 	} {
 		got, ok := parseColor(tc.in)
 		if !ok {
@@ -48,9 +48,9 @@ func TestParseColorFunctions(t *testing.T) {
 	for name, c := range map[string]canvas.Color{
 		"rgb(255, 0, 0)":          canvas.RGB(255, 0, 0),
 		"rgb(255 0 0)":            canvas.RGB(255, 0, 0),
-		"rgba(255, 0, 0, 1)":      canvas.RGBA(255, 0, 0, 255),
-		"rgba(255, 0, 0, 0.5)":    canvas.RGBA(255, 0, 0, 128),
-		"rgb(255 0 0 / 50%)":      canvas.RGBA(255, 0, 0, 128),
+		"rgba(255, 0, 0, 1)":      canvas.RGBA(canvas.RGBAParams{R: 255, G: 0, B: 0, A: 255}),
+		"rgba(255, 0, 0, 0.5)":    canvas.RGBA(canvas.RGBAParams{R: 255, G: 0, B: 0, A: 128}),
+		"rgb(255 0 0 / 50%)":      canvas.RGBA(canvas.RGBAParams{R: 255, G: 0, B: 0, A: 128}),
 		"rgb(100%, 0%, 0%)":       canvas.RGB(255, 0, 0),
 		"rgb(300, -20, 0)":        canvas.RGB(255, 0, 0), // clamped, not wrapped
 		"hsl(0, 100%, 50%)":       canvas.RGB(255, 0, 0),
@@ -59,7 +59,7 @@ func TestParseColorFunctions(t *testing.T) {
 		"hsl(0, 0%, 100%)":        canvas.RGB(255, 255, 255),
 		"hsl(0, 0%, 0%)":          canvas.RGB(0, 0, 0),
 		"hsl(0.5turn, 100%, 50%)": canvas.RGB(0, 255, 255),
-		"hsla(0, 100%, 50%, 0.5)": canvas.RGBA(255, 0, 0, 128),
+		"hsla(0, 100%, 50%, 0.5)": canvas.RGBA(canvas.RGBAParams{R: 255, G: 0, B: 0, A: 128}),
 		"rgb(255,0,0)":            canvas.RGB(255, 0, 0),
 		"RGB(255, 0, 0)":          canvas.RGB(255, 0, 0),
 	} {
@@ -105,7 +105,7 @@ func TestParseColorNames(t *testing.T) {
 		"grey":          canvas.RGB(128, 128, 128),
 		"aqua":          canvas.RGB(0, 255, 255),
 		"cyan":          canvas.RGB(0, 255, 255),
-		"transparent":   canvas.RGBA(0, 0, 0, 0),
+		"transparent":   canvas.RGBA(canvas.RGBAParams{R: 0, G: 0, B: 0, A: 0}),
 	} {
 		got, ok := parseColor(name)
 		if !ok {

@@ -10,5 +10,5 @@ func parseHexColor(body string) (canvas.Color, bool) {
 	if !ok {
 		return 0, false
 	}
-	return canvas.RGBA(r, g, b, a), true
+	return canvas.RGBA(canvas.RGBAParams{R: r, G: g, B: b, A: a}), true
 }

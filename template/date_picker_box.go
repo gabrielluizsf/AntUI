@@ -22,7 +22,7 @@ func (builtinStyle) DatePickerBox(p DatePickerBoxParams) {
 	cv.RoundRect(canvas.Round(canvas.Area{X: p.X, Y: p.Y, Width: p.W, Height: p.H}, th.Radius), border)
 
 	padding := 8 * u
-	cv.TextScaled(p.X+padding, p.Y+(p.H-textHeight(u))/2, p.Value, th.Text, u)
+	cv.TextScaled(canvas.Point{X: float64(p.X + padding), Y: float64(p.Y + (p.H-textHeight(u))/2)}, p.Value, canvas.TextStyle{Color: th.Text, Scale: u})
 
 	// The caret that says "there is a calendar below", flipped the way the
 	// dropdown's is while the picker is open.

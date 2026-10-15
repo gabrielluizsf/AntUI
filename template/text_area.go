@@ -46,7 +46,7 @@ func (builtinStyle) TextArea(p TextAreaParams) {
 		}
 		cy := p.Y + padding + (lif-viewTop)*lineH
 		line := p.Text[l[0]:l[1]]
-		cv.TextScaled(p.X+padding, cy, line, th.Text, u)
+		cv.TextScaled(canvas.Point{X: float64(p.X + padding), Y: float64(cy)}, line, canvas.TextStyle{Color: th.Text, Scale: u})
 		if p.State.Focused && p.Caret && cursor >= l[0] && cursor <= l[1] {
 			off := cursor - l[0]
 			cx := p.X + padding + textWidth(u, line[:off])

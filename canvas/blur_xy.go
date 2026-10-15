@@ -47,7 +47,7 @@ func (cv *Canvas) BlurXY(area Area, radiusX, radiusY int) {
 			if a > 0.0001 {
 				r, g, b = buf[i]/a, buf[i+1]/a, buf[i+2]/a
 			}
-			cv.Pixels[(y0+row)*cv.Stride+x0+col] = RGBA(clampByte(r), clampByte(g), clampByte(b), clampByte(a*255))
+			cv.Pixels[(y0+row)*cv.Stride+x0+col] = RGBA(RGBAParams{R: clampByte(r), G: clampByte(g), B: clampByte(b), A: clampByte(a * 255)})
 		}
 	}
 	cv.markRegion(region)

@@ -12,8 +12,8 @@ func paintDatePickerHeader(cv *canvas.Canvas, th *antui.Theme, p datePaint) {
 	mname := monthName(p.month)
 	x := p.x + p.w/2 - textWidth(u, mname)/2
 	y := p.headerTextY(textHeight(u))
-	cv.TextScaled(x, y, mname, th.Text, u)
-	cv.TextScaled(x+textWidth(u, mname)+4*u, y, itoa(p.year), th.TextMuted, u)
+	cv.TextScaled(canvas.Point{X: float64(x), Y: float64(y)}, mname, canvas.TextStyle{Color: th.Text, Scale: u})
+	cv.TextScaled(canvas.Point{X: float64(x + textWidth(u, mname) + 4*u), Y: float64(y)}, itoa(p.year), canvas.TextStyle{Color: th.TextMuted, Scale: u})
 
 	ax, ay, aw := dateArrowRect(p.x, p.y, u, true)
 	drawIcon(cv, IconCaretLeft, ax, ay, aw, aw, th.TextMuted)

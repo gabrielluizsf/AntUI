@@ -26,8 +26,8 @@ func (cs *cssStyle) progressRing(win *antui.Window, st css.Style, x, y, w, h int
 	if st.Has("border-color") && st.BoxColor[css.SideTop].A() != 0 {
 		track = canvas.Fade(st.BoxColor[css.SideTop], cs.alpha(st))
 	}
-	cv.RingArc(canvas.RingArcParams{Center: canvas.Point{X: float64(float64(float64(cx))), Y: float64(float64(float64(cy)))}, Radius: radius, Thickness: thickness, Start: -math.Pi / 2, Sweep: 2 * math.Pi, Color: track})
+	cv.RingArc(canvas.RingArcParams{Center: canvas.Point{X: float64(cx), Y: float64(cy)}, Radius: radius, Thickness: thickness, Start: -math.Pi / 2, Sweep: 2 * math.Pi, Color: track})
 	if value > 0 {
-		cv.RingArc(canvas.RingArcParams{Center: canvas.Point{X: float64(float64(float64(cx))), Y: float64(float64(float64(cy)))}, Radius: radius, Thickness: thickness, Start: -math.Pi / 2, Sweep: 2 * math.Pi * float64(value), Color: cs.fill(st)})
+		cv.RingArc(canvas.RingArcParams{Center: canvas.Point{X: float64(cx), Y: float64(cy)}, Radius: radius, Thickness: thickness, Start: -math.Pi / 2, Sweep: 2 * math.Pi * float64(value), Color: cs.fill(st)})
 	}
 }

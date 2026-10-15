@@ -22,7 +22,7 @@ import (
 func drawRun(cv *canvas.Canvas, face *canvas.Face, text string, c canvas.Color, m canvas.Matrix) {
 	if m.B == 0 && m.C == 0 {
 		px, py := m.Map(0, 0)
-		face.Draw(cv, int(px+0.5), int(py+0.5), text, c)
+		face.Draw(canvas.FaceDrawParams{Canvas: cv, Pos: canvas.Point{X: float64(int(px + 0.5)), Y: float64(int(py + 0.5))}, Text: text, Color: c})
 		return
 	}
 	const pad = 2
@@ -40,7 +40,7 @@ func drawRun(cv *canvas.Canvas, face *canvas.Face, text string, c canvas.Color, 
 	if err != nil {
 		return
 	}
-	face.Draw(layer, pad, pad+face.Ascent(), text, c)
+	face.Draw(canvas.FaceDrawParams{Canvas: layer, Pos: canvas.Point{X: float64(pad), Y: float64(pad + face.Ascent())}, Text: text, Color: c})
 	// Layer pixel (lx,ly) is the drawing's own (lx-pad)/scale and
 	// (ly-pad-Ascent)/scale, and the matrix takes those from there onwards.
 	to := m.Mul(canvas.Translate(-float64(pad)/scale,

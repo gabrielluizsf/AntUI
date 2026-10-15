@@ -113,7 +113,7 @@ func TestFaceDrawsWithinItsWidth(t *testing.T) {
 		t.Fatal(err)
 	}
 	cv.Clear(canvas.White)
-	if got := f.Draw(cv, 10, 10+f.Ascent(), text, canvas.Black); got != width {
+	if got := f.Draw(canvas.FaceDrawParams{Canvas: cv, Pos: canvas.Point{X: 10, Y: float64(10 + f.Ascent())}, Text: text, Color: canvas.Black}); got != width {
 		t.Errorf("Draw returned %d and Width says %d", got, width)
 	}
 
@@ -163,7 +163,7 @@ func inkOf(t *testing.T, f *canvas.Face, text string) int {
 		t.Fatal(err)
 	}
 	cv.Clear(canvas.White)
-	f.Draw(cv, 4, f.Height(), text, canvas.Black)
+	f.Draw(canvas.FaceDrawParams{Canvas: cv, Pos: canvas.Point{X: 4, Y: float64(f.Height())}, Text: text, Color: canvas.Black})
 	n := 0
 	for y := range cv.Height {
 		for x := range cv.Width {
@@ -229,7 +229,7 @@ func TestCanvasFaceOverridesTheDefault(t *testing.T) {
 		t.Error("SetFace did not take")
 	}
 	cv.Clear(canvas.White)
-	if w := cv.Text(0, 0, "hello", canvas.Black); w != 5*canvas.FontWidth {
+	if w := cv.Text(canvas.Point{X: 0, Y: 0}, "hello", canvas.Black); w != 5*canvas.FontWidth {
 		t.Errorf("the canvas drew %d wide and the built-in is %d", w, 5*canvas.FontWidth)
 	}
 	cv.SetFace(nil)
@@ -374,7 +374,7 @@ func TestBuiltinScaled(t *testing.T) {
 		t.Fatal(err)
 	}
 	cv.Clear(canvas.White)
-	if w := cv.Text(4, 4, "hi", canvas.Black); w != 2*canvas.FontWidth*3 {
+	if w := cv.Text(canvas.Point{X: 4, Y: 4}, "hi", canvas.Black); w != 2*canvas.FontWidth*3 {
 		t.Errorf("drew %d wide, want %d", w, 2*canvas.FontWidth*3)
 	}
 	// The ink has to be inside the box it claimed.

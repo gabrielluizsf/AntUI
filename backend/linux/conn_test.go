@@ -14,7 +14,7 @@ import (
 // and nothing says so.
 func TestPackRowAgrees(t *testing.T) {
 	pixels := []canvas.Color{
-		canvas.RGBA(0x11, 0x22, 0x33, 0x44), canvas.White, canvas.Black,
+		canvas.RGBA(canvas.RGBAParams{R: 0x11, G: 0x22, B: 0x33, A: 0x44}), canvas.White, canvas.Black,
 		canvas.RGB(0xFF, 0x00, 0x00), canvas.RGB(0x00, 0xFF, 0x00), canvas.RGB(0x00, 0x00, 0xFF),
 	}
 

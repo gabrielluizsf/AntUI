@@ -20,13 +20,13 @@ func TestLayerKeepsTheAlphaOfWhatIsDrawnOnIt(t *testing.T) {
 	// A half-transparent red drawn on a surface is opaque red: there is nothing
 	// behind the surface to see. On a layer it is still half transparent.
 	surface := newCanvas(t, 4, 4)
-	surface.Pixel(1, 1, RGBA(255, 0, 0, 128))
+	surface.Pixel(1, 1, RGBA(RGBAParams{R: 255, G: 0, B: 0, A: 128}))
 	if got := surface.At(1, 1).A(); got != 255 {
 		t.Errorf("a translucent pixel on a surface came out at alpha %d, want 255", got)
 	}
 
 	layer := newLayer(t, 4, 4)
-	layer.Pixel(1, 1, RGBA(255, 0, 0, 128))
+	layer.Pixel(1, 1, RGBA(RGBAParams{R: 255, G: 0, B: 0, A: 128}))
 	if got := layer.At(1, 1).A(); got != 128 {
 		t.Errorf("a translucent pixel on a layer came out at alpha %d, want 128", got)
 	}
@@ -45,7 +45,7 @@ func TestLayerKeepsTheAlphaOfWhatIsDrawnOnIt(t *testing.T) {
 // cannot express: the two draws add up, and the result is more opaque than
 // either of them without being fully opaque.
 func TestLayerAddsUpWhereItIsDrawnTwice(t *testing.T) {
-	red := RGBA(255, 0, 0, 128)
+	red := RGBA(RGBAParams{R: 255, G: 0, B: 0, A: 128})
 
 	once := newLayer(t, 2, 2)
 	once.Pixel(0, 0, red)
@@ -107,7 +107,7 @@ func TestBlittingALayerShowsWhatIsBehindIt(t *testing.T) {
 	back.FillRect(Area{0, 0, 8, 8}, Blue)
 
 	half := newLayer(t, 8, 8)
-	half.FillRect(Area{0, 0, 8, 8}, RGBA(255, 255, 255, 128))
+	half.FillRect(Area{0, 0, 8, 8}, RGBA(RGBAParams{R: 255, G: 255, B: 255, A: 128}))
 	back.BlitOver(0, 0, half)
 
 	// Blue is (0, 0, 255) and white is (255, 255, 255); half of each is a grey

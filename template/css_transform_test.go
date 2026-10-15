@@ -17,10 +17,10 @@ func TestCSSTransformTranslates(t *testing.T) {
 		cs.paintBackground(win, st, 10, 10, 20, 20, 0, 0)
 	})
 
-	if got := win.Canvas().At(25, 15); got != canvas.RGBA(255, 0, 0, 255) {
+	if got := win.Canvas().At(25, 15); got != canvas.RGBA(canvas.RGBAParams{R: 255, G: 0, B: 0, A: 255}) {
 		t.Errorf("pixel inside the moved box = %v, want red", got)
 	}
-	if got := win.Canvas().At(10, 15); got != canvas.RGBA(30, 40, 50, 255) {
+	if got := win.Canvas().At(10, 15); got != canvas.RGBA(canvas.RGBAParams{R: 30, G: 40, B: 50, A: 255}) {
 		t.Errorf("the box must leave its old spot blank, got %v", got)
 	}
 }
@@ -36,11 +36,11 @@ func TestCSSTransformScales(t *testing.T) {
 	})
 
 	for _, p := range [][2]int{{10, 10}, {20, 20}, {38, 38}} {
-		if got := win.Canvas().At(p[0], p[1]); got != canvas.RGBA(255, 0, 0, 255) {
+		if got := win.Canvas().At(p[0], p[1]); got != canvas.RGBA(canvas.RGBAParams{R: 255, G: 0, B: 0, A: 255}) {
 			t.Errorf("scaled pixel at %v = %v, want red", p, got)
 		}
 	}
-	if got := win.Canvas().At(8, 8); got != canvas.RGBA(30, 40, 50, 255) {
+	if got := win.Canvas().At(8, 8); got != canvas.RGBA(canvas.RGBAParams{R: 30, G: 40, B: 50, A: 255}) {
 		t.Errorf("before the scaled box = %v, want blank", got)
 	}
 }
@@ -56,13 +56,13 @@ func TestCSSTransformDefaultOriginIsCentre(t *testing.T) {
 		cs.paintBackground(win, st, 10, 10, 30, 10, 0, 0)
 	})
 
-	if got := win.Canvas().At(25, 15); got != canvas.RGBA(255, 0, 0, 255) {
+	if got := win.Canvas().At(25, 15); got != canvas.RGBA(canvas.RGBAParams{R: 255, G: 0, B: 0, A: 255}) {
 		t.Errorf("centre of the rotated box = %v, want red", got)
 	}
-	if got := win.Canvas().At(10, 10); got == canvas.RGBA(255, 0, 0, 255) {
+	if got := win.Canvas().At(10, 10); got == canvas.RGBA(canvas.RGBAParams{R: 255, G: 0, B: 0, A: 255}) {
 		t.Error("the corner must rotate away from the pivot, still red at (10,10)")
 	}
-	if got := win.Canvas().At(25, 20); got != canvas.RGBA(255, 0, 0, 255) {
+	if got := win.Canvas().At(25, 20); got != canvas.RGBA(canvas.RGBAParams{R: 255, G: 0, B: 0, A: 255}) {
 		t.Errorf("under the rotated box = %v, want red", got)
 	}
 }
@@ -75,7 +75,7 @@ func TestCSSTransformWithoutTransformPaintsDirect(t *testing.T) {
 		cs.paintBackground(win, st, 10, 10, 20, 20, 0, 0)
 	})
 
-	if got := win.Canvas().At(15, 15); got != canvas.RGBA(255, 0, 0, 255) {
+	if got := win.Canvas().At(15, 15); got != canvas.RGBA(canvas.RGBAParams{R: 255, G: 0, B: 0, A: 255}) {
 		t.Errorf("a box without a transform must paint in place, got %v", got)
 	}
 }
@@ -95,7 +95,7 @@ func TestCSSTransformPadCoversEffects(t *testing.T) {
 		cs.paintBackground(win, shadow, 10, 10, 20, 20, 0, 0)
 	})
 	// The shadow pool sits just below the box, offset by the pad beyond it.
-	if got := win.Canvas().At(15, 10+4+3-1); got == canvas.RGBA(30, 40, 50, 255) {
+	if got := win.Canvas().At(15, 10+4+3-1); got == canvas.RGBA(canvas.RGBAParams{R: 30, G: 40, B: 50, A: 255}) {
 		t.Errorf("the box-shadow must follow the box through the composit, got blank")
 	}
 }
@@ -125,10 +125,10 @@ func TestCSSTransformButtonThroughPaint(t *testing.T) {
 	}
 	y = y - h
 
-	if got := win.Canvas().At(x+10, y+h/2); got == canvas.RGBA(30, 40, 50, 255) {
+	if got := win.Canvas().At(x+10, y+h/2); got == canvas.RGBA(canvas.RGBAParams{R: 30, G: 40, B: 50, A: 255}) {
 		t.Errorf("the original button spot must be blank, got %v", got)
 	}
-	if got := win.Canvas().At(x+30*u+2, y+h/2); got != canvas.RGBA(255, 0, 0, 255) {
+	if got := win.Canvas().At(x+30*u+2, y+h/2); got != canvas.RGBA(canvas.RGBAParams{R: 255, G: 0, B: 0, A: 255}) {
 		t.Errorf("the button must paint 30px right, got %v", got)
 	}
 }
@@ -140,14 +140,14 @@ func TestCSSTransformCompositesDrawnOverspill(t *testing.T) {
 	st := bgRule(t, "transform: translate(10px 0);")
 	cs := newCSSStyle(win)
 	cs.transformed(st, 10, 10, 20, 20, func() {
-		win.Canvas().FillRect(canvas.Area{X: 10, Y: 20, Width: 15, Height: 8}, canvas.RGBA(255, 0, 0, 255))
+		win.Canvas().FillRect(canvas.Area{X: 10, Y: 20, Width: 15, Height: 8}, canvas.RGBA(canvas.RGBAParams{R: 255, G: 0, B: 0, A: 255}))
 	})
 
 	// The menu block lands 10px right, unmangled, through the transform.
-	if got := win.Canvas().At(25, 26); got != canvas.RGBA(255, 0, 0, 255) {
+	if got := win.Canvas().At(25, 26); got != canvas.RGBA(canvas.RGBAParams{R: 255, G: 0, B: 0, A: 255}) {
 		t.Errorf("the overspill must come over with the box, got %v", got)
 	}
-	if got := win.Canvas().At(25, 22); got != canvas.RGBA(255, 0, 0, 255) {
+	if got := win.Canvas().At(25, 22); got != canvas.RGBA(canvas.RGBAParams{R: 255, G: 0, B: 0, A: 255}) {
 		t.Errorf("the overspill interior must come over too, got %v", got)
 	}
 }
@@ -166,7 +166,7 @@ func TestCSSTransformShadowStaysSoftInLayer(t *testing.T) {
 	// A point well left of the box, inside the composite pad but past any
 	// real glow, must keep the window's colour — never opaque black.
 	for _, p := range [][2]int{{2, 20}, {6, 20}} {
-		if got := win.Canvas().At(p[0], p[1]); got == canvas.RGBA(0, 0, 0, 255) {
+		if got := win.Canvas().At(p[0], p[1]); got == canvas.RGBA(canvas.RGBAParams{R: 0, G: 0, B: 0, A: 255}) {
 			t.Errorf("the shadow smeared as an opaque slab at %v, got solid black", p)
 		}
 	}
@@ -175,7 +175,7 @@ func TestCSSTransformShadowStaysSoftInLayer(t *testing.T) {
 func TestCSSTransformBackdropSeesPageBehind(t *testing.T) {
 	win := blankWin(t, 40, 40)
 	for y := 10; y < 20; y++ {
-		win.Canvas().FillRect(canvas.Area{X: 10, Y: y, Width: 20, Height: 1}, canvas.RGBA(255, 0, 0, 255))
+		win.Canvas().FillRect(canvas.Area{X: 10, Y: y, Width: 20, Height: 1}, canvas.RGBA(canvas.RGBAParams{R: 255, G: 0, B: 0, A: 255}))
 	}
 	st := bgRule(t, "transform: translate(10px 10px); backdrop-filter: invert(1);")
 	cs := newCSSStyle(win)
@@ -185,7 +185,7 @@ func TestCSSTransformBackdropSeesPageBehind(t *testing.T) {
 
 	// The box lands over the red page. Its backdrop inverts it: cyan here
 	// proves the filter saw the window behind, not an empty layer.
-	if got := win.Canvas().At(25, 15); got != canvas.RGBA(0, 255, 255, 255) {
+	if got := win.Canvas().At(25, 15); got != canvas.RGBA(canvas.RGBAParams{R: 0, G: 255, B: 255, A: 255}) {
 		t.Errorf("the backdrop must invert the window behind the box, got %v", got)
 	}
 }

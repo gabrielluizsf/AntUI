@@ -1,5 +1,7 @@
 package template
 
+import "github.com/gabrielluizsf/antui/canvas"
+
 func (cyberStyle) Button(p ButtonParams) {
 	win := p.Win
 	cv := win.Canvas()
@@ -23,5 +25,5 @@ func (cyberStyle) Button(p ButtonParams) {
 		glow(cv, halo{x: p.X, y: p.Y, w: p.W, h: p.H, radius: radius, colour: v.neon, strength: int(float64(reach) * v.glow), u: u})
 	}
 	neonFill(cv, p.X, p.Y, p.W, p.H, radius, body, border)
-	cv.TextScaled(p.X+(p.W-textWidth(u, p.Label))/2, p.Y+(p.H-textHeight(u))/2, p.Label, v.text, u)
+	cv.TextScaled(canvas.Point{X: float64(p.X + (p.W-textWidth(u, p.Label))/2), Y: float64(p.Y + (p.H-textHeight(u))/2)}, p.Label, canvas.TextStyle{Color: v.text, Scale: u})
 }

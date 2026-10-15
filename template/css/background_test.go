@@ -414,4 +414,4 @@ func TestBackgroundRejectsGarbage(t *testing.T) {
 	}
 }
 
-var red = canvas.RGBA(255, 0, 0, 255)
+var red = canvas.RGBA(canvas.RGBAParams{R: 255, G: 0, B: 0, A: 255})

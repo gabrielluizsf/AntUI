@@ -20,9 +20,9 @@ func blitMaskStyled(cv *Canvas, m *font.Mask, x, baseline int, c Color, o TextSt
 				continue
 			}
 			px := x + m.Left + col + shift
-			cv.Pixel(px, top+row, RGBA(c.R(), c.G(), c.B(), uint8(v*alpha/255)))
+			cv.Pixel(px, top+row, RGBA(RGBAParams{R: c.R(), G: c.G(), B: c.B(), A: uint8(v * alpha / 255)}))
 			if o.Bold {
-				cv.Pixel(px+step, top+row, RGBA(c.R(), c.G(), c.B(), uint8(v*alpha/255)))
+				cv.Pixel(px+step, top+row, RGBA(RGBAParams{R: c.R(), G: c.G(), B: c.B(), A: uint8(v * alpha / 255)}))
 			}
 		}
 	}

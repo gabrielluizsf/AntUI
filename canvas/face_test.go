@@ -81,7 +81,7 @@ func TestBuiltinWritesAtTheSizeItWasGiven(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if w := twelve.Draw(cv, 4, baseline, "hi", Black); w != twelve.Width("hi") {
+	if w := twelve.Draw(FaceDrawParams{Canvas: cv, Pos: Point{X: 4, Y: float64(baseline)}, Text: "hi", Color: Black}); w != twelve.Width("hi") {
 		t.Errorf("drawing wrote %d wide where measuring says %d", w, twelve.Width("hi"))
 	}
 }
@@ -94,7 +94,7 @@ func drawOne(t *testing.T, f *Face, baseline int, text string) Area {
 	if err != nil {
 		t.Fatal(err)
 	}
-	f.Draw(cv, 8, baseline, text, Black)
+	f.Draw(FaceDrawParams{Canvas: cv, Pos: Point{X: 8, Y: float64(baseline)}, Text: text, Color: Black})
 	var box Area
 	seen := false
 	for y := range cv.Height {

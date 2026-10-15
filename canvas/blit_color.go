@@ -32,7 +32,7 @@ func (f *Face) blitColor(cv *Canvas, cg *font.ColorGlyph, x, y float64, o TextSt
 			}
 			// A decoder hands the channels back already multiplied by the
 			// alpha; the canvas takes them plain.
-			c := RGBA(uint8(r*255/a), uint8(g*255/a), uint8(blue*255/a), uint8(a>>8))
+			c := RGBA(RGBAParams{R: uint8(r * 255 / a), G: uint8(g * 255 / a), B: uint8(blue * 255 / a), A: uint8(a >> 8)})
 			px := left + col + shift
 			cv.Pixel(px, top+row, c)
 			if o.Bold {

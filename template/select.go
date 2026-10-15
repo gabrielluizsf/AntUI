@@ -23,7 +23,7 @@ func (builtinStyle) Select(p SelectParams) {
 
 	padding := 8 * u
 	textY := p.Y + (p.H-textHeight(u))/2
-	cv.TextScaled(p.X+padding, textY, p.Value, th.Text, u)
+	cv.TextScaled(canvas.Point{X: float64(p.X + padding), Y: float64(textY)}, p.Value, canvas.TextStyle{Color: th.Text, Scale: u})
 
 	// The arrow that says "there is more below". It is drawn inside a square
 	// bigger than the arrow so that the arrow itself comes out at the size the

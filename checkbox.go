@@ -51,6 +51,6 @@ func (win *Window) Checkbox(x, y int, params CheckboxParams) bool {
 		win.cv.Line(canvas.Point{X: float64(x + 8), Y: float64(y + 13)}, canvas.Point{X: float64(x + 15), Y: float64(y + 5)}, mark)
 	}
 
-	win.cv.Text(x+box+8, y+(box-canvas.TextHeight())/2, label, win.theme.Text)
+	win.cv.Text(canvas.Point{X: float64(x + box + 8), Y: float64(y + (box-canvas.TextHeight())/2)}, label, win.theme.Text)
 	return clicked
 }

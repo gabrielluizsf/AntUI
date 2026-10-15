@@ -23,10 +23,10 @@ func scaleInto(out, src *Canvas) {
 				}
 			}
 			if n == 0 || a == 0 {
-				out.Put(x, y, RGBA(0, 0, 0, 0))
+				out.Put(x, y, RGBA(RGBAParams{R: 0, G: 0, B: 0, A: 0}))
 				continue
 			}
-			out.Put(x, y, RGBA(uint8(r/a), uint8(g/a), uint8(b/a), uint8(a/n)))
+			out.Put(x, y, RGBA(RGBAParams{R: uint8(r / a), G: uint8(g / a), B: uint8(b / a), A: uint8(a / n)}))
 		}
 	}
 }

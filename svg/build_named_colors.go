@@ -16,6 +16,6 @@ func buildNamedColors() map[string]canvas.Color {
 		}
 		out[name] = c
 	}
-	out["transparent"] = canvas.RGBA(0, 0, 0, 0)
+	out["transparent"] = canvas.RGBA(canvas.RGBAParams{R: 0, G: 0, B: 0, A: 0})
 	return out
 }

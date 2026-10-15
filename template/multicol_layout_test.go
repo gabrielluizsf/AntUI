@@ -237,10 +237,10 @@ func TestMultiColRuleIsPaintedInTheGutter(t *testing.T) {
 	if rule.R() < 200 || rule.G() != 0 {
 		t.Errorf("the gutter at x=99 is %v, want the red rule", rule)
 	}
-	if edge := win.Canvas().At(95, 10); edge != canvas.RGBA(30, 40, 50, 255) {
+	if edge := win.Canvas().At(95, 10); edge != canvas.RGBA(canvas.RGBAParams{R: 30, G: 40, B: 50, A: 255}) {
 		t.Errorf("the rule must not spill out of the gutter, got %v at x=95", edge)
 	}
-	if below := win.Canvas().At(99, 50); below != canvas.RGBA(30, 40, 50, 255) {
+	if below := win.Canvas().At(99, 50); below != canvas.RGBA(canvas.RGBAParams{R: 30, G: 40, B: 50, A: 255}) {
 		t.Errorf("the rule must stop with the column, got %v below it", below)
 	}
 }
@@ -272,7 +272,7 @@ func TestMultiColRulesStandInEveryGutter(t *testing.T) {
 		}
 	}
 	// Inside the middle column, where a rule stepped by the gap alone would be.
-	if inside := cv.At(99, 10); inside == canvas.RGBA(255, 0, 0, 255) {
+	if inside := cv.At(99, 10); inside == canvas.RGBA(canvas.RGBAParams{R: 255, G: 0, B: 0, A: 255}) {
 		t.Errorf("a rule at x=99 stands inside a column, not in a gutter")
 	}
 }

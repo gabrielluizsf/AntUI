@@ -135,7 +135,7 @@ func BenchmarkBoxShadow(b *testing.B) {
 			b.ReportAllocs()
 			b.ResetTimer()
 			for range b.N {
-				cv.BoxShadow(BoxShadowParams{X: 20, Y: 20, Width: size[0], Height: size[1], RX: 12, RY: 12, DX: 0, DY: 8, Blur: 18, Spread: 0, Color: RGBA(0, 0, 0, 0x99), Inset: false})
+				cv.BoxShadow(BoxShadowParams{X: 20, Y: 20, Width: size[0], Height: size[1], RX: 12, RY: 12, DX: 0, DY: 8, Blur: 18, Spread: 0, Color: RGBA(RGBAParams{R: 0, G: 0, B: 0, A: 0x99}), Inset: false})
 			}
 		})
 	}

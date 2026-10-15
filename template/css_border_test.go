@@ -36,7 +36,7 @@ func TestBorderWithoutABackgroundLeavesThePageBehindIt(t *testing.T) {
 	cs := newCSSStyle(win)
 	cs.paintBox(win, st, 10, 10, 20, 20)
 
-	if got := win.Canvas().At(20, 20); got != canvas.RGBA(30, 40, 50, 255) {
+	if got := win.Canvas().At(20, 20); got != canvas.RGBA(canvas.RGBAParams{R: 30, G: 40, B: 50, A: 255}) {
 		t.Errorf("the middle of the ring is %v, want the page behind it, untouched", got)
 	}
 	if got := win.Canvas().At(10, 20); got != canvas.RGB(0xFF, 0, 0) {
@@ -91,7 +91,7 @@ func TestToggleSurfaceStaysOnTheControl(t *testing.T) {
 	}
 	// Under the label, beside the box: the cell carries no background of its
 	// own, so nothing of the surface runs out to here.
-	if got := cv.At(110, 9); got != canvas.RGBA(30, 40, 50, 255) {
+	if got := cv.At(110, 9); got != canvas.RGBA(canvas.RGBAParams{R: 30, G: 40, B: 50, A: 255}) {
 		t.Errorf("under the label at 110,9 is %v, want the page behind the cell", got)
 	}
 }

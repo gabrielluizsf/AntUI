@@ -19,7 +19,7 @@ func (cyberStyle) SelectOption(p SelectOptionParams) {
 	if p.Selected {
 		edge = v.neon
 	}
-	cv.Line(canvas.Point{X: float64(p.X), Y: float64(p.Y)}, canvas.Point{X: float64(p.X+p.W), Y: float64(p.Y)}, edge)
+	cv.Line(canvas.Point{X: float64(p.X), Y: float64(p.Y)}, canvas.Point{X: float64(p.X + p.W), Y: float64(p.Y)}, edge)
 	if p.Selected || p.State.Hovered {
 		cv.FillRect(canvas.Area{X: p.X, Y: p.Y, Width: 3 * u, Height: p.H}, v.neon)
 	}
@@ -27,5 +27,5 @@ func (cyberStyle) SelectOption(p SelectOptionParams) {
 	if p.Selected {
 		colour = v.neon
 	}
-	cv.TextScaled(p.X+10*u, p.Y+(p.H-textHeight(u))/2, p.Label, colour, u)
+	cv.TextScaled(canvas.Point{X: float64(p.X + 10*u), Y: float64(p.Y + (p.H-textHeight(u))/2)}, p.Label, canvas.TextStyle{Color: colour, Scale: u})
 }

@@ -27,7 +27,7 @@ func layShaded(cv *canvas.Canvas, put putRun, shade func(x, y int) canvas.Color)
 				continue
 			}
 			if a < 255 {
-				c = canvas.RGBA(c.R(), c.G(), c.B(), uint8(int(c.A())*int(a)/255))
+				c = canvas.RGBA(canvas.RGBAParams{R: c.R(), G: c.G(), B: c.B(), A: uint8(int(c.A()) * int(a) / 255)})
 			}
 			cv.Pixel(x, y, c)
 		}

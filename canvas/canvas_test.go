@@ -51,12 +51,12 @@ func TestDrawingOutOfBoundsIsClipped(t *testing.T) {
 	cv := newCanvas(t, 8, 8)
 	cv.Clear(Black)
 
-	// None of these may panic, and none may paint outside the canvas.
+	// None of these may panic, and none may paint outside the
 	cv.Pixel(-5, -5, White)
 	cv.Pixel(100, 100, White)
 	cv.FillRect(Area{-20, -20, 5, 5}, White)
-	cv.Line(Point{X:-50,Y:-50}, Point{X:60,Y:60}, White)
-	cv.Text(-100, -100, "outside", White)
+	cv.Line(Point{X: -50, Y: -50}, Point{X: 60, Y: 60}, White)
+	cv.Text(Point{X: float64(-100), Y: float64(-100)}, "outside", White)
 
 	if got := cv.At(0, 0); got != White {
 		t.Errorf("origin = %08X, want the diagonal line to cross it", uint32(got))
@@ -105,7 +105,7 @@ func TestText(t *testing.T) {
 	cv := newCanvas(t, 64, 20)
 	cv.Clear(Black)
 
-	if got := cv.Text(0, 0, "AB", White); got != 16 {
+	if got := cv.Text(Point{X: 0, Y: 0}, "AB", White); got != 16 {
 		t.Errorf("Text width = %d, want 16", got)
 	}
 	lit := 0
@@ -121,12 +121,12 @@ func TestText(t *testing.T) {
 	}
 
 	cv.Clear(Black)
-	cv.Text(0, 0, " ", White)
+	cv.Text(Point{X: 0, Y: 0}, " ", White)
 	if got := cv.At(3, 8); got != Black {
 		t.Errorf("a space lit pixel (%08X), want none", uint32(got))
 	}
 
-	if got := cv.TextScaled(0, 0, "A", White, 2); got != 16 {
+	if got := cv.TextScaled(Point{X: 0, Y: 0}, "A", TextStyle{Color: White, Scale: 2}); got != 16 {
 		t.Errorf("TextScaled(2) width = %d, want 16", got)
 	}
 }
@@ -208,7 +208,7 @@ func TestShapes(t *testing.T) {
 
 // The narrow formats have to survive everything the wide one does. The C
 // original crashed here: its circle and rounded-rect fills wrote through the
-// 32-bit pixel pointer, which is NULL on a narrow canvas.
+// 32-bit pixel pointer, which is NULL on a narrow
 func TestNarrowFormats(t *testing.T) {
 	for _, format := range []Format{RGB565, Pal8} {
 		t.Run(format.String(), func(t *testing.T) {
@@ -223,7 +223,7 @@ func TestNarrowFormats(t *testing.T) {
 			cv.FillRect(Area{0, 0, 32, 32}, Black)
 			cv.FillCircle(Circle{16, 16, 8}, White)
 			cv.FillRoundRect(Round(Area{2, 2, 12, 12}, 4), White)
-			cv.Text(0, 0, "hi", White)
+			cv.Text(Point{X: 0, Y: 0}, "hi", White)
 
 			if got := cv.At(16, 16); got.R() < 200 || got.G() < 200 || got.B() < 200 {
 				t.Errorf("circle centre = %08X, want it near white", uint32(got))

@@ -44,5 +44,5 @@ func parseHSL(s string) (canvas.Color, error) {
 		return 0, err
 	}
 	c := hslToRGB(h, sp, lp)
-	return canvas.RGBA(c[0], c[1], c[2], a), nil
+	return canvas.RGBA(canvas.RGBAParams{R: c[0], G: c[1], B: c[2], A: a}), nil
 }

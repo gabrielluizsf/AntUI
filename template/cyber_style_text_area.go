@@ -43,7 +43,7 @@ func (cyberStyle) TextArea(p TextAreaParams) {
 		if line == "" {
 			colour = v.dim
 		}
-		cv.TextScaled(p.X+padding, cy, line, colour, u)
+		cv.TextScaled(canvas.Point{X: float64(p.X + padding), Y: float64(cy)}, line, canvas.TextStyle{Color: colour, Scale: u})
 		if p.State.Focused && p.Caret && cursor >= l[0] && cursor <= l[1] {
 			off := cursor - l[0]
 			cx := p.X + padding + textWidth(u, line[:off])

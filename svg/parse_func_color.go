@@ -34,7 +34,7 @@ func parseFuncColor(name, args string) (canvas.Color, bool) {
 		if !ok1 || !ok2 || !ok3 {
 			return 0, false
 		}
-		return canvas.RGBA(toByte(r), toByte(g), toByte(b), toByte(a)), true
+		return canvas.RGBA(canvas.RGBAParams{R: toByte(r), G: toByte(g), B: toByte(b), A: toByte(a)}), true
 	case "hsl", "hsla":
 		h, err1 := parseHue(fields[0])
 		sv, err2 := parsePercent(fields[1])
@@ -43,7 +43,7 @@ func parseFuncColor(name, args string) (canvas.Color, bool) {
 			return 0, false
 		}
 		r, g, b := hslToRGB(h, sv/100, lv/100)
-		return canvas.RGBA(toByte(r*255), toByte(g*255), toByte(b*255), toByte(a)), true
+		return canvas.RGBA(canvas.RGBAParams{R: toByte(r * 255), G: toByte(g * 255), B: toByte(b * 255), A: toByte(a)}), true
 	}
 	return 0, false
 }

@@ -27,5 +27,5 @@ func (cyberStyle) Radio(p RadioParams) {
 	if p.On {
 		cv.FillCircle(canvas.Circle{X: cx, Y: cy, R: size/2 - 4*u}, v.neon)
 	}
-	cv.TextScaled(p.X+size+labelGap*u, p.Y+(size-textHeight(u))/2, p.Label, v.text, u)
+	cv.TextScaled(canvas.Point{X: float64(p.X + size + labelGap*u), Y: float64(p.Y + (size-textHeight(u))/2)}, p.Label, canvas.TextStyle{Color: v.text, Scale: u})
 }

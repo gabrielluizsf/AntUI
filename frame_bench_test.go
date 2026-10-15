@@ -113,5 +113,5 @@ func drawTestFrame(win *Window) {
 	win.Text(canvas.Point{X: 40, Y: 50}, "AntUI builds desktop apps the simple way.", canvas.White)
 	win.Circle(canvas.Circle{X: 700, Y: 300, R: 120}, canvas.RGB(0x23, 0x2A, 0x38))
 	win.Canvas().RingArc(canvas.RingArcParams{Center: canvas.Point{X: 700, Y: 300}, Radius: 120, Thickness: 14, Start: 0, Sweep: 2.0, Color: canvas.RGB(0x3E, 0x63, 0xDD)})
-	win.Line(canvas.Point{X: 0, Y: 799}, canvas.Point{X: 1279, Y: 0}, canvas.RGBA(0xFF, 0xFF, 0xFF, 0x40))
+	win.Line(canvas.Point{X: 0, Y: 799}, canvas.Point{X: 1279, Y: 0}, canvas.RGBA(canvas.RGBAParams{R: 0xFF, G: 0xFF, B: 0xFF, A: 0x40}))
 }

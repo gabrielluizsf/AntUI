@@ -107,7 +107,7 @@ func TestTheLoadingScreenStaysUntilReady(t *testing.T) {
 	}
 	ctx := NewContext(win, Builtin())
 	bg := ctx.Template().Background(win)
-	red := canvas.RGBA(220, 30, 30, 255)
+	red := canvas.RGBA(canvas.RGBAParams{R: 220, G: 30, B: 30, A: 255})
 	screen := &colorScreen{c: red}
 	ctx.Go(screen)
 
@@ -262,7 +262,7 @@ func TestReadyCanComeFromAnotherGoroutine(t *testing.T) {
 	ctx := NewContext(win, Builtin())
 	ctx.SetDisableLoading(false)
 	ctx.SetLoadingTimeout(400 * time.Millisecond)
-	red := canvas.RGBA(220, 30, 30, 255)
+	red := canvas.RGBA(canvas.RGBAParams{R: 220, G: 30, B: 30, A: 255})
 	ctx.Go(&colorScreen{c: red})
 
 	done := make(chan struct{})
@@ -359,7 +359,7 @@ func TestTheCSSLoopShowsItsLoadingScreenUntilReady(t *testing.T) {
 	}
 
 	// The loop of a coord-free app, with red standing in for its widgets.
-	red := canvas.RGBA(220, 30, 30, 255)
+	red := canvas.RGBA(canvas.RGBAParams{R: 220, G: 30, B: 30, A: 255})
 	frame := func() {
 		win.Begin()
 		win.Clear(bg)
@@ -393,7 +393,7 @@ func TestTheCSSTemplateOptsOutOfLoading(t *testing.T) {
 
 	// Whatever is on the canvas when the flag goes down is replaced by the
 	// plain background: the picture the screen left behind, wiped.
-	marker := canvas.RGBA(220, 30, 30, 255)
+	marker := canvas.RGBA(canvas.RGBAParams{R: 220, G: 30, B: 30, A: 255})
 	win.FillRect(canvas.Area{X: 0, Y: 0, Width: win.Width(), Height: win.Height()}, marker)
 	tpl.SetDisableLoading(true)
 	if got := win.Canvas().At(4, 4); got != bg {
