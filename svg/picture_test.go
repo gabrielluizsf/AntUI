@@ -243,21 +243,19 @@ func TestAPictureTheServerRefusesIsSaidOutLoud(t *testing.T) {
 }
 
 func TestProtocolRelativeAddressesAreReadAsHTTPS(t *testing.T) {
-	// There is no page above a drawing to take a scheme from, so a
-	// protocol-relative address is the https it means wherever it is opened.
-	for _, tc := range []struct {
-		href, want string
-		ok         bool
-	}{
-		{"//cdn.example/pic.png", "https://cdn.example/pic.png", true},
-		{"http://example/pic.png", "http://example/pic.png", true},
-		{"https://example/pic.png", "https://example/pic.png", true},
-		{"pic.png", "", false},
-		{"data:image/png;base64,AAAA", "", false},
+	// A protocol-relative address names no scheme, so it takes the base's where
+	// there is one to take it from, and is otherwise the https it means with no
+	// page above the drawing.
+	for _, tc := range []struct{ base, href, want string }{
+		{"", "//cdn.example/pic.png", "https://cdn.example/pic.png"},
+		{"https://site/dir/", "//cdn.example/pic.png", "https://cdn.example/pic.png"},
+		{"http://site/dir/", "//cdn.example/pic.png", "http://cdn.example/pic.png"},
+		{"", "http://example/pic.png", "http://example/pic.png"},
+		{"", "data:image/png;base64,AAAA", "data:image/png;base64,AAAA"},
+		{"", "pic.png", "pic.png"},
 	} {
-		got, ok := pictureHTTPURL(tc.href)
-		if ok != tc.ok || got != tc.want {
-			t.Errorf("pictureHTTPURL(%q) = %q, %v; want %q, %v", tc.href, got, ok, tc.want, tc.ok)
+		if got := resolveHref(tc.base, tc.href); got != tc.want {
+			t.Errorf("resolveHref(%q, %q) = %q, want %q", tc.base, tc.href, got, tc.want)
 		}
 	}
 }
@@ -590,5 +588,191 @@ func TestAPictureInsideAClipPathSaysItHasNoOutline(t *testing.T) {
 	}
 	if !strings.Contains(got, "image") {
 		t.Errorf("the warning does not name the element it came from: %s", got)
+	}
+}
+
+func TestAPictureBesideTheDrawingIsFoundByItsOwnFile(t *testing.T) {
+	// A drawing read from a file keeps that file as the base its addresses
+	// resolve against: the picture written beside it is found beside it, not
+	// beside wherever the program happens to be running from — which is where
+	// the same address would otherwise be looked for.
+	dir := t.TempDir()
+	if err := os.WriteFile(filepath.Join(dir, "picture.png"),
+		solidPicture(t, 4, 4, color.NRGBA{R: 255, A: 255}), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	path := filepath.Join(dir, "drawing.svg")
+	src := `<svg viewBox="0 0 4 4"><image href="picture.png" x="0" y="0" width="4" height="4"/></svg>`
+	if err := os.WriteFile(path, []byte(src), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	img, err := ParseFile(path)
+	if err != nil {
+		t.Fatalf("ParseFile: %v", err)
+	}
+	if got := img.Warnings().String(); got != "no warnings" {
+		t.Errorf("a picture beside the drawing said something was wrong: %s", got)
+	}
+	wantColour(t, img.Render(4, 4), 2, 2, canvas.RGB(255, 0, 0))
+}
+
+func TestXMLBaseTakesARelativeAddressToWhereItSays(t *testing.T) {
+	// `xml:base` is a drawing that knows where it lives saying so: an address
+	// below it resolves against that base, and one written on a group travels
+	// to everything the group holds the way every other inherited attribute does.
+	dir := filepath.Join(t.TempDir(), "icons") + "/"
+	if err := os.MkdirAll(dir, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(filepath.Join(dir, "picture.png"),
+		solidPicture(t, 4, 4, color.NRGBA{R: 255, A: 255}), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	for _, tc := range []struct{ name, place string }{
+		{"on the drawing", ""},
+		{"on the group holding it", `<g xml:base="%[1]s"><image href="picture.png" x="0" y="0" width="4" height="4"/></g>`},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			body := tc.place
+			if body == "" {
+				body = `<image href="picture.png" x="0" y="0" width="4" height="4"/>`
+			}
+			img := mustParse(t, fmt.Sprintf(
+				`<svg viewBox="0 0 4 4" xml:base="%s">%s</svg>`, dir, fmt.Sprintf(body, dir)))
+			if got := img.Warnings().String(); got != "no warnings" {
+				t.Errorf("the base said something was wrong: %s", got)
+			}
+			wantColour(t, img.Render(4, 4), 2, 2, canvas.RGB(255, 0, 0))
+		})
+	}
+}
+
+func TestXMLBaseIsResolvedAgainstTheBaseAboveIt(t *testing.T) {
+	// A base written below another is itself an address, so it lands where the
+	// base above it says: the drawing lives in `icons/` and the group puts what
+	// is under it in `icons/nested/`.
+	root := t.TempDir() + "/"
+	dir := filepath.Join(root, "nested") + "/"
+	if err := os.MkdirAll(dir, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(filepath.Join(dir, "picture.png"),
+		solidPicture(t, 4, 4, color.NRGBA{R: 255, A: 255}), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	img := mustParse(t, fmt.Sprintf(`<svg viewBox="0 0 4 4" xml:base="%s">
+		<g xml:base="nested/">
+			<image href="picture.png" x="0" y="0" width="4" height="4"/>
+		</g>
+	</svg>`, root))
+	if got := img.Warnings().String(); got != "no warnings" {
+		t.Errorf("a nested base said something was wrong: %s", got)
+	}
+	wantColour(t, img.Render(4, 4), 2, 2, canvas.RGB(255, 0, 0))
+}
+
+func TestXMLBaseTakesOverFromTheFileTheDrawingWasReadFrom(t *testing.T) {
+	// The two kinds of base work together: the file says where the drawing is,
+	// and an `xml:base` under it is a folder under that file's directory, so a
+	// picture named in it is found under the folder and not beside the drawing.
+	root := t.TempDir() + "/"
+	dir := filepath.Join(root, "nested") + "/"
+	if err := os.MkdirAll(dir, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(filepath.Join(dir, "picture.png"),
+		solidPicture(t, 4, 4, color.NRGBA{R: 255, A: 255}), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	path := filepath.Join(root, "drawing.svg")
+	src := `<svg viewBox="0 0 4 4" xml:base="nested/"><image href="picture.png" x="0" y="0" width="4" height="4"/></svg>`
+	if err := os.WriteFile(path, []byte(src), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	img, err := ParseFile(path)
+	if err != nil {
+		t.Fatalf("ParseFile: %v", err)
+	}
+	if got := img.Warnings().String(); got != "no warnings" {
+		t.Errorf("a base over the file said something was wrong: %s", got)
+	}
+	wantColour(t, img.Render(4, 4), 2, 2, canvas.RGB(255, 0, 0))
+}
+
+func TestASchemeIsSaidForWhatItMeansRatherThanReadAsAPath(t *testing.T) {
+	// An address of a scheme this draws nothing from is said for its scheme:
+	// it is a resource that did not arrive, not a file name with a colon in it,
+	// and the file system would be asked for a name nobody wrote.
+	pic := filepath.Join(t.TempDir(), "picture.png")
+	for _, tc := range []struct{ name, href, want string }{
+		{"a scheme with no reader", "ftp://example.com/picture.png", `"ftp:" is not one a picture is read from`},
+		{"a file on another machine", "file://example.com/picture.png", "is not this machine"},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			img := mustParse(t, fmt.Sprintf(
+				`<svg viewBox="0 0 4 4"><image href="%s" width="4" height="4"/></svg>`, tc.href))
+			if got := img.Warnings().String(); !strings.Contains(got, tc.want) {
+				t.Errorf("the warnings say:\n%s\nand should contain %q", got, tc.want)
+			}
+			if strings.Contains(img.Warnings().String(), pic) {
+				t.Errorf("an address nobody wrote as a file was asked of the file system: %s", img.Warnings())
+			}
+		})
+	}
+}
+
+func TestAFileAddressIsReadFromThePathItNames(t *testing.T) {
+	// `file:` is the scheme of a picture on this machine, so it names a file
+	// and is read as the one it names — the path after the scheme, as written.
+	path := filepath.Join(t.TempDir(), "picture.png")
+	if err := os.WriteFile(path, solidPicture(t, 4, 4, color.NRGBA{R: 255, A: 255}), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	img := mustParse(t, fmt.Sprintf(
+		`<svg viewBox="0 0 4 4"><image href="file://%s" x="0" y="0" width="4" height="4"/></svg>`, path))
+	if got := img.Warnings().String(); got != "no warnings" {
+		t.Errorf("a file: address said something was wrong: %s", got)
+	}
+	wantColour(t, img.Render(4, 4), 2, 2, canvas.RGB(255, 0, 0))
+}
+
+func TestParseFileSaysWhenThereIsNoFile(t *testing.T) {
+	if _, err := ParseFile(filepath.Join(t.TempDir(), "missing.svg")); err == nil {
+		t.Error("a drawing read from a file that is not there said nothing")
+	}
+}
+
+func TestHrefSchemeNamesOnlyWhatASchemeIs(t *testing.T) {
+	// The scheme is the address up to the first colon, and only where it is
+	// spelled the way a URL spells one: a path with a colon in it, or an
+	// address that starts with something that is not a letter, names none.
+	for _, tc := range []struct{ href, want string }{
+		{"data:image/png;base64,AAAA", "data"},
+		{"HTTP://example/pic.png", "http"},
+		{"file:///a.png", "file"},
+		{"ftp://example/pic.png", "ftp"},
+		{"a+b-c.d:x", "a+b-c.d"},
+		{"pic.png", ""},
+		{"//cdn.example/pic.png", ""},
+		{"/dir:name/pic.png", ""},
+		{"1bad:thing", ""},
+		{"://noname", ""},
+	} {
+		if got := hrefScheme(tc.href); got != tc.want {
+			t.Errorf("hrefScheme(%q) = %q, want %q", tc.href, got, tc.want)
+		}
+	}
+}
+
+func TestResolveHrefKeepsAnAddressItCannotRead(t *testing.T) {
+	// An address that will not parse is left as it was written, to be refused
+	// where it is used with the address the drawing gave rather than guessed
+	// at here — either half, the base or the href, being the unreadable one.
+	const bad = "http://x/\x7f"
+	if got := resolveHref(bad, "pic.png"); got != "pic.png" {
+		t.Errorf("an unreadable base changed the address: %q, want %q", got, "pic.png")
+	}
+	if got := resolveHref("/base/", bad); got != bad {
+		t.Errorf("an unreadable href changed the address: %q, want %q", got, bad)
 	}
 }

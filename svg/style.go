@@ -79,6 +79,12 @@ type Style struct {
 	// inherited, and `xml:space="default"` on a nearer element takes it off
 	// again.
 	PreserveSpace bool
+	// base is where the drawing sits, for an address inside it to resolve
+	// against: the file the drawing was read from, or the `xml:base` an element
+	// wrote, which is inherited like `xml:space` above. It is empty when the
+	// drawing came from no file and said nothing of its own, and then a
+	// relative address is left exactly as it was written. See [Image.pictureFor].
+	base string
 	// FontFamily, FontWeight and LetterSpacing are the rest of what says how
 	// the writing is set: the faces it asks for, how heavy it is, and how much
 	// room is left after every letter. All three are inherited like the size

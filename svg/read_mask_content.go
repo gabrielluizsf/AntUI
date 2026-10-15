@@ -5,5 +5,5 @@ package svg
 // but here it is not being painted either, it is being read as the measure of
 // something else.
 func (img *Image) readMaskContent(id string, e *element) {
-	img.masks[id].content = img.build(e, baseStyle(), true)
+	img.masks[id].content = img.build(e, img.rootStyle(), true)
 }

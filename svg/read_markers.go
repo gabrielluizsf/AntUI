@@ -39,7 +39,7 @@ func (img *Image) readMarkers(root *element) {
 			walk(k, st)
 		}
 	}
-	walk(root, baseStyle())
+	walk(root, img.rootStyle())
 
 	img.markers = make(map[string]*markerDef, len(found))
 	// Every marker is named with nothing in it first, and only then is any of

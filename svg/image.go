@@ -25,6 +25,13 @@ type Image struct {
 	// Root is the top of the drawing: the `<svg>` and everything inside it.
 	Root *Node
 
+	// base is where the drawing was read from, which a relative address inside
+	// it resolves against: the file [ParseFile] opened, and empty for a drawing
+	// read from a string with no file of its own. An `xml:base` on an element
+	// takes over from it for that element and everything under it. See
+	// [resolveHref].
+	base string
+
 	warnings Warnings
 
 	// grads are the gradients the drawing declared, by the id a `url(#name)`
@@ -34,7 +41,8 @@ type Image struct {
 	grads map[string]*gradient
 
 	// pictures are the bitmaps the `<image>`s fetched, by the address each one
-	// named, so that a drawing pointing at the same file twice reads it once.
+	// resolves to, so that a drawing pointing at the same file twice reads it
+	// once.
 	// What is in here is never written to: an `<image>` that wants the picture
 	// somewhere else or in another opacity is given where and how it fits rather
 	// than changing what every other element pointing at the same address holds.

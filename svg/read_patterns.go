@@ -41,6 +41,6 @@ func (img *Image) readPatterns(root *element) {
 		img.readPattern(d.id, d.e)
 	}
 	for _, d := range found {
-		img.patterns[d.id].content = img.build(d.e, baseStyle(), true)
+		img.patterns[d.id].content = img.build(d.e, img.rootStyle(), true)
 	}
 }

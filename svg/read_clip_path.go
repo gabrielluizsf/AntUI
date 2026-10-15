@@ -21,7 +21,7 @@ import (
 // that is what being a definition means — but here it is not being painted
 // either, it is being read as the shape of a cut.
 func (img *Image) readClipPath(e *element, inherited canvas.FillRule) *clipPath {
-	base := baseStyle()
+	base := img.rootStyle()
 	base.ClipRule = inherited
 	units := strings.ToLower(strings.TrimSpace(e.attr("clipPathUnits")))
 	return &clipPath{

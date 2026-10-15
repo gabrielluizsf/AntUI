@@ -1,21 +1,23 @@
 package svg
 
 import (
+	"fmt"
 	"os"
-	"strings"
 )
 
-// fetchPicture is the bytes behind an href: a `data:` URI unwrapped where it
-// stands, an address fetched over the network — a protocol-relative one being
-// the https it is meant to be, since there is no page here to take a scheme
-// from — and anything else read as the file it names, which is what makes a
-// picture beside the drawing work while it is being written.
-func fetchPicture(href string) ([]byte, error) {
-	if strings.HasPrefix(href, "data:") {
-		return dataURI(href)
+// fetchPicture is the bytes behind an address that has already been resolved
+// against the base the drawing sits at: the scheme it names says how, through
+// the table of schemes, and the scheme it does not name — an address with no
+// scheme at all, the file a drawing beside it names while it is being written —
+// is read as the file on this machine. A scheme the table does not hold is said
+// out loud rather than read as a file name.
+func fetchPicture(target string) ([]byte, error) {
+	if scheme := hrefScheme(target); scheme != "" {
+		fetch, ok := pictureSchemes[scheme]
+		if !ok {
+			return nil, fmt.Errorf("the scheme %q is not one a picture is read from", scheme+":")
+		}
+		return fetch(target)
 	}
-	if target, ok := pictureHTTPURL(href); ok {
-		return getPicture(target)
-	}
-	return os.ReadFile(href)
+	return os.ReadFile(target)
 }

@@ -25,6 +25,11 @@ func (s Style) with(e *element, warn func(string, ...any)) Style {
 
 	s.applyAttrs(attrs, warn)
 
+	// xml:base travels down, resolved against the base already in hand, so a
+	// relative address written inside the drawing resolves against the nearest
+	// base it was given rather than the one at the top.
+	s.base = readBase(attrs["xml:base"], s.base)
+
 	// The dash pattern and its offset are read together once every other
 	// attribute has been, because the order a map is walked in is not one to
 	// depend on. The offset on its own says nothing, so it is only read where

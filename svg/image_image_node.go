@@ -41,7 +41,7 @@ func (img *Image) imageNode(e *element, st Style, warn func(string, ...any)) *No
 		// going to be seen, so there is nothing to say about it either.
 		return n
 	}
-	pixels := img.pictureFor(href, warn)
+	pixels := img.pictureFor(st.base, href, warn)
 	if pixels == nil {
 		return n
 	}
