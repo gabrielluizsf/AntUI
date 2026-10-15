@@ -27,7 +27,7 @@ func (p *Path) ArcTo(rx, ry, rot float64, large, sweep bool, x, y float64) {
 		c1 := arcControl(center, rx, ry, phi, theta, alpha)
 		c2 := arcControl(center, rx, ry, phi, next, -alpha)
 		end := arcPoint(center, rx, ry, phi, next)
-		p.CubicTo(c1.X, c1.Y, c2.X, c2.Y, end.X, end.Y)
+		p.CubicTo(Point{X:c1.X,Y:c1.Y}, Point{X:c2.X,Y:c2.Y}, Point{X:end.X,Y:end.Y})
 		theta = next
 	}
 }

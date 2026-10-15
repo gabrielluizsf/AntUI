@@ -14,7 +14,7 @@ import (
 func TestFillPathRect(t *testing.T) {
 	cv := newTestCanvas(t, 16, 16)
 	p := NewPath()
-	p.AddRect(4, 4, 8, 8)
+	p.AddRect(Point{X:4,Y:4}, Point{X:8,Y:8})
 	cv.FillPath(p, RGB(255, 0, 0), FillNonZero)
 
 	for y := range 16 {
@@ -32,7 +32,7 @@ func TestFillPathFractionalRectCoverage(t *testing.T) {
 	// which is the whole point of cutting a row into lines.
 	cv := newTestCanvas(t, 4, 4)
 	p := NewPath()
-	p.AddRect(0.5, 0, 2, 4)
+	p.AddRect(Point{X:0.5,Y:0}, Point{X:2,Y:4})
 	cv.FillPath(p, RGB(255, 0, 0), FillNonZero)
 
 	for y := range 4 {
@@ -100,8 +100,8 @@ func TestFillPathNonZeroRings(t *testing.T) {
 	// the shape is a disc. Evenodd counts crossings and so leaves the middle
 	// covered an even number of times, which is a hole.
 	p := NewPath()
-	p.AddEllipse(20, 20, 18, 18)
-	p.AddEllipse(20, 20, 8, 8)
+	p.AddEllipse(Point{X:20,Y:20}, Point{X:18,Y:18})
+	p.AddEllipse(Point{X:20,Y:20}, Point{X:8,Y:8})
 	if got := fillBands(t, p, 20, FillNonZero); got != 1 {
 		t.Errorf("nonzero over two rings wound alike gives %d bands, want 1", got)
 	}
@@ -116,7 +116,7 @@ func TestFillPathNonZeroRingsOpposite(t *testing.T) {
 	// care either way. A hole is a hole, and the rule that draws one is the one
 	// a shape drawn as a ring actually wants.
 	p := NewPath()
-	p.AddEllipse(20, 20, 18, 18)
+	p.AddEllipse(Point{X:20,Y:20}, Point{X:18,Y:18})
 	reverseEllipse(p, 20, 20, 8, 8)
 	if got := fillBands(t, p, 20, FillNonZero); got != 2 {
 		t.Errorf("nonzero over rings wound opposite gives %d bands, want 2", got)
@@ -133,8 +133,8 @@ func TestFillPathOverlappingSubpaths(t *testing.T) {
 	// the overlap becomes a hole. A row through the overlap has four edges to
 	// cross, and the rules part company there.
 	over := NewPath()
-	over.AddRect(4, 4, 12, 12)
-	over.AddRect(10, 10, 12, 12)
+	over.AddRect(Point{X:4,Y:4}, Point{X:12,Y:12})
+	over.AddRect(Point{X:10,Y:10}, Point{X:12,Y:12})
 	if got := fillBands(t, over, 12, FillNonZero); got != 1 {
 		t.Errorf("nonzero over two overlapping boxes gives %d bands, want 1", got)
 	}
@@ -168,7 +168,7 @@ func TestFillPathHonoursClip(t *testing.T) {
 	cv := newTestCanvas(t, 16, 16)
 	cv.SetClip(Area{X: 4, Y: 4, Width: 8, Height: 8})
 	p := NewPath()
-	p.AddRect(0, 0, 16, 16)
+	p.AddRect(Point{X:0,Y:0}, Point{X:16,Y:16})
 	cv.FillPath(p, RGB(255, 255, 255), FillNonZero)
 
 	if got := coverageAt(cv, 3, 8); got != 0 {
@@ -182,7 +182,7 @@ func TestFillPathHonoursClip(t *testing.T) {
 func TestFillPathClipsOffCanvas(t *testing.T) {
 	cv := newTestCanvas(t, 8, 8)
 	p := NewPath()
-	p.AddRect(-40, -40, 60, 60)
+	p.AddRect(Point{X:-40,Y:-40}, Point{X:60,Y:60})
 	cv.FillPath(p, RGB(255, 255, 255), FillNonZero)
 
 	for _, pt := range [][2]int{{0, 0}, {7, 0}, {0, 7}, {7, 7}} {
@@ -202,7 +202,7 @@ func TestFillPathKeepsAnEdgeThatReachesInTheShapeFromOutside(t *testing.T) {
 	// what the crossing test asks for — a level edge is left out anyway.
 	cv := newTestCanvas(t, 40, 40)
 	p := NewPath()
-	p.AddRect(0, 0, 10, 10)
+	p.AddRect(Point{X:0,Y:0}, Point{X:10,Y:10})
 	p.Transform(Rotate(math.Pi))
 	p.Transform(Translate(5, 17))
 	cv.FillPath(p, RGB(255, 0, 0), FillNonZero)
@@ -244,7 +244,7 @@ func TestFillPathEmpty(t *testing.T) {
 func TestFillPathFullyOutside(t *testing.T) {
 	cv := newTestCanvas(t, 8, 8)
 	p := NewPath()
-	p.AddRect(100, 100, 10, 10)
+	p.AddRect(Point{X:100,Y:100}, Point{X:10,Y:10})
 	cv.FillPath(p, RGB(255, 255, 255), FillNonZero)
 	if got := coverageAt(cv, 4, 4); got != 0 {
 		t.Errorf("path off the canvas painted %d", got)
@@ -254,7 +254,7 @@ func TestFillPathFullyOutside(t *testing.T) {
 func TestFillPathZeroAlpha(t *testing.T) {
 	cv := newTestCanvas(t, 8, 8)
 	p := NewPath()
-	p.AddRect(0, 0, 8, 8)
+	p.AddRect(Point{X:0,Y:0}, Point{X:8,Y:8})
 	cv.FillPath(p, RGBA(255, 0, 0, 0), FillNonZero)
 	if got := coverageAt(cv, 4, 4); got != 0 {
 		t.Errorf("a colour with no alpha painted %d", got)
@@ -266,7 +266,7 @@ func TestFillPathAlphaScalesCoverage(t *testing.T) {
 	// the shape half covers comes out at a quarter: the two coverages multiply.
 	cv := newTestCanvas(t, 4, 4)
 	p := NewPath()
-	p.AddRect(0.5, 0, 2, 4)
+	p.AddRect(Point{X:0.5,Y:0}, Point{X:2,Y:4})
 	cv.FillPath(p, RGBA(255, 255, 255, 128), FillNonZero)
 
 	if got := coverageAt(cv, 0, 0); !near(got, 64, 3) {
@@ -282,7 +282,7 @@ func TestFillPathNarrowFormat(t *testing.T) {
 		t.Fatalf("NewCanvasFormat: %v", err)
 	}
 	p := NewPath()
-	p.AddRect(4, 4, 8, 8)
+	p.AddRect(Point{X:4,Y:4}, Point{X:8,Y:8})
 	cv.FillPath(p, RGB(255, 0, 0), FillNonZero)
 	if got := cv.At(8, 8); got != RGB(255, 0, 0) {
 		t.Errorf("inside = %v, want red", got)
@@ -296,10 +296,10 @@ func TestFillPathNarrowFormat(t *testing.T) {
 // anticlockwise through the same four corners.
 func reverseEllipse(p *Path, cx, cy, rx, ry float64) {
 	p.MoveTo(cx+rx, cy)
-	p.CubicTo(cx+rx, cy-kappa*ry, cx+kappa*rx, cy-ry, cx, cy-ry)
-	p.CubicTo(cx-kappa*rx, cy-ry, cx-rx, cy-kappa*ry, cx-rx, cy)
-	p.CubicTo(cx-rx, cy+kappa*ry, cx-kappa*rx, cy+ry, cx, cy+ry)
-	p.CubicTo(cx+kappa*rx, cy+ry, cx+rx, cy+kappa*ry, cx+rx, cy)
+	p.CubicTo(Point{X:cx+rx,Y:cy-kappa*ry}, Point{X:cx+kappa*rx,Y:cy-ry}, Point{X:cx,Y:cy-ry})
+	p.CubicTo(Point{X:cx-kappa*rx,Y:cy-ry}, Point{X:cx-rx,Y:cy-kappa*ry}, Point{X:cx-rx,Y:cy})
+	p.CubicTo(Point{X:cx-rx,Y:cy+kappa*ry}, Point{X:cx-kappa*rx,Y:cy+ry}, Point{X:cx,Y:cy+ry})
+	p.CubicTo(Point{X:cx+kappa*rx,Y:cy+ry}, Point{X:cx+rx,Y:cy+kappa*ry}, Point{X:cx+rx,Y:cy})
 	p.Close()
 }
 

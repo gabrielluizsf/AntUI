@@ -12,6 +12,6 @@ func ellipseShape(e *element, warn func(string, ...any)) *canvas.Path {
 		return nil
 	}
 	p := canvas.NewPath()
-	p.AddEllipse(cx, cy, rx, ry)
+	p.AddEllipse(canvas.Point{X: cx, Y: cy}, canvas.Point{X: rx, Y: ry})
 	return p
 }

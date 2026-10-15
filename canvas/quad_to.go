@@ -1,8 +1,7 @@
 package canvas
 
-// QuadTo adds a quadratic Bézier from the current point to x, y, bulging
-// towards the control point cx, cy. The curve is flattened on the way in, so
-// the whole path stays a polygon set.
-func (p *Path) QuadTo(cx, cy, x, y float64) {
-	p.curveTo(quadPoints(p.end(), Point{cx, cy}, Point{x, y}))
+// QuadTo adds a quadratic Bézier using the control and end points grouped into
+// points.
+func (p *Path) QuadTo(control, end Point) {
+	p.curveTo(quadPoints(p.end(), Point{X: control.X, Y: control.Y}, Point{X: end.X, Y: end.Y}))
 }

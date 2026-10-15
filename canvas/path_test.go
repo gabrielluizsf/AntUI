@@ -54,7 +54,7 @@ func TestPathLengthOfAClosedShapeIsAllOfIt(t *testing.T) {
 		t.Errorf("the open square measures %v, want 30", got)
 	}
 	closed := NewPath()
-	closed.AddRect(0, 0, 10, 10)
+	closed.AddRect(Point{X:0,Y:0}, Point{X:10,Y:10})
 	if got := closed.Length(); got != 40 {
 		t.Errorf("the closed square measures %v, want 40", got)
 	}

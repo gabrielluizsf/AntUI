@@ -25,7 +25,7 @@ func rectShape(e *element, warn func(string, ...any)) *canvas.Path {
 	ry, hasRy := readLength(warn, e, "ry", "ry"), e.hasAttr("ry")
 	if !hasRx && !hasRy {
 		p := canvas.NewPath()
-		p.AddRect(x, y, w, h)
+		p.AddRect(canvas.Point{X:x,Y:y}, canvas.Point{X:w,Y:h})
 		return p
 	}
 	// One radius given is the radius on both corners; each is capped at half
@@ -42,6 +42,6 @@ func rectShape(e *element, warn func(string, ...any)) *canvas.Path {
 	// AddRoundRect pulls a radius that is bigger than half its side back to half,
 	// which is the rule SVG has, and leaves a radius of no size as a plain
 	// rectangle rather than as a shape with no corners at all.
-	p.AddRoundRect(x, y, w, h, rx, ry)
+	p.AddRoundRect(canvas.Point{X:x,Y:y}, canvas.Point{X:w,Y:h}, canvas.Point{X:rx,Y:ry})
 	return p
 }

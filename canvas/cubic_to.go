@@ -1,7 +1,6 @@
 package canvas
 
-// CubicTo adds a cubic Bézier from the current point to x, y, with the two
-// control points that shape it.
-func (p *Path) CubicTo(c1x, c1y, c2x, c2y, x, y float64) {
-	p.curveTo(cubicPoints(p.end(), Point{c1x, c1y}, Point{c2x, c2y}, Point{x, y}))
+// CubicTo adds a cubic Bézier using grouped control and end points.
+func (p *Path) CubicTo(c1, c2, end Point) {
+	p.curveTo(cubicPoints(p.end(), Point{X: c1.X, Y: c1.Y}, Point{X: c2.X, Y: c2.Y}, Point{X: end.X, Y: end.Y}))
 }

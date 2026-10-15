@@ -26,7 +26,7 @@ func filledLayer(t *testing.T, w, h int) *Canvas {
 func TestMaskShapesKeepsOnlyWhatIsUnderAShape(t *testing.T) {
 	cv := filledLayer(t, 8, 8)
 	p := NewPath()
-	p.AddRect(2, 2, 4, 4)
+	p.AddRect(Point{X:2,Y:2}, Point{X:4,Y:4})
 	cv.MaskShapes(MaskShape{Path: p, Rule: FillNonZero})
 
 	if got := cv.At(4, 4); got != RGB(255, 0, 0) {
@@ -46,8 +46,8 @@ func TestMaskShapesKeepsOnlyWhatIsUnderAShape(t *testing.T) {
 func TestMaskShapesUnionsItsShapes(t *testing.T) {
 	cv := filledLayer(t, 8, 8)
 	a, b := NewPath(), NewPath()
-	a.AddRect(0, 0, 4, 4)
-	b.AddRect(3, 3, 4, 4)
+	a.AddRect(Point{X:0,Y:0}, Point{X:4,Y:4})
+	b.AddRect(Point{X:3,Y:3}, Point{X:4,Y:4})
 	cv.MaskShapes(MaskShape{Path: a, Rule: FillNonZero}, MaskShape{Path: b, Rule: FillNonZero})
 
 	for _, at := range [][2]int{{1, 1}, {6, 6}, {3, 3}, {3, 1}, {1, 3}} {
@@ -87,7 +87,7 @@ func TestMaskShapesOfNoShapesEmptiesTheClipRegion(t *testing.T) {
 // wants to cut with without spelling out the four corners each time.
 func pathAt(x, y, w, h float64) *Path {
 	p := NewPath()
-	p.AddRect(x, y, w, h)
+	p.AddRect(Point{X:x,Y:y}, Point{X:w,Y:h})
 	return p
 }
 
@@ -128,8 +128,8 @@ func TestMaskShapesKeepsTheSoftEdge(t *testing.T) {
 func TestMaskShapesHonoursTheRule(t *testing.T) {
 	nested := func() *Path {
 		p := NewPath()
-		p.AddRect(0, 0, 8, 8)
-		p.AddRect(2, 2, 4, 4)
+		p.AddRect(Point{X:0,Y:0}, Point{X:8,Y:8})
+		p.AddRect(Point{X:2,Y:2}, Point{X:4,Y:4})
 		return p
 	}
 	for _, tc := range []struct {

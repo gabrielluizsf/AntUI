@@ -228,7 +228,7 @@ func TestDashedPathAClosedShape(t *testing.T) {
 	// A closed shape is walked the whole way round, the last point leading back
 	// to the first, so a dash can cross the seam.
 	p := NewPath()
-	p.AddRect(0, 0, 20, 20)
+	p.AddRect(Point{X:0,Y:0}, Point{X:20,Y:20})
 	p.Close()
 	d, ok := NewDash([]float64{10, 10}, 0)
 	if !ok {

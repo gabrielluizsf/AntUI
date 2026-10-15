@@ -737,7 +737,7 @@ func TestAClosedSubpathIsOneVertexWithBothItsDirections(t *testing.T) {
 	// end, as the vertex the path arrives at, and it carries the same two
 	// directions.
 	var p canvas.Path
-	p.AddRect(0, 10, 10, 10)
+	p.AddRect(canvas.Point{X:0,Y:10}, canvas.Point{X:10,Y:10})
 	vs := pathVertices(&p)
 	if len(vs) != 5 {
 		t.Fatalf("the rectangle has %d vertices, want 5", len(vs))
