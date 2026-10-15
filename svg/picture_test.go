@@ -12,6 +12,7 @@ import (
 	"image/png"
 	"net/http"
 	"net/http/httptest"
+	"net/url"
 	"os"
 	"path/filepath"
 	"strings"
@@ -704,9 +705,14 @@ func TestASchemeIsSaidForWhatItMeansRatherThanReadAsAPath(t *testing.T) {
 	// it is a resource that did not arrive, not a file name with a colon in it,
 	// and the file system would be asked for a name nobody wrote.
 	pic := filepath.Join(t.TempDir(), "picture.png")
+	fileURL := url.URL{
+		Scheme: "file",
+		Path:   filepath.ToSlash(pic),
+	}
+	href := fileURL.String()
 	for _, tc := range []struct{ name, href, want string }{
 		{"a scheme with no reader", "ftp://example.com/picture.png", `"ftp:" is not one a picture is read from`},
-		{"a file on another machine", "file://example.com/picture.png", "is not this machine"},
+		{"a file on another machine", href, "is not this machine"},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			img := mustParse(t, fmt.Sprintf(
@@ -728,8 +734,13 @@ func TestAFileAddressIsReadFromThePathItNames(t *testing.T) {
 	if err := os.WriteFile(path, solidPicture(t, 4, 4, color.NRGBA{R: 255, A: 255}), 0o644); err != nil {
 		t.Fatal(err)
 	}
+	fileURL := url.URL{
+		Scheme: "file",
+		Path:   filepath.ToSlash(path),
+	}
+	href := fileURL.String()
 	img := mustParse(t, fmt.Sprintf(
-		`<svg viewBox="0 0 4 4"><image href="file://%s" x="0" y="0" width="4" height="4"/></svg>`, path))
+		`<svg viewBox="0 0 4 4"><image href="%s" x="0" y="0" width="4" height="4"/></svg>`, href))
 	if got := img.Warnings().String(); got != "no warnings" {
 		t.Errorf("a file: address said something was wrong: %s", got)
 	}

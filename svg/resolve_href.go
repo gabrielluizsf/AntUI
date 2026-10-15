@@ -17,6 +17,10 @@ import (
 // there is one to take it from, and is otherwise the https a drawing with no
 // page above it means.
 func resolveHref(base, href string) string {
+	// A Windows absolute path is a local filesystem path, not a URL.
+	if isWindowsAbsPath(href) {
+		return href
+	}
 	if href == "" {
 		return href
 	}
@@ -38,4 +42,11 @@ func resolveHref(base, href string) string {
 		return href
 	}
 	return b.ResolveReference(r).String()
+}
+
+func isWindowsAbsPath(path string) bool {
+	return len(path) >= 3 &&
+		isASCIIAlpha(path[0]) &&
+		path[1] == ':' &&
+		(path[2] == '\\' || path[2] == '/')
 }
