@@ -20,7 +20,7 @@ func (st *pathState) arc() bool {
 	if st.rel {
 		e = add(st.cur, e)
 	}
-	st.p.ArcTo(canvas.ArcParams{RX: rx, RY: ry, Rot: rot, Large: large, Sweep: sweep, End: canvas.Point{X: e.X, Y: e.Y}})
+	st.p.ArcTo(canvas.ArcParams{RX: rx, RY: ry, Rot: rot, Large: large, Sweep: sweep, End: e})
 	st.cur, st.ctl, st.prevCubic, st.prevQuad = e, st.cur, false, false
 	return true
 }

@@ -1,7 +1,5 @@
 package svg
 
-import "github.com/gabrielluizsf/antui/canvas"
-
 // quad reads a quadratic curve: one control point and the point it ends on.
 func (st *pathState) quad() bool {
 	c, ok1 := st.sc.point()
@@ -13,7 +11,7 @@ func (st *pathState) quad() bool {
 	if st.rel {
 		c, e = add(st.cur, c), add(st.cur, e)
 	}
-	st.p.QuadTo(canvas.Point{X: c.X, Y: c.Y}, canvas.Point{X: e.X, Y: e.Y})
+	st.p.QuadTo(c, e)
 	st.cur, st.ctl, st.prevCubic, st.prevQuad = e, c, false, true
 	return true
 }
@@ -34,7 +32,7 @@ func (st *pathState) smoothQuad() bool {
 	if st.prevQuad {
 		c = mirror(st.ctl, st.cur)
 	}
-	st.p.QuadTo(canvas.Point{X: c.X, Y: c.Y}, canvas.Point{X: e.X, Y: e.Y})
+	st.p.QuadTo(c, e)
 	st.cur, st.ctl, st.prevCubic, st.prevQuad = e, c, false, true
 	return true
 }

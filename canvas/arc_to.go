@@ -4,11 +4,11 @@ import "math"
 
 // ArcParams holds parameters for an SVG elliptical arc.
 type ArcParams struct {
-	RX, RY     float64
-	Rot        float64
-	Large      bool
-	Sweep      bool
-	End        Point
+	RX, RY float64
+	Rot    float64
+	Large  bool
+	Sweep  bool
+	End    Point
 }
 
 // ArcTo adds the elliptical arc with grouped parameters.
@@ -32,7 +32,7 @@ func (p *Path) ArcTo(params ArcParams) {
 		c1 := arcControl(center, rx, ry, phi, theta, alpha)
 		c2 := arcControl(center, rx, ry, phi, next, -alpha)
 		end := arcPoint(center, rx, ry, phi, next)
-		p.CubicTo(Point{X: c1.X, Y: c1.Y}, Point{X: c2.X, Y: c2.Y}, Point{X: end.X, Y: end.Y})
+		p.CubicTo(c1, c2, end)
 		theta = next
 	}
 }

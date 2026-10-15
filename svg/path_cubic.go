@@ -1,7 +1,5 @@
 package svg
 
-import "github.com/gabrielluizsf/antui/canvas"
-
 // cubic reads a cubic curve: two control points and the point it ends on.
 func (st *pathState) cubic() bool {
 	c1, ok1 := st.sc.point()
@@ -14,7 +12,7 @@ func (st *pathState) cubic() bool {
 	if st.rel {
 		c1, c2, e = add(st.cur, c1), add(st.cur, c2), add(st.cur, e)
 	}
-	st.p.CubicTo(canvas.Point{X:c1.X,Y:c1.Y}, canvas.Point{X:c2.X,Y:c2.Y}, canvas.Point{X:e.X,Y:e.Y})
+	st.p.CubicTo(c1, c2, e)
 	st.cur, st.ctl, st.prevCubic, st.prevQuad = e, c2, true, false
 	return true
 }
@@ -36,7 +34,7 @@ func (st *pathState) smoothCubic() bool {
 	if st.prevCubic {
 		c1 = mirror(st.ctl, st.cur)
 	}
-	st.p.CubicTo(canvas.Point{X:c1.X,Y:c1.Y}, canvas.Point{X:c2.X,Y:c2.Y}, canvas.Point{X:e.X,Y:e.Y})
+	st.p.CubicTo(c1, c2, e)
 	st.cur, st.ctl, st.prevCubic, st.prevQuad = e, c2, true, false
 	return true
 }

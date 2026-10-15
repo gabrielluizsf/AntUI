@@ -2,16 +2,6 @@ package canvas
 
 import "math"
 
-// RingArcParams holds parameters for drawing a thick ring arc.
-type RingArcParams struct {
-	Center     Point
-	Radius     int
-	Thickness  int
-	Start      float64
-	Sweep      float64
-	Color      Color
-}
-
 // RingArc draws a thick arc of the annulus.
 func (cv *Canvas) RingArc(p RingArcParams) {
 	cx, cy := int(p.Center.X), int(p.Center.Y)
