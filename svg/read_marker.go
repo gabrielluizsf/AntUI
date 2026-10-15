@@ -8,16 +8,14 @@ import "strings"
 // not say is the SVG default, which is a room three stroke-widths square with
 // the reference at its origin and no turn on it.
 //
-// The style the picture is built from starts at the drawing's own rather than
-// at the style of the place the marker stands, which is what [Image.readClipPath]
-// says about a clipPath too. The spec has properties inherit into a marker from
-// its ancestors and not from the element that names it, and the second half of
-// that is the half that matters here: a marker is drawn at a vertex far from
-// wherever it was written, in colours of its own, and taking the colours of the
-// shape that happens to name it would make the same marker come out differently
-// at every end of every line. The first half is what this leaves out — a marker
-// under a group that painted everything in it does not take that paint — and a
-// marker whose picture wants a colour says so itself, as they are written.
+// The style the picture is built from is the one that reaches the `<marker>`
+// from the elements containing it, which is read in [Image.readMarkers] as the
+// walk passes and applied where the picture is built. It is not the style of
+// the element that names the marker: a marker is drawn at a vertex far from
+// wherever it was written, and taking the colours of the shape that happens to
+// name it would make the same marker come out differently at every end of every
+// line. A picture that wants those colours asks for them by name, as
+// `context-fill` and `context-stroke`, rather than inheriting them.
 func (img *Image) readMarker(def *markerDef, e *element) {
 	warn := func(format string, args ...any) { img.warn(e, format, args...) }
 	if raw := strings.TrimSpace(e.attr("viewBox")); raw != "" {

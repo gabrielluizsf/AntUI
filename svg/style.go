@@ -24,6 +24,14 @@ type Style struct {
 	// serves a button in every state without being written again.
 	FillCurrent   bool
 	StrokeCurrent bool
+	// FillContext and StrokeContext say that the paint was the keyword
+	// `context-fill` or `context-stroke`: the colour of the content of a marker
+	// comes from the fill or the stroke of the element that named the marker.
+	// The colour is only known where the marker is drawn, and one marker's
+	// picture is shared by every shape that names it, so the keyword is kept as
+	// a flag and resolved in [palette] at paint time rather than here.
+	FillContext   bool
+	StrokeContext bool
 	Width         float64
 	Cap           canvas.LineCap
 	Join          canvas.LineJoin

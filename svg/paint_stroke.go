@@ -47,6 +47,9 @@ func paintStroke(cv *canvas.Canvas, n *Node, m canvas.Matrix, paints palette, pa
 	if st.StrokeCurrent {
 		c = paints.current
 	}
+	if st.StrokeContext {
+		c = paints.stroke
+	}
 	c = fade(c, st.Opacity*st.StrokeOpacity)
 	if c.A() == 0 {
 		return

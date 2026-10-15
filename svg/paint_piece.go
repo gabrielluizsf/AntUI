@@ -14,6 +14,9 @@ func paintPiece(cv *canvas.Canvas, n *Node, p *piece, m canvas.Matrix,
 		if st.StrokeCurrent {
 			c = paints.current
 		}
+		if st.StrokeContext {
+			c = paints.stroke
+		}
 		if c := fade(c, st.Opacity*st.StrokeOpacity); c.A() > 0 {
 			strokeWriting(cv, p.put, st.strokeWidth(m), c, p.scale)
 		}

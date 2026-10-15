@@ -34,6 +34,9 @@ func paintFill(cv *canvas.Canvas, n *Node, m canvas.Matrix, paints palette, st S
 		if st.FillCurrent {
 			c = paints.current
 		}
+		if st.FillContext {
+			c = paints.fill
+		}
 		if c := fade(c, st.Opacity*st.FillOpacity); c.A() > 0 {
 			fill := clonePath(n.Path)
 			fill.Transform(m)

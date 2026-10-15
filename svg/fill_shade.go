@@ -30,6 +30,9 @@ func fillShade(n *Node, st Style, m canvas.Matrix, paints palette, w, h int,
 		if st.FillCurrent {
 			c = paints.current
 		}
+		if st.FillContext {
+			c = paints.fill
+		}
 		return nil, fade(c, st.Opacity*st.FillOpacity), true
 	}
 }

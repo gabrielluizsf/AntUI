@@ -14,7 +14,18 @@ import "github.com/gabrielluizsf/antui/canvas"
 // a pattern inside a marker finds the pattern already there rather than drawing
 // it again for ever. A marker the cycle cut left off has no marker to draw and
 // is passed over.
+//
+// The shape here is the context element for what is inside each marker: its fill
+// and its stroke are what `context-fill` and `context-stroke` in the marker's
+// picture resolve to, so every marker this shape names is drawn in the colours
+// that shape paints with. Everywhere else there is no context element and both
+// stay empty, which paints nothing.
 func paintMarkers(cv *canvas.Canvas, n *Node, m canvas.Matrix, paints palette, masking []*maskDef, patterning []*pattern) {
+	context := palette{
+		current: paints.current,
+		fill:    n.Style.contextFill(paints),
+		stroke:  n.Style.contextStroke(paints),
+	}
 	for i := range n.markers {
 		place := &n.markers[i]
 		if place.def == nil || place.def.content == nil {
@@ -26,6 +37,6 @@ func paintMarkers(cv *canvas.Canvas, n *Node, m canvas.Matrix, paints palette, m
 			wrap.Kids = []*Node{content}
 			content = wrap
 		}
-		paintNodes(cv, content, m.Mul(place.at), paints, masking, patterning)
+		paintNodes(cv, content, m.Mul(place.at), context, masking, patterning)
 	}
 }

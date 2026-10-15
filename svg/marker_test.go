@@ -920,3 +920,131 @@ func TestRenderDrawsAMarkerWholeWhereItsRoomLetsItOverflow(t *testing.T) {
 	kept(t, cv, 19, 7) // and past its right
 	gone(t, cv, 13, 7) // outside the picture altogether
 }
+
+func TestAMarkersPicturePaintsWithTheFillOfTheShapeItMarks(t *testing.T) {
+	// `context-fill` inside a marker is the fill of the element that named the
+	// marker, so one arrowhead drawn over a shape comes out in that shape's
+	// colour. The colour is only known where the marker is painted and the
+	// picture is shared by every shape naming it, so the keyword is kept until
+	// then — and a valid one says nothing at all.
+	img, cv := painted(t, `<svg viewBox="0 0 20 20">
+		<defs>
+			<marker id="m" markerUnits="userSpaceOnUse" markerWidth="10" markerHeight="10" refX="0" refY="0">
+				<rect width="5" height="5" fill="context-fill"/>
+			</marker>
+		</defs>
+		<line x1="0" y1="10" x2="20" y2="10" stroke="none" fill="lime" marker-start="url(#m)"/>
+	</svg>`, 20, 20)
+	if ws := img.Warnings(); len(ws) != 0 {
+		t.Errorf("a valid context-fill was said %d times, want none (%v)", len(ws), ws)
+	}
+	if c := pixelAt(cv, 2, 12); c.G() < 200 || c.R() > 60 || c.B() > 60 {
+		t.Errorf("context-fill did not take the shape's colour: pixel (2,12) = %v, want lime", c)
+	}
+}
+
+func TestAMarkersPicturePaintsWithTheStrokeOfTheShapeItMarks(t *testing.T) {
+	// The same for `context-stroke`: the outline of what is in the marker is
+	// the stroke of the shape that named it, again only known where the marker
+	// is drawn.
+	img, cv := painted(t, `<svg viewBox="0 0 20 20">
+		<defs>
+			<marker id="m" markerUnits="userSpaceOnUse" markerWidth="10" markerHeight="10" refX="0" refY="0">
+				<rect x="1" y="1" width="6" height="6" fill="none" stroke="context-stroke" stroke-width="2"/>
+			</marker>
+		</defs>
+		<line x1="0" y1="10" x2="20" y2="10" stroke="#ff00ff" marker-start="url(#m)"/>
+	</svg>`, 20, 20)
+	if ws := img.Warnings(); len(ws) != 0 {
+		t.Errorf("a valid context-stroke was said %d times, want none (%v)", len(ws), ws)
+	}
+	if c := pixelAt(cv, 1, 14); c.R() < 200 || c.B() < 200 || c.G() > 60 {
+		t.Errorf("context-stroke did not take the shape's colour: pixel (1,14) = %v, want magenta", c)
+	}
+}
+
+func TestContextPaintsPaintNothingWhereThereIsNoContext(t *testing.T) {
+	// A `context-fill` outside a marker has no element to take a colour from,
+	// and neither does one whose naming shape fills with `none`: both paint
+	// nothing, rather than something the file never asked for.
+	for _, tc := range []struct {
+		name string
+		src  string
+	}{
+		{"a context paint with no context element", `<svg viewBox="0 0 20 20">
+			<rect x="0" y="0" width="20" height="20" fill="context-fill"/>
+		</svg>`},
+		{"a naming shape that fills with nothing", `<svg viewBox="0 0 20 20">
+			<defs>
+				<marker id="m" markerUnits="userSpaceOnUse" markerWidth="10" markerHeight="10" refX="0" refY="0">
+					<rect width="5" height="5" fill="context-fill"/>
+				</marker>
+			</defs>
+			<line x1="0" y1="10" x2="20" y2="10" stroke="none" fill="none" marker-start="url(#m)"/>
+		</svg>`},
+	} {
+		img, cv := painted(t, tc.src, 20, 20)
+		if ws := img.Warnings(); len(ws) != 0 {
+			t.Errorf("%s: said %d times, want none (%v)", tc.name, len(ws), ws)
+		}
+		if c := pixelAt(cv, 2, 12); c.A() != 0 {
+			t.Errorf("%s: something was painted with a colour the file never gave: pixel (2,12) = %v", tc.name, c)
+		}
+	}
+}
+
+func TestAMarkersPictureIsNotCutByTheClipOfItsContainer(t *testing.T) {
+	// A clip-path is spent on the element that writes it and is not inherited,
+	// so the content of a marker is not cut by a clip the elements merely
+	// containing it asked for: a marker draws where the shape naming it stands,
+	// far away from them.
+	_, cv := painted(t, `<svg viewBox="0 0 20 20">
+		<defs>
+			<clipPath id="c"><rect x="0" y="0" width="3" height="20"/></clipPath>
+			<g clip-path="url(#c)">
+				<marker id="m" markerUnits="userSpaceOnUse" markerWidth="10" markerHeight="10" refX="0" refY="0">
+					<rect width="5" height="5" fill="lime"/>
+				</marker>
+			</g>
+		</defs>
+		<line x1="0" y1="10" x2="20" y2="10" stroke="none" marker-start="url(#m)"/>
+	</svg>`, 20, 20)
+	if c := pixelAt(cv, 4, 12); c.G() < 200 {
+		t.Errorf("the marker's picture was cut by the clip of who contains it: pixel (4,12) = %v", c)
+	}
+}
+
+func TestAMarkersPictureInheritsWhereItIsWritten(t *testing.T) {
+	// The content of a marker inherits from the `<marker>` and from whoever
+	// contains it — the drawing says how its markers are painted in one place
+	// — and never from the element that names it, which is often far away and
+	// a different colour. The naming shape's colour only reaches a marker that
+	// asks for it by name, as `context-fill`.
+	for _, tc := range []struct {
+		name  string
+		g     string
+		mark  string
+		line  string
+		wantR byte
+		wantG byte
+		wantB byte
+	}{
+		{"from the group containing the marker", `fill="lime"`, ``, ``, 0, 255, 0},
+		{"the marker's own colour over the group", `fill="lime"`, `fill="#ff0000"`, ``, 255, 0, 0},
+		{"never from the element that names it", ``, ``, `fill="lime"`, 0, 0, 0},
+	} {
+		_, cv := painted(t, `<svg viewBox="0 0 20 20">
+			<defs>
+				<g `+tc.g+`>
+					<marker id="m" `+tc.mark+` markerUnits="userSpaceOnUse" markerWidth="10" markerHeight="10" refX="0" refY="0">
+						<rect width="5" height="5"/>
+					</marker>
+				</g>
+			</defs>
+			<line x1="0" y1="10" x2="20" y2="10" stroke="none" `+tc.line+` marker-start="url(#m)"/>
+		</svg>`, 20, 20)
+		if c := pixelAt(cv, 2, 12); c.R() != tc.wantR || c.G() != tc.wantG || c.B() != tc.wantB {
+			t.Errorf("%s: pixel (2,12) = %v, want (%d, %d, %d)", tc.name, c, tc.wantR, tc.wantG, tc.wantB)
+		}
+	}
+}
