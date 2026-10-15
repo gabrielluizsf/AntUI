@@ -3,10 +3,10 @@ package svg
 import "strings"
 
 // readMarker reads one `<marker>`'s own sayings — the room it asks for, the
-// point of its picture that lands on the vertex, and which way it is turned —
-// into the place its id already put. What it does not say is the SVG default,
-// which is a room three stroke-widths square with the reference at its origin
-// and no turn on it.
+// point of its picture that lands on the vertex, which way it is turned, and
+// how its viewBox is fitted — into the place its id already put. What it does
+// not say is the SVG default, which is a room three stroke-widths square with
+// the reference at its origin and no turn on it.
 //
 // The style the picture is built from starts at the drawing's own rather than
 // at the style of the place the marker stands, which is what [Image.readClipPath]
@@ -27,13 +27,32 @@ func (img *Image) readMarker(def *markerDef, e *element) {
 			warn("the marker viewBox %q is not four numbers, so its picture is drawn where it was written", raw)
 		}
 	}
-	def.refX = markerLength(e, "refX", 0, warn)
-	def.refY = markerLength(e, "refY", 0, warn)
-	def.w = markerLength(e, "markerWidth", 3, warn)
-	def.h = markerLength(e, "markerHeight", 3, warn)
+	// A percentage counts against the drawing's viewport, as a length of the
+	// drawing's own does — see [markerLength] for why that is the reference.
+	length := func(name string, ref, dflt float64) float64 {
+		if !e.hasAttr(name) {
+			return dflt
+		}
+		raw := strings.TrimSpace(e.attr(name))
+		v, ok := markerLength(raw, ref)
+		if !ok {
+			warn("the marker %s %q is not a length, so it is taken as %g", name, raw, dflt)
+			return dflt
+		}
+		return v
+	}
+	def.w = length("markerWidth", img.ViewBox[2], 3)
+	def.h = length("markerHeight", img.ViewBox[3], 3)
+	markerRefs(def, e, warn)
 	def.strokeUnits = !strings.EqualFold(strings.TrimSpace(e.attr("markerUnits")), "userspaceonuse")
 	def.deg, def.auto, def.startReverse = readOrient(e.attr("orient"), warn)
 	def.visible = overflowIn(e)
+	// preserveAspectRatio decides the fit of a viewBox, so without one it is
+	// passed over in silence, as the spec has it, and the default stands.
+	def.fit, def.align = PictureFitMeet, AlignXMidYMid
+	if def.hasView {
+		def.fit, def.align = readPreserveAspect(e.attr("preserveAspectRatio"), warn)
+	}
 	if def.w <= 0 || def.h <= 0 {
 		warn("the marker is %g by %g, which has no room for anything in it, so nothing is drawn where it is named", def.w, def.h)
 	}

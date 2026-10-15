@@ -1,22 +1,26 @@
 package svg
 
-import "strings"
+import (
+	"strconv"
+	"strings"
+)
 
-// markerLength is one length a marker is written with: what it does not say is
-// the default the spec gives it, and what it says but this package cannot read
-// is said out loud rather than quietly taken as the default. A percentage is
-// left out of that — it is a fraction of the room the marker is drawn into,
-// which is not known until the shape that names it is — so it comes through
-// here as something that is not a length and is said.
-func markerLength(e *element, name string, def float64, warn func(string, ...any)) float64 {
-	if !e.hasAttr(name) {
-		return def
+// markerLength is one length a marker is written with, read against the
+// reference a percentage of it is a fraction of — which differs from attribute
+// to attribute and is the caller's to know. That reference is the drawing's
+// viewport wherever the length names the room, as it is for a length of the
+// drawing's own; SVG 2 leaves it open for these attributes and browsers
+// disagree on it, so the viewport is the one this counts. What this cannot read
+// answers false rather than a default, so the caller can say so out loud: a
+// length quietly taken as the default is one an author never learns was
+// ignored.
+func markerLength(raw string, ref float64) (float64, bool) {
+	if body, ok := strings.CutSuffix(raw, "%"); ok {
+		v, err := strconv.ParseFloat(strings.TrimSpace(body), 64)
+		if err != nil {
+			return 0, false
+		}
+		return v / 100 * ref, true
 	}
-	raw := strings.TrimSpace(e.attr(name))
-	v, ok := parseLength(raw)
-	if !ok {
-		warn("the marker %s %q is not a length, so it is taken as %g", name, raw, def)
-		return def
-	}
-	return v
+	return parseLength(raw)
 }

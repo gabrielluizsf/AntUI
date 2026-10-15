@@ -18,6 +18,13 @@ type markerDef struct {
 	// fits the canvas, which is the same fit a `<symbol>` gets.
 	view    [4]float64
 	hasView bool
+	// fit and align are the marker's own preserveAspectRatio, which decides
+	// how that viewBox is fitted onto the room. Without a viewBox there is
+	// nothing to fit and the two hold the centred meeting that a drawing
+	// saying nothing gets — which is why they are read even where the
+	// attribute is absent or passed over.
+	fit   PictureFit
+	align PictureAlign
 	// refX and refY are the point of the picture that lands on the vertex: the
 	// marker is moved back by it before it is put down, which is what makes an
 	// arrowhead whose tip is written at 0 0 sit that tip on the vertex rather

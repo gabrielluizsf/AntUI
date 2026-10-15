@@ -281,12 +281,24 @@ func TestMarkerAttributesAreRead(t *testing.T) {
 		{"what a marker says where it says nothing", "", [4]float64{}, false, 0, 0, 3, 3, true, 0, false, false, 0},
 		{"everything it may say", `viewBox="0 0 10 10" refX="2" refY="3" markerWidth="8" markerHeight="4" markerUnits="userSpaceOnUse"`,
 			[4]float64{0, 0, 10, 10}, true, 2, 3, 8, 4, false, 0, false, false, 0},
+		{"a room that is a fraction of the drawing", `markerWidth="50%" markerHeight="25%"`,
+			[4]float64{}, false, 0, 0, 10, 5, true, 0, false, false, 0},
+		{"a reference that is a fraction of the viewBox", `viewBox="0 0 10 10" refX="50%" refY="100%"`,
+			[4]float64{0, 0, 10, 10}, true, 5, 10, 3, 3, true, 0, false, false, 0},
+		{"a reference that is a fraction of the room", `refX="100%" refY="50%"`,
+			[4]float64{}, false, 3, 1.5, 3, 3, true, 0, false, false, 0},
+		{"a reference named with the keywords of its axis", `viewBox="0 0 10 10" refX="right" refY="center"`,
+			[4]float64{0, 0, 10, 10}, true, 10, 5, 3, 3, true, 0, false, false, 0},
+		{"a reference named with keywords and no viewBox", `refX="center" refY="bottom"`,
+			[4]float64{}, false, 1.5, 3, 3, 3, true, 0, false, false, 0},
+		{"a keyword of the other axis", `refX="top"`,
+			[4]float64{}, false, 0, 0, 3, 3, true, 0, false, false, 1},
 		{"an angle in degrees", `orient="45deg"`, [4]float64{}, false, 0, 0, 3, 3, true, 45, false, false, 0},
 		{"an angle with no unit", `orient="90"`, [4]float64{}, false, 0, 0, 3, 3, true, 90, false, false, 0},
 		{"turning to the direction of the path", `orient="auto"`, [4]float64{}, false, 0, 0, 3, 3, true, 0, true, false, 0},
 		{"the same turned around at the start", `orient="auto-start-reverse"`, [4]float64{}, false, 0, 0, 3, 3, true, 0, true, true, 0},
 		{"an orient this package cannot read", `orient="sideways"`, [4]float64{}, false, 0, 0, 3, 3, true, 0, false, false, 1},
-		{"a length this package cannot read", `markerWidth="50%"`, [4]float64{}, false, 0, 0, 3, 3, true, 0, false, false, 1},
+		{"a length this package cannot read", `markerWidth="wide"`, [4]float64{}, false, 0, 0, 3, 3, true, 0, false, false, 1},
 		{"a room with nothing in it", `markerWidth="0"`, [4]float64{}, false, 0, 0, 0, 3, true, 0, false, false, 1},
 		{"a viewBox this package cannot read", `viewBox="0 0 10"`, [4]float64{}, false, 0, 0, 3, 3, true, 0, false, false, 1},
 	} {
@@ -326,6 +338,104 @@ func TestMarkerAttributesAreRead(t *testing.T) {
 		if m.auto != tc.auto || m.startReverse != tc.startReverse {
 			t.Errorf("%s: orient = auto %v / start-reverse %v, want %v / %v",
 				tc.name, m.auto, m.startReverse, tc.auto, tc.startReverse)
+		}
+	}
+}
+
+func TestAMarkerReadsItsOwnPreserveAspectRatio(t *testing.T) {
+	// The fit of the marker's viewBox is the marker's own to decide, so the
+	// attribute is read here rather than left at the centred meet a drawing
+	// saying nothing gets — and said nothing about while it is valid.
+	img, _ := painted(t, `<svg viewBox="0 0 20 20">
+		<defs>
+			<marker id="m" viewBox="0 0 10 10" preserveAspectRatio="xMinYMax slice">
+				<rect width="4" height="4" fill="red"/>
+			</marker>
+		</defs>
+	</svg>`, 20, 20)
+	m := img.markers["m"]
+	if m.fit != PictureFitSlice || m.align != AlignXMinYMax {
+		t.Errorf("preserveAspectRatio read as %v / %v, want a slice pinned to xMinYMax", m.fit, m.align)
+	}
+	if ws := img.Warnings(); len(ws) != 0 {
+		t.Errorf("a valid preserveAspectRatio was said %d times, want none (%v)", len(ws), ws)
+	}
+	// It decides the fit of a viewBox, so without one there is nothing to
+	// decide and it is passed over rather than refused.
+	img, _ = painted(t, `<svg viewBox="0 0 20 20">
+		<defs>
+			<marker id="m" preserveAspectRatio="xMinYMax slice">
+				<rect width="4" height="4" fill="red"/>
+			</marker>
+		</defs>
+	</svg>`, 20, 20)
+	if ws := img.Warnings(); len(ws) != 0 {
+		t.Errorf("a preserveAspectRatio with no viewBox to fit was said %d times, want none (%v)", len(ws), ws)
+	}
+}
+
+func TestAMarkersViewBoxIsFittedTheWayItsOwnAttributeAsks(t *testing.T) {
+	// The room is ten by five and the viewBox is thirty by ten — wider than the
+	// room, so a meeting leaves slack above and below it — which is what tells
+	// the fits and alignments apart: the room's corners where the picture is
+	// stretched, a band in the middle where it meets centred, past the room's
+	// own corners where it slices, and the bottom band where it is pinned there.
+	for _, tc := range []struct {
+		name  string
+		fit   PictureFit
+		align PictureAlign
+		from  [2]float64
+		to    [2]float64
+	}{
+		{"a centred meet", PictureFitMeet, AlignXMidYMid, [2]float64{0, 5.0 / 6}, [2]float64{10, 25.0 / 6}},
+		{"none", PictureFitNone, AlignXMidYMid, [2]float64{0, 0}, [2]float64{10, 5}},
+		{"a slice", PictureFitSlice, AlignXMidYMid, [2]float64{-2.5, 0}, [2]float64{12.5, 5}},
+		{"a meet pinned to the bottom", PictureFitMeet, AlignXMinYMax, [2]float64{0, 5.0 / 3}, [2]float64{10, 5}},
+	} {
+		def := &markerDef{view: [4]float64{0, 0, 30, 10}, hasView: true, w: 10, h: 5, fit: tc.fit, align: tc.align}
+		_, _, onto, ok := markerRoom(def, Style{})
+		if !ok {
+			t.Fatalf("%s: the marker has no room", tc.name)
+		}
+		fromX, fromY := onto.Map(0, 0)
+		if !nearFloat(fromX, tc.from[0], 1e-9) || !nearFloat(fromY, tc.from[1], 1e-9) {
+			t.Errorf("%s: viewBox (0, 0) onto (%.2f, %.2f), want (%.2f, %.2f)",
+				tc.name, fromX, fromY, tc.from[0], tc.from[1])
+		}
+		toX, toY := onto.Map(30, 10)
+		if !nearFloat(toX, tc.to[0], 1e-9) || !nearFloat(toY, tc.to[1], 1e-9) {
+			t.Errorf("%s: viewBox (30, 10) onto (%.2f, %.2f), want (%.2f, %.2f)",
+				tc.name, toX, toY, tc.to[0], tc.to[1])
+		}
+	}
+}
+
+func TestAMarkerWithoutAViewBoxIsMeasuredInStrokeWidths(t *testing.T) {
+	// Without a viewBox the picture is written in the marker's own units, and
+	// markerUnits makes one of those the stroke-width: a marker on a thick line
+	// is a thick picture, not only a thick room around the same small one.
+	for _, tc := range []struct {
+		name  string
+		width string
+		ink   int
+		out   int
+	}{
+		{"a marker on a line one unit thick", "1", 11, 13},
+		{"the same marker on a line twice as thick", "2", 13, 15},
+	} {
+		_, cv := painted(t, `<svg viewBox="0 0 40 20">
+			<defs>
+				<marker id="m" markerWidth="3" markerHeight="3" refX="0" refY="0">
+					<rect width="2" height="2" fill="red"/>
+				</marker>
+			</defs>
+			<line x1="10" y1="10" x2="30" y2="10" stroke="none" stroke-width="`+tc.width+`" marker-start="url(#m)"/>
+		</svg>`, 40, 20)
+		if c := pixelAt(cv, tc.ink, 10); c.A() == 0 {
+			t.Errorf("%s: nothing was drawn at (%d,10), where the marker's picture reaches", tc.name, tc.ink)
+		}
+		if c := pixelAt(cv, tc.out, 10); c.A() != 0 {
+			t.Errorf("%s: something was drawn at (%d,10), past the picture's own size", tc.name, tc.out)
 		}
 	}
 }
