@@ -4,6 +4,8 @@ import (
 	"strings"
 )
 
+// hrefScheme is the scheme of an address, lower-cased: what comes before the
+// first colon, and only where it is spelled the way a URL spells one.
 func hrefScheme(target string) string {
 	i := strings.IndexByte(target, ':')
 	if i <= 0 {
