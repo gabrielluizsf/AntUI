@@ -10,7 +10,7 @@ func (w *cycleWalk) walk(n *Node) {
 		def := n.mask.def
 		switch {
 		case w.gray[def]:
-			w.img.warnings.warn(n.Name,
+			w.img.warnNamed(n.Name,
 				"the mask here points back at the mask this picture is inside, which would draw for ever, so it is left off when it is painted")
 		case !w.done[def]:
 			w.visitMask(def)
@@ -25,7 +25,7 @@ func (w *cycleWalk) walk(n *Node) {
 		}
 		switch {
 		case w.gray[p]:
-			w.img.warnings.warn(n.Name,
+			w.img.warnNamed(n.Name,
 				"the pattern here points back at the pattern this picture is inside, which would draw for ever, so it is left off when it is painted")
 		case !w.done[p]:
 			w.visitPattern(p)

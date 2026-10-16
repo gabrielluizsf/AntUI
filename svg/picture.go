@@ -1,6 +1,10 @@
 package svg
 
-import "github.com/gabrielluizsf/antui/canvas"
+import (
+	"sync"
+
+	"github.com/gabrielluizsf/antui/canvas"
+)
 
 // Picture is the bitmap an `<image>` draws and the box it is drawn into. It is
 // the whole of what was asked for: where the picture came from has already been
@@ -11,7 +15,19 @@ type Picture struct {
 	// at the size it was encoded at. Two `<image>`s pointing at the same
 	// address share these pixels and are never written to: fitting is done with
 	// where they are put rather than by changing them.
+	//
+	// For a picture read from a server it is nothing until the bytes arrive,
+	// which happens while the drawing is being painted: the picture of such an
+	// element is put in later, by the goroutine that fetched it, and read here
+	// through [Picture.pixels] so that writing it and reading it do not happen
+	// at the same time.
 	Pixels *canvas.Canvas
+
+	// mu guards Pixels: an `<image>` fetched over the network has its picture
+	// filled in by the goroutine that fetched it, while the drawing it belongs
+	// to may be painting at the same time.
+	mu sync.Mutex
+
 	// Box is the rectangle of the drawing the picture is fitted into, as x, y,
 	// width and height in the drawing's own coordinates, with a percentage
 	// already counted as its fraction of the drawing. It is as the file wrote

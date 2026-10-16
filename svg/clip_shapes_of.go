@@ -31,10 +31,10 @@ func (img *Image) clipShapesOf(n *Node) []canvas.MaskShape {
 		case n.Path != nil && !n.Path.Empty():
 			shapes = append(shapes, canvas.MaskShape{Path: n.Path, Rule: n.Style.ClipRule, And: cut})
 		case len(n.Runs) > 0:
-			img.warnings.warn(n.Name,
+			img.warnNamed(n.Name,
 				"writing inside a <clipPath> has no outline to cut with here, so it is left out of the clip")
 		case n.Pic != nil:
-			img.warnings.warn(n.Name,
+			img.warnNamed(n.Name,
 				"a picture inside a <clipPath> has no outline to cut with here, so it is left out of the clip")
 		default:
 			for _, k := range n.Kids {

@@ -16,8 +16,10 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"sync"
 	"sync/atomic"
 	"testing"
+	"time"
 
 	"github.com/gabrielluizsf/antui/canvas"
 )
@@ -101,6 +103,41 @@ func wantNearColour(t *testing.T, cv *canvas.Canvas, x, y int, r, g, b, a, toler
 			t.Errorf("pixel (%d,%d) is %v, want about (%d,%d,%d,%d) within %d", x, y, got, r, g, b, a, tolerance)
 			return
 		}
+	}
+}
+
+// waitForPicture paints a drawing until the pixel it is waiting for shows the
+// colour it is waiting for, and gives up if it never does: a picture fetched
+// off the frame arrives in a paint after the one that read the drawing, so a
+// test has to give it a few frames before saying it never came.
+func waitForPicture(t *testing.T, img *Image, w, h, x, y int, want canvas.Color) {
+	t.Helper()
+	deadline := time.Now().Add(5 * time.Second)
+	for {
+		if pixelAt(img.Render(w, h), x, y) == want {
+			return
+		}
+		if time.Now().After(deadline) {
+			t.Fatalf("pixel (%d,%d) never became %v, it is %v", x, y, want, pixelAt(img.Render(w, h), x, y))
+		}
+		time.Sleep(time.Millisecond)
+	}
+}
+
+// waitForWarning waits for a drawing to gain a warning, which is how a picture
+// fetched off the frame is said to have failed: it is written by the goroutine
+// that fetched it, a moment after the drawing was read.
+func waitForWarning(t *testing.T, img *Image, want string) {
+	t.Helper()
+	deadline := time.Now().Add(5 * time.Second)
+	for {
+		if strings.Contains(img.Warnings().String(), want) {
+			return
+		}
+		if time.Now().After(deadline) {
+			t.Fatalf("no warning contained %q, the warnings are:\n%s", want, img.Warnings())
+		}
+		time.Sleep(time.Millisecond)
 	}
 }
 
@@ -219,9 +256,9 @@ func TestAnImageReadsAPictureFromAFile(t *testing.T) {
 }
 
 func TestAnImageFetchesAPictureOverHTTPAndOnlyOnce(t *testing.T) {
-	// A CDN address is fetched while the drawing is read, and the same address
-	// twice in one drawing is fetched once: the picture belongs to the address,
-	// not to the element that named it.
+	// A CDN address is fetched off the frame that named it and arrives in a
+	// later paint, and the same address twice in one drawing is fetched once:
+	// the picture belongs to the address, not to the element that named it.
 	pic := solidPicture(t, 4, 4, color.NRGBA{G: 255, A: 255})
 	var hits atomic.Int32
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -234,24 +271,123 @@ func TestAnImageFetchesAPictureOverHTTPAndOnlyOnce(t *testing.T) {
 		<image href="%[1]s/pic.png" x="0" y="0" width="4" height="4"/>
 		<image href="%[1]s/pic.png" x="4" y="0" width="4" height="4"/>
 	</svg>`, srv.URL))
+	waitForPicture(t, img, 8, 4, 1, 1, canvas.RGB(0, 255, 0))
+	waitForPicture(t, img, 8, 4, 5, 1, canvas.RGB(0, 255, 0))
 	if got := img.Warnings().String(); got != "no warnings" {
 		t.Errorf("a picture over http said something was wrong: %s", got)
 	}
-	cv := img.Render(8, 4)
-	wantColour(t, cv, 1, 1, canvas.RGB(0, 255, 0))
-	wantColour(t, cv, 5, 1, canvas.RGB(0, 255, 0))
 	if n := hits.Load(); n != 1 {
 		t.Errorf("the same picture was fetched %d times, want 1", n)
 	}
 }
 
 func TestAPictureTheServerRefusesIsSaidOutLoud(t *testing.T) {
+	// A picture fetched off the frame that does not come back says so from the
+	// goroutine that fetched it, a moment after the drawing was read: the
+	// warning is there to be found once the fetch has finished.
 	srv := httptest.NewServer(http.NotFoundHandler())
 	defer srv.Close()
 	img := mustParse(t, fmt.Sprintf(
 		`<svg viewBox="0 0 4 4"><image href="%s/pic.png" width="4" height="4"/></svg>`, srv.URL))
-	if got := img.Warnings().String(); !strings.Contains(got, "404") {
-		t.Errorf("a refused picture was not said out loud: %s", got)
+	waitForWarning(t, img, "404")
+}
+
+func TestAPictureFetchedOffTheFrameArrivesInALaterPaint(t *testing.T) {
+	// A server is read off the frame that named it: the drawing is built with
+	// the hole where the photo will be and the first paint shows that hole, the
+	// photo landing in a paint after the answer comes back — which is what
+	// keeps a slow server from holding up the frame.
+	pic := solidPicture(t, 4, 4, color.NRGBA{R: 255, A: 255})
+	release := make(chan struct{})
+	var once sync.Once
+	free := func() { once.Do(func() { close(release) }) }
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		<-release
+		w.Header().Set("Content-Type", "image/png")
+		w.Write(pic)
+	}))
+	defer srv.Close()
+	defer free()
+	img := mustParse(t, fmt.Sprintf(
+		`<svg viewBox="0 0 4 4"><image href="%s/pic.png" x="0" y="0" width="4" height="4"/></svg>`, srv.URL))
+	wantColour(t, img.Render(4, 4), 2, 2, canvas.Transparent)
+	free()
+	waitForPicture(t, img, 4, 4, 2, 2, canvas.RGB(255, 0, 0))
+	if got := img.Warnings().String(); got != "no warnings" {
+		t.Errorf("a picture that arrived said something was wrong: %s", got)
+	}
+}
+
+func TestAPictureTheServerRefusesIsAskedAgainByTheNextDrawing(t *testing.T) {
+	// A read that did not answer is dropped from what the process remembers, so
+	// the next drawing that names the address asks the server again rather than
+	// being poisoned by one moment of it being unreachable.
+	pic := solidPicture(t, 4, 4, color.NRGBA{B: 255, A: 255})
+	var hits atomic.Int32
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if hits.Add(1) == 1 {
+			http.NotFound(w, r)
+			return
+		}
+		w.Header().Set("Content-Type", "image/png")
+		w.Write(pic)
+	}))
+	defer srv.Close()
+	src := fmt.Sprintf(
+		`<svg viewBox="0 0 4 4"><image href="%s/pic.png" x="0" y="0" width="4" height="4"/></svg>`, srv.URL)
+	first := mustParse(t, src)
+	waitForWarning(t, first, "404")
+	second := mustParse(t, src)
+	waitForPicture(t, second, 4, 4, 2, 2, canvas.RGB(0, 0, 255))
+	if n := hits.Load(); n != 2 {
+		t.Errorf("the address was asked %d times, want 2", n)
+	}
+}
+
+func TestAPictureOverHTTPIsFetchedOnceBetweenDrawings(t *testing.T) {
+	// What the process read for one drawing it keeps for the next: a second
+	// drawing naming the same address is drawn from bytes already read, with no
+	// second trip to the server.
+	pic := solidPicture(t, 4, 4, color.NRGBA{G: 255, A: 255})
+	var hits atomic.Int32
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		hits.Add(1)
+		w.Header().Set("Content-Type", "image/png")
+		w.Write(pic)
+	}))
+	defer srv.Close()
+	src := fmt.Sprintf(
+		`<svg viewBox="0 0 4 4"><image href="%s/pic.png" x="0" y="0" width="4" height="4"/></svg>`, srv.URL)
+	first := mustParse(t, src)
+	waitForPicture(t, first, 4, 4, 2, 2, canvas.RGB(0, 255, 0))
+	second := mustParse(t, src)
+	wantColour(t, second.Render(4, 4), 2, 2, canvas.RGB(0, 255, 0))
+	if n := hits.Load(); n != 1 {
+		t.Errorf("the address was asked %d times, want 1", n)
+	}
+}
+
+func TestAPictureOverHTTPDrawsTheOpacityItWasGiven(t *testing.T) {
+	// The opacity of an element that has to wait for its picture is kept until
+	// the picture lands: the element that asked for it faint comes out faint,
+	// and the one beside it pointing at the same address comes out whole.
+	pic := solidPicture(t, 4, 4, color.NRGBA{R: 255, A: 255})
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "image/png")
+		w.Write(pic)
+	}))
+	defer srv.Close()
+	img := mustParse(t, fmt.Sprintf(`<svg viewBox="0 0 8 4">
+		<image href="%[1]s/pic.png" x="0" y="0" width="4" height="4" opacity="0.5"/>
+		<image href="%[1]s/pic.png" x="4" y="0" width="4" height="4"/>
+	</svg>`, srv.URL))
+	waitForPicture(t, img, 8, 4, 6, 2, canvas.RGB(255, 0, 0))
+	faint := pixelAt(img.Render(8, 4), 2, 2)
+	if a := int(faint.A()); a < 126 || a > 130 {
+		t.Errorf("the faint picture has alpha %d, want about 128", a)
+	}
+	if r := int(faint.R()); r < 250 {
+		t.Errorf("the faint picture came out with red %d, want it still red", r)
 	}
 }
 

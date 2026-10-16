@@ -10,9 +10,11 @@ import (
 // asked for. One is read once and painted as often as it is needed, which is
 // what makes an icon cheaper than the file it came from after the first frame.
 //
-// An Image is safe to paint from more than one goroutine as long as nothing
-// writes to it: painting caches the last size it was drawn at, and that cache
-// is guarded.
+// An Image is safe to paint from more than one goroutine, and safe to paint
+// while a picture a server is still fetching has yet to arrive: the cache of
+// the last paint and the slot a picture lands in are each guarded, and a
+// picture landing after a paint was made drops that canvas so the next paint
+// shows it.
 type Image struct {
 	// Width and Height are the size the drawing says it is, in the units of its
 	// own viewBox, which is what a caller asking for an icon at twenty-four
@@ -33,6 +35,16 @@ type Image struct {
 	base string
 
 	warnings Warnings
+
+	// warnMu guards warnings: a picture fetched from a server is said to have
+	// failed by the goroutine that fetched it, while the drawing may be painted
+	// and its warnings read at the same time.
+	warnMu sync.Mutex
+
+	// epoch counts the paints whose result may no longer be cached: it is
+	// bumped when a picture arrives after a paint was made, so a paint already
+	// running does not cache the hole it drew before it. See [Image.pictureArrived].
+	epoch uint64
 
 	// grads are the gradients the drawing declared, by the id a `url(#name)`
 	// names. They are read before anything is built, because a shape may point

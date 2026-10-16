@@ -33,7 +33,7 @@ func (img *Image) cutMarkerCycles() {
 			}
 			switch {
 			case gray[place.def]:
-				img.warnings.warn(n.Name,
+				img.warnNamed(n.Name,
 					"the %s here points back at the marker this picture is inside, which would draw for ever, so no marker is drawn at this vertex",
 					place.prop)
 				place.def = nil

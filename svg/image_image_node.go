@@ -9,9 +9,12 @@ package svg
 //
 // The picture is fetched while the drawing is read rather than when it is
 // painted, because reading is where every other warning this package gives
-// comes from and where a drawing is shared: what went wrong is said once, to
-// whoever called Parse, instead of once a frame for as long as the drawing is
-// on screen.
+// comes from: what went wrong is said once, to whoever called Parse, instead of
+// once a frame for as long as the drawing is on screen. An address that is a
+// server is the one exception — it is read off the frame, so the drawing is
+// built with the hole where the picture will be, the photo arriving in a later
+// paint and a failure said from the goroutine that fetched it, which
+// [Image.Warnings] reads back after the fact.
 func (img *Image) imageNode(e *element, st Style, warn func(string, ...any)) *Node {
 	n := &Node{Name: e.Name, Style: st}
 	href := e.attr("href")
@@ -41,17 +44,16 @@ func (img *Image) imageNode(e *element, st Style, warn func(string, ...any)) *No
 		// going to be seen, so there is nothing to say about it either.
 		return n
 	}
-	pixels := img.pictureFor(st.base, href, warn)
-	if pixels == nil {
+	slot := &Picture{Box: box, Fit: fit, Align: align}
+	// The opacity is put into pixels of their own rather than onto the ones in
+	// the cache, which every other element pointing at the same address shares:
+	// what is in the cache is the picture as it was written, and one element
+	// drawing it faint does not fade the rest. The request carries it because a
+	// picture still on its way has to be faded when it lands.
+	ask := pictureRequest{slot: slot, opacity: st.Opacity, href: href, warn: warn}
+	if !img.fillPicture(resolveHref(st.base, href), ask) {
 		return n
 	}
-	if st.Opacity < 1 {
-		// The opacity is put into pixels of their own rather than onto the
-		// ones in the cache, which every other element pointing at the same
-		// address shares: what is in the cache is the picture as it was
-		// written, and one element drawing it faint does not fade the rest.
-		pixels = fadePicture(pixels, st.Opacity)
-	}
-	n.Pic = &Picture{Pixels: pixels, Box: box, Fit: fit, Align: align}
+	n.Pic = slot
 	return n
 }

@@ -15,7 +15,7 @@ import "github.com/gabrielluizsf/antui/canvas"
 // nothing beyond it, however the picture was turned on the way.
 func paintPicture(cv *canvas.Canvas, n *Node, m canvas.Matrix) {
 	p := n.Pic
-	pic := p.Pixels
+	pic := p.pixels()
 	if pic == nil || pic.Width <= 0 || pic.Height <= 0 {
 		return
 	}

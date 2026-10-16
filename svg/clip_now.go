@@ -9,7 +9,7 @@ package svg
 // shape it was written on stands whole inside the clipPath, which is what
 // lets the walk come back rather than going round for ever.
 func (img *Image) clipNow(n *Node, id string, gray map[string]bool) *clipRegion {
-	warn := func(format string, args ...any) { img.warnings.warn(n.Name, format, args...) }
+	warn := func(format string, args ...any) { img.warnNamed(n.Name, format, args...) }
 	if gray[id] {
 		warn("the clip-path here points back at the <clipPath> this picture is inside, which would go round for ever, so the clip is left off")
 		return nil

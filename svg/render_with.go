@@ -22,18 +22,28 @@ func (img *Image) RenderWith(width, height int, current canvas.Color) *canvas.Ca
 	img.mu.Lock()
 	if img.refreshBuild() {
 		img.drawn = nil
+		// A paint already under way on another goroutine would otherwise cache
+		// the shape it drew before the style changed: the epoch tells it not
+		// to, the same way a picture arriving in a later frame does.
+		img.epoch++
 	}
 	if img.drawn != nil && img.drawnWidth == width && img.drawnHeight == height && img.drawnColour == current {
 		cv := img.drawn
 		img.mu.Unlock()
 		return cv
 	}
+	epoch := img.epoch
 	img.mu.Unlock()
 
 	cv := img.paint(width, height, current)
 
 	img.mu.Lock()
-	img.drawn, img.drawnWidth, img.drawnHeight, img.drawnColour = cv, width, height, current
+	// A picture landing while this paint ran bumps the epoch: the canvas just
+	// made has the hole where the photo will be, so it is handed back but not
+	// kept, and the next paint draws it with the picture in place.
+	if img.epoch == epoch {
+		img.drawn, img.drawnWidth, img.drawnHeight, img.drawnColour = cv, width, height, current
+	}
 	img.mu.Unlock()
 	return cv
 }
