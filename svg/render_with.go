@@ -27,7 +27,14 @@ func (img *Image) RenderWith(width, height int, current canvas.Color) *canvas.Ca
 		// to, the same way a picture arriving in a later frame does.
 		img.epoch++
 	}
-	if img.drawn != nil && img.drawnWidth == width && img.drawnHeight == height && img.drawnColour == current {
+	tick := 0
+	if img.animated {
+		// The frames of a moving picture are chosen by the clock, so a canvas
+		// cached for one moment holds a frame that has ended by the next:
+		// another tick means another paint rather than the canvas in hand.
+		tick = animationTick(img.Root, pictureClock(), 0)
+	}
+	if img.drawn != nil && img.drawnTick == tick && img.drawnWidth == width && img.drawnHeight == height && img.drawnColour == current {
 		cv := img.drawn
 		img.mu.Unlock()
 		return cv
@@ -43,6 +50,7 @@ func (img *Image) RenderWith(width, height int, current canvas.Color) *canvas.Ca
 	// kept, and the next paint draws it with the picture in place.
 	if img.epoch == epoch {
 		img.drawn, img.drawnWidth, img.drawnHeight, img.drawnColour = cv, width, height, current
+		img.drawnTick = tick
 	}
 	img.mu.Unlock()
 	return cv

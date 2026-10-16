@@ -1,7 +1,5 @@
 package svg
 
-import "github.com/gabrielluizsf/antui/canvas"
-
 // parseText reads a drawing that came from path — "" when it came from no file
 // at all — and keeps path as the base a relative address inside it resolves
 // against, which is what every `<image>` later asks for while it is built.
@@ -13,7 +11,7 @@ func parseText(src, path string) (*Image, error) {
 	if root.Name != "svg" {
 		return nil, &Error{What: "the root tag is <" + root.Name + ">, not <svg>"}
 	}
-	img := &Image{base: path, Root: &Node{Name: "svg"}, grads: map[string]*gradient{}, pictures: map[string]*canvas.Canvas{}}
+	img := &Image{base: path, Root: &Node{Name: "svg"}, grads: map[string]*gradient{}, pictures: map[string]*pictureFrames{}}
 	img.readSize(root)
 	// The gradients come before the shapes, because a shape may name one that is
 	// only written later in the file, and every gradient that names another has

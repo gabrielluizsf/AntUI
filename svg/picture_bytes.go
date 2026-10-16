@@ -2,8 +2,6 @@ package svg
 
 import (
 	"sync"
-
-	"github.com/gabrielluizsf/antui/canvas"
 )
 
 // pictureBytes is one network address as the whole process knows it: read once
@@ -16,7 +14,7 @@ type pictureBytes struct {
 	mu      sync.Mutex
 	read    pictureRead
 	done    bool
-	waiting []func(*canvas.Canvas, error)
+	waiting []func(*pictureFrames, error)
 }
 
 // pictureByteCache is the entries by resolved address. It is one table for the

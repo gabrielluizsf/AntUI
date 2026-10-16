@@ -20,6 +20,13 @@ func IconCanvas(name string, area canvas.Area, tint canvas.Color) *canvas.Canvas
 	if e == nil || e.img == nil {
 		return nil
 	}
+	// A drawing that moves with the clock has no picture worth remembering
+	// here: the canvas of the last frame is a frame that has ended. It goes
+	// back to the drawing every time, and the drawing holds the moment — this
+	// only asks for it.
+	if e.img.Animates() {
+		return e.img.RenderWith(w, h, tint)
+	}
 	key := iconPaintKey{name: name, w: w, h: h, tint: tint}
 	iconPaintMu.RLock()
 	painted, ok := iconPaint[key]

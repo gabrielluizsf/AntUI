@@ -54,11 +54,12 @@ type Image struct {
 
 	// pictures are the bitmaps the `<image>`s fetched, by the address each one
 	// resolves to, so that a drawing pointing at the same file twice reads it
-	// once.
+	// once — an animated GIF as every frame of its loop, chosen by the clock
+	// when it is painted rather than kept here.
 	// What is in here is never written to: an `<image>` that wants the picture
 	// somewhere else or in another opacity is given where and how it fits rather
 	// than changing what every other element pointing at the same address holds.
-	pictures map[string]*canvas.Canvas
+	pictures map[string]*pictureFrames
 
 	// clips are the clip paths the drawing declared, by the id a `clip-path`
 	// names. They are read before anything is built for the same reason as the
@@ -117,4 +118,14 @@ type Image struct {
 	// is part of what makes it the canvas asked for: an icon painted red is not
 	// the icon asked for a moment later in blue.
 	drawnColour canvas.Color
+	// drawnTick is the frame every moving picture showed when the canvas above
+	// was painted: the same tick means the same frames are still on the clock,
+	// and another one means the canvas holds a frame that has ended.
+	drawnTick int
+
+	// animated says a picture that moves with the clock has landed in this
+	// drawing, so which frame it shows is read from the clock as it is painted
+	// and no canvas of it outlives the moment it was made in. Set when such a
+	// picture arrives, under mu, beside the epoch it drops the cache with.
+	animated bool
 }

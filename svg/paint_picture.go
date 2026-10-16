@@ -15,7 +15,10 @@ import "github.com/gabrielluizsf/antui/canvas"
 // nothing beyond it, however the picture was turned on the way.
 func paintPicture(cv *canvas.Canvas, n *Node, m canvas.Matrix) {
 	p := n.Pic
-	pic := p.pixels()
+	// Which frame of a moving picture is showing is the clock's to say, read
+	// here rather than kept in the slot: the frames are shared with every
+	// element pointing at the same address, and the moment belongs to the paint.
+	pic := p.at(pictureClock())
 	if pic == nil || pic.Width <= 0 || pic.Height <= 0 {
 		return
 	}

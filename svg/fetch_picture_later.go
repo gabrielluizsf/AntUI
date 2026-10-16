@@ -3,7 +3,7 @@ package svg
 // fetchPictureLater reads an address off the goroutine that is reading the
 // drawing, so a server that is slow or gone cannot hold up a frame, and hands
 // the answer to every element that is waiting on it. The picture is decoded
-// once, here, so the elements sharing the address share the canvas too. The
+// once, here, so the elements sharing the address share the frames too. The
 // entry is settled before they are told, and a read that did not answer is
 // dropped from the table on the way out, so the next drawing that names the
 // address asks the server again.

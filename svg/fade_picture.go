@@ -27,3 +27,17 @@ func fadePicture(src *canvas.Canvas, opacity float64) *canvas.Canvas {
 	}
 	return cv
 }
+
+// faded is every frame of a picture at an opacity — the same pixels of their
+// own [fadePicture] makes, made once per frame, because the frames are what
+// every element pointing at the address shares and they are never written to.
+func (f *pictureFrames) faded(opacity float64) *pictureFrames {
+	if f == nil || opacity >= 1 {
+		return f
+	}
+	out := &pictureFrames{show: f.show}
+	for _, frame := range f.frames {
+		out.frames = append(out.frames, fadePicture(frame, opacity))
+	}
+	return out
+}

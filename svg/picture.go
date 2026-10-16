@@ -2,28 +2,28 @@ package svg
 
 import (
 	"sync"
-
-	"github.com/gabrielluizsf/antui/canvas"
 )
 
-// Picture is the bitmap an `<image>` draws and the box it is drawn into. It is
+// Picture is the picture an `<image>` draws and the box it is drawn into. It is
 // the whole of what was asked for: where the picture came from has already been
 // read by the time one of these exists, so painting needs nothing but the
-// pixels and the four numbers that say where they land.
+// frames and the four numbers that say where they land.
 type Picture struct {
-	// Pixels is the picture itself, straight-alpha the way a canvas holds it,
-	// at the size it was encoded at. Two `<image>`s pointing at the same
-	// address share these pixels and are never written to: fitting is done with
-	// where they are put rather than by changing them.
+	// frames is the picture itself — every frame of an animated one and the
+	// single frame of a picture that does not move — at the size it was
+	// encoded at. Two `<image>`s pointing at the same address share these
+	// frames and are never written to: fitting is done with where they are put
+	// rather than by changing them, and which frame of a moving picture is
+	// shown is read from the clock at paint time instead of written here.
 	//
 	// For a picture read from a server it is nothing until the bytes arrive,
 	// which happens while the drawing is being painted: the picture of such an
 	// element is put in later, by the goroutine that fetched it, and read here
-	// through [Picture.pixels] so that writing it and reading it do not happen
+	// through [Picture.at] so that writing it and reading it do not happen
 	// at the same time.
-	Pixels *canvas.Canvas
+	frames *pictureFrames
 
-	// mu guards Pixels: an `<image>` fetched over the network has its picture
+	// mu guards frames: an `<image>` fetched over the network has its picture
 	// filled in by the goroutine that fetched it, while the drawing it belongs
 	// to may be painting at the same time.
 	mu sync.Mutex
