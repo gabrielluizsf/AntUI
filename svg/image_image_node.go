@@ -27,12 +27,14 @@ func (img *Image) imageNode(e *element, st Style, warn func(string, ...any)) *No
 		warn("it has no href, so there is no picture for it to draw")
 		return n
 	}
-	box := img.pictureBox(e, warn)
-	if box[2] <= 0 || box[3] <= 0 {
+	box, autoW, autoH := img.pictureBox(e, warn)
+	if (!autoW && box[2] <= 0) || (!autoH && box[3] <= 0) {
 		// A box of no area is where the picture would go and there is no there,
 		// the same as a rectangle with no width: nothing is drawn, and this
 		// says so rather than the drawing quietly keeping a picture nobody can
-		// see. Fetching first would read a file only to throw it away.
+		// see. Fetching first would read a file only to throw it away — except
+		// that a side left open is the picture's to say, which is only known
+		// once it is read, and that case has an area coming either way.
 		warn("it has no width or height to draw the picture into, so the picture is left out")
 		return n
 	}
@@ -44,7 +46,7 @@ func (img *Image) imageNode(e *element, st Style, warn func(string, ...any)) *No
 		// going to be seen, so there is nothing to say about it either.
 		return n
 	}
-	slot := &Picture{Box: box, Fit: fit, Align: align}
+	slot := &Picture{Box: box, Fit: fit, Align: align, declared: box, autoW: autoW, autoH: autoH}
 	// The opacity is put into pixels of their own rather than onto the ones in
 	// the cache, which every other element pointing at the same address shares:
 	// what is in the cache is the picture as it was written, and one element

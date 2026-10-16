@@ -33,6 +33,11 @@ type Picture struct {
 	// already counted as its fraction of the drawing. It is as the file wrote
 	// it, before any transform on the element moves it — see [paintPicture],
 	// which puts the transform on afterwards the same way writing takes it.
+	//
+	// A side the drawing left open — absent or written as `auto` — is the
+	// picture's own to say, so Box is finished only when the picture is there:
+	// in the same frame for a file or a `data:` address, and when one fetched
+	// off the frame arrives for a server. See [autoBox].
 	Box [4]float64
 	// Fit is whether the picture keeps its own shape inside the box (meet), is
 	// cut down to the box (slice), or is stretched to fill it (none), which is
@@ -42,4 +47,11 @@ type Picture struct {
 	// the fit leaves anything over: one of the nine alignments the attribute
 	// names, `xMidYMid` being the one a drawing that says nothing gets.
 	Align PictureAlign
+
+	// declared is the box as the drawing wrote it, with the sides left open
+	// still zero — those are the picture's to say, and [Picture.arrive] is
+	// where they are said.
+	declared [4]float64
+	// autoW and autoH are which sides of the box the drawing left open.
+	autoW, autoH bool
 }

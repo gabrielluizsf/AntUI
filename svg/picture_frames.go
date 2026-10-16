@@ -13,6 +13,20 @@ import (
 type pictureFrames struct {
 	frames []*canvas.Canvas
 	show   []float64
+
+	// ownW and ownH are the size the picture says it is — the pixels it was
+	// encoded at, or the size the document behind it says it is — which is
+	// what a side of an `<image>` box left open answers with. See [autoBox].
+	ownW, ownH float64
+}
+
+// ownSize is that size, as the fitting wants it: two numbers where a picture
+// always has two, and nothing where there is no picture to ask.
+func (f *pictureFrames) ownSize() (w, h float64) {
+	if f == nil {
+		return 0, 0
+	}
+	return f.ownW, f.ownH
 }
 
 // moves says the picture animates: more than one frame going around a loop,

@@ -467,6 +467,95 @@ func TestAnImageMeetsItsPictureInTheBox(t *testing.T) {
 	}
 }
 
+func TestAnImageWithoutABoxIsTheSizeOfItsPicture(t *testing.T) {
+	// A drawing that says nothing about the box is the spec's way of asking
+	// for the picture at the size it was made at, which a photograph always
+	// has — so the picture lands whole, in the corner it was written at.
+	pic := solidPicture(t, 4, 2, color.NRGBA{B: 255, A: 255})
+	img := mustParse(t, fmt.Sprintf(
+		`<svg viewBox="0 0 4 4"><image href="%s"/></svg>`, asDataURI(pic)))
+	if got := img.Warnings().String(); got != "no warnings" {
+		t.Errorf("a picture sized by itself said something was wrong: %s", got)
+	}
+	cv := img.Render(4, 4)
+	wantColour(t, cv, 2, 1, canvas.RGB(0, 0, 255))
+	wantColour(t, cv, 2, 3, canvas.Transparent)
+}
+
+func TestAnImageTakesTheOpenSideFromThePicture(t *testing.T) {
+	// One side written and the other left open: the open one is the picture's
+	// proportion of the side that was, so a wide photograph asked to be four
+	// across comes out two down, and the same photograph asked to be two down
+	// comes out four across.
+	pic := solidPicture(t, 4, 2, color.NRGBA{B: 255, A: 255})
+	for _, tc := range []struct{ name, attr string }{
+		{"width only", `width="4"`},
+		{"height only", `height="2"`},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			img := mustParse(t, fmt.Sprintf(
+				`<svg viewBox="0 0 4 4"><image href="%s" %s/></svg>`, asDataURI(pic), tc.attr))
+			if got := img.Warnings().String(); got != "no warnings" {
+				t.Errorf("%s said something was wrong: %s", tc.name, got)
+			}
+			cv := img.Render(4, 4)
+			wantColour(t, cv, 2, 1, canvas.RGB(0, 0, 255))
+			wantColour(t, cv, 2, 3, canvas.Transparent)
+		})
+	}
+}
+
+func TestAnImageWhoseBoxWaitsForThePictureIsSizedWhenItArrives(t *testing.T) {
+	// A box with its sides open is finished when the picture arrives, which
+	// for a server is a later frame: the first paint shows the hole, and the
+	// one after the answer came back shows the picture at its own size.
+	pic := solidPicture(t, 4, 2, color.NRGBA{R: 255, A: 255})
+	release := make(chan struct{})
+	var once sync.Once
+	free := func() { once.Do(func() { close(release) }) }
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		<-release
+		w.Header().Set("Content-Type", "image/png")
+		w.Write(pic)
+	}))
+	defer srv.Close()
+	defer free()
+	img := mustParse(t, fmt.Sprintf(
+		`<svg viewBox="0 0 4 4"><image href="%s/pic.png"/></svg>`, srv.URL))
+	wantColour(t, img.Render(4, 4), 2, 1, canvas.Transparent)
+	free()
+	waitForPicture(t, img, 4, 4, 2, 1, canvas.RGB(255, 0, 0))
+	if got := img.Warnings().String(); got != "no warnings" {
+		t.Errorf("a picture that arrived said something was wrong: %s", got)
+	}
+}
+
+func TestAutoBoxTakesTheSidesThePictureSays(t *testing.T) {
+	// The whole of the arithmetic in one place: both sides open take the
+	// picture's own size, one open side takes its proportion of the other, and
+	// a picture that brings no size of its own falls back to the default a
+	// replaced element gets.
+	for _, tc := range []struct {
+		name         string
+		box          [4]float64
+		autoW, autoH bool
+		ownW, ownH   float64
+		want         [4]float64
+	}{
+		{"neither open", [4]float64{1, 2, 3, 4}, false, false, 8, 8, [4]float64{1, 2, 3, 4}},
+		{"both open", [4]float64{1, 2, 0, 0}, true, true, 8, 4, [4]float64{1, 2, 8, 4}},
+		{"width open", [4]float64{0, 0, 0, 2}, true, false, 8, 4, [4]float64{0, 0, 4, 2}},
+		{"height open", [4]float64{0, 0, 4, 0}, false, true, 8, 4, [4]float64{0, 0, 4, 2}},
+		{"no size to it", [4]float64{0, 0, 0, 0}, true, true, 0, 0, [4]float64{0, 0, defaultPictureW, defaultPictureH}},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			if got := autoBox(tc.box, tc.autoW, tc.autoH, tc.ownW, tc.ownH); got != tc.want {
+				t.Errorf("autoBox = %v, want %v", got, tc.want)
+			}
+		})
+	}
+}
+
 func TestADeferredPreserveAspectRatioIsReadWithoutIt(t *testing.T) {
 	// SVG 1.1 writes a leading `defer` for a picture pointed at from a
 	// drawing with a fit of its own; there is no drawing behind an address
@@ -623,7 +712,7 @@ func TestAPictureItCannotReadIsSaidOutLoud(t *testing.T) {
 			`<svg viewBox="0 0 4 4"><image width="4" height="4"/></svg>`,
 			"no href"},
 		{"no room",
-			`<svg viewBox="0 0 4 4"><image href="pic.png"/></svg>`,
+			fmt.Sprintf(`<svg viewBox="0 0 4 4"><image href="%s" width="0"/></svg>`, good),
 			"no width or height"},
 		{"a width of nothing",
 			`<svg viewBox="0 0 4 4"><image href="pic.png" width="0" height="4"/></svg>`,

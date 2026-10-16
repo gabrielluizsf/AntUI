@@ -18,18 +18,20 @@ func paintPicture(cv *canvas.Canvas, n *Node, m canvas.Matrix) {
 	// Which frame of a moving picture is showing is the clock's to say, read
 	// here rather than kept in the slot: the frames are shared with every
 	// element pointing at the same address, and the moment belongs to the paint.
-	pic := p.at(pictureClock())
+	// The box comes with it for the reason [Picture.fitted] reads the two
+	// together.
+	pic, where := p.fitted(pictureClock())
 	if pic == nil || pic.Width <= 0 || pic.Height <= 0 {
 		return
 	}
-	bw, bh := p.Box[2], p.Box[3]
+	bw, bh := where.box[2], where.box[3]
 	if bw <= 0 || bh <= 0 {
 		return
 	}
-	sx, sy, ox, oy := picturePlacement(p, float64(pic.Width), float64(pic.Height))
+	sx, sy, ox, oy := picturePlacement(where, float64(pic.Width), float64(pic.Height))
 	total := m.Mul(n.Style.Transform)
 	matrix := total.Mul(canvas.Translate(ox, oy).Mul(canvas.Scale(sx, sy)))
-	if p.Fit != PictureFitSlice {
+	if where.fit != PictureFitSlice {
 		cv.BlitMatrix(pic, matrix, canvas.Area{Width: pic.Width, Height: pic.Height})
 		return
 	}
@@ -40,8 +42,8 @@ func paintPicture(cv *canvas.Canvas, n *Node, m canvas.Matrix) {
 		// this package fails to make.
 		return
 	}
-	layer.BlitMatrix(pic, matrix, sliceRegion(p.Box, ox, oy, sx, sy, pic))
-	x0, y0, x1, y1 := regionArea(p.Box[0], p.Box[1], bw, bh, total)
+	layer.BlitMatrix(pic, matrix, sliceRegion(where.box, ox, oy, sx, sy, pic))
+	x0, y0, x1, y1 := regionArea(where.box[0], where.box[1], bw, bh, total)
 	layer.MaskRect(canvas.Area{X: x0, Y: y0, Width: x1 - x0, Height: y1 - y0})
 	cv.BlitOver(0, 0, layer)
 }

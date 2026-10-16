@@ -10,9 +10,9 @@ import "github.com/gabrielluizsf/antui/canvas"
 // being put into: pixels when it is painted, the units of the drawing when a
 // `<symbol>` is fitted into the box a `<use>` gave it.
 func fitTransform(view [4]float64, width, height float64) canvas.Matrix {
-	return fitViewBox(view, &Picture{
-		Box:   [4]float64{0, 0, width, height},
-		Fit:   PictureFitMeet,
-		Align: AlignXMidYMid,
+	return fitViewBox(view, pictureFit{
+		box:   [4]float64{0, 0, width, height},
+		fit:   PictureFitMeet,
+		align: AlignXMidYMid,
 	})
 }

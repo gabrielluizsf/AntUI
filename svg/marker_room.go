@@ -21,10 +21,10 @@ func markerRoom(def *markerDef, st Style) (w, h float64, onto canvas.Matrix, ok 
 	}
 	onto = canvas.Scale(scale, scale)
 	if def.hasView {
-		onto = fitViewBox(def.view, &Picture{
-			Box:   [4]float64{0, 0, w, h},
-			Fit:   def.fit,
-			Align: def.align,
+		onto = fitViewBox(def.view, pictureFit{
+			box:   [4]float64{0, 0, w, h},
+			fit:   def.fit,
+			align: def.align,
 		})
 	}
 	return w, h, onto, true

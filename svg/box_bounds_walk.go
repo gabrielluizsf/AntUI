@@ -10,7 +10,8 @@ func (b *boxBounds) walk(n *Node) {
 		}
 	}
 	if n.Pic != nil {
-		x, y, w, h := n.Pic.Box[0], n.Pic.Box[1], n.Pic.Box[2], n.Pic.Box[3]
+		box := n.Pic.fittedBox()
+		x, y, w, h := box[0], box[1], box[2], box[3]
 		if n.Style.HasTransform && n.Style.Transform != (canvas.Matrix{}) {
 			x, y, w, h = movedBox(x, y, w, h, n.Style.Transform)
 		}

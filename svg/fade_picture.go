@@ -35,7 +35,7 @@ func (f *pictureFrames) faded(opacity float64) *pictureFrames {
 	if f == nil || opacity >= 1 {
 		return f
 	}
-	out := &pictureFrames{show: f.show}
+	out := &pictureFrames{show: f.show, ownW: f.ownW, ownH: f.ownH}
 	for _, frame := range f.frames {
 		out.frames = append(out.frames, fadePicture(frame, opacity))
 	}

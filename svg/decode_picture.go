@@ -28,5 +28,5 @@ func decodePicture(data []byte) (*pictureFrames, error) {
 	if err != nil {
 		return nil, err
 	}
-	return &pictureFrames{frames: []*canvas.Canvas{cv}}, nil
+	return &pictureFrames{frames: []*canvas.Canvas{cv}, ownW: float64(cv.Width), ownH: float64(cv.Height)}, nil
 }

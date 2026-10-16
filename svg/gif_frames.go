@@ -20,7 +20,7 @@ func gifFrames(data []byte) (*pictureFrames, error) {
 	if g.Config.Width <= 0 || g.Config.Height <= 0 || len(g.Image) == 0 {
 		return nil, fmt.Errorf("it has no size to it")
 	}
-	out := &pictureFrames{show: make([]float64, len(g.Image))}
+	out := &pictureFrames{show: make([]float64, len(g.Image)), ownW: float64(g.Config.Width), ownH: float64(g.Config.Height)}
 	sheet := image.NewRGBA(image.Rect(0, 0, g.Config.Width, g.Config.Height))
 	var undo *image.RGBA
 	for i, f := range g.Image {
