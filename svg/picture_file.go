@@ -19,7 +19,7 @@ func pictureFile(target string) ([]byte, error) {
 	if u.Host != "" && u.Host != "localhost" {
 		return nil, fmt.Errorf("the file address names the host %q, which is not this machine", u.Host)
 	}
-	path := u.Path
+	path := filePathFromURL(u)
 	if path == "" {
 		// `file:a.png` carries no authority, and the path lands where Go keeps
 		// an address that is only an opaque string.
