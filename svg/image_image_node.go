@@ -52,7 +52,7 @@ func (img *Image) imageNode(e *element, st Style, warn func(string, ...any)) *No
 	// what is in the cache is the picture as it was written, and one element
 	// drawing it faint does not fade the rest. The request carries it because a
 	// picture still on its way has to be faded when it lands.
-	ask := pictureRequest{slot: slot, opacity: st.Opacity, href: href, warn: warn}
+	ask := pictureRequest{slot: slot, opacity: st.Opacity, href: href, warn: warn, chain: img.chain}
 	if !img.fillPicture(resolveHref(st.base, href), ask) {
 		return n
 	}

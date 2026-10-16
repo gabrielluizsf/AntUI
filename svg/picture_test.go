@@ -556,6 +556,107 @@ func TestAutoBoxTakesTheSidesThePictureSays(t *testing.T) {
 	}
 }
 
+func TestAPicturePointedAtAnSVGIsThatDrawingPainted(t *testing.T) {
+	// A photograph is not the only thing an address can answer with: a
+	// drawing read as a picture is painted at the size it says it is and
+	// fitted into the box like any other picture, its own proportions kept by
+	// the same meet that keeps a photograph's.
+	drawing := `<svg viewBox="0 0 4 2"><rect width="4" height="2" fill="lime"/></svg>`
+	path := filepath.Join(t.TempDir(), "drawing.svg")
+	if err := os.WriteFile(path, []byte(drawing), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	img := mustParse(t, fmt.Sprintf(
+		`<svg viewBox="0 0 4 4"><image href="%s" x="0" y="0" width="4" height="4"/></svg>`, path))
+	if got := img.Warnings().String(); got != "no warnings" {
+		t.Errorf("a drawing as a picture said something was wrong: %s", got)
+	}
+	cv := img.Render(4, 4)
+	wantColour(t, cv, 2, 1, canvas.RGB(0, 255, 0))
+	wantColour(t, cv, 2, 3, canvas.Transparent)
+}
+
+func TestADrawingReadAsAPictureResolvesItsOwnAddresses(t *testing.T) {
+	// The base a relative address inside a referenced drawing resolves
+	// against is the address of the drawing itself, the same as for a file
+	// read on its own: a picture written beside it is found beside it.
+	pic := solidPicture(t, 4, 4, color.NRGBA{B: 255, A: 255})
+	dir := t.TempDir()
+	if err := os.WriteFile(filepath.Join(dir, "pic.png"), pic, 0o644); err != nil {
+		t.Fatal(err)
+	}
+	path := filepath.Join(dir, "drawing.svg")
+	src := `<svg viewBox="0 0 4 4"><image href="pic.png" width="4" height="4"/></svg>`
+	if err := os.WriteFile(path, []byte(src), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	img := mustParse(t, fmt.Sprintf(
+		`<svg viewBox="0 0 4 4"><image href="%s" width="4" height="4"/></svg>`, path))
+	if got := img.Warnings().String(); got != "no warnings" {
+		t.Errorf("a drawing with a picture beside it said something was wrong: %s", got)
+	}
+	wantColour(t, img.Render(4, 4), 2, 2, canvas.RGB(0, 0, 255))
+}
+
+func TestADrawingPointingBackIsStoppedRatherThanReadForever(t *testing.T) {
+	// A circle of drawings — one naming the other naming the first — is
+	// stopped at the repeat rather than read around forever. What goes wrong
+	// inside a drawing read as a picture stays inside it: the hole is in the
+	// drawing that has the circle, and the drawing pointing at it is painted
+	// all the same, saying nothing about a circle it never saw.
+	dir := t.TempDir()
+	a := filepath.Join(dir, "a.svg")
+	b := filepath.Join(dir, "b.svg")
+	write := func(path, src string) {
+		t.Helper()
+		if err := os.WriteFile(path, []byte(src), 0o644); err != nil {
+			t.Fatal(err)
+		}
+	}
+	write(a, `<svg viewBox="0 0 4 4"><rect width="4" height="4" fill="red"/><image href="`+b+`" width="4" height="4"/></svg>`)
+	write(b, `<svg viewBox="0 0 4 4"><image href="`+a+`" width="4" height="4"/></svg>`)
+	src := fmt.Sprintf(`<svg viewBox="0 0 4 4"><image href="%s" width="4" height="4"/></svg>`, a)
+	img := mustParse(t, src)
+	if got := img.Warnings().String(); got != "no warnings" {
+		t.Errorf("a drawing that points at a circle said something: %s", got)
+	}
+	wantColour(t, img.Render(4, 4), 2, 2, canvas.RGB(255, 0, 0))
+
+	// The same with the circle closed at the first drawing: it names itself,
+	// and the reading of it ends with the hole where it would have been.
+	write(a, `<svg viewBox="0 0 4 4"><rect width="4" height="4" fill="red"/><image href="`+a+`" width="4" height="4"/></svg>`)
+	self := mustParse(t, src)
+	if got := self.Warnings().String(); got != "no warnings" {
+		t.Errorf("a drawing that points at itself said something: %s", got)
+	}
+	wantColour(t, self.Render(4, 4), 2, 2, canvas.RGB(255, 0, 0))
+}
+
+func TestAnSVGFetchedOffTheFrameArrivesInALaterPaint(t *testing.T) {
+	// A drawing behind a server is read off the frame the same as a
+	// photograph is: the box is built with the hole and the picture of the
+	// drawing lands when the answer comes back.
+	drawing := []byte(`<svg viewBox="0 0 4 4"><rect width="4" height="4" fill="lime"/></svg>`)
+	release := make(chan struct{})
+	var once sync.Once
+	free := func() { once.Do(func() { close(release) }) }
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		<-release
+		w.Header().Set("Content-Type", "image/svg+xml")
+		w.Write(drawing)
+	}))
+	defer srv.Close()
+	defer free()
+	img := mustParse(t, fmt.Sprintf(
+		`<svg viewBox="0 0 4 4"><image href="%s/drawing.svg" width="4" height="4"/></svg>`, srv.URL))
+	wantColour(t, img.Render(4, 4), 2, 2, canvas.Transparent)
+	free()
+	waitForPicture(t, img, 4, 4, 2, 2, canvas.RGB(0, 255, 0))
+	if got := img.Warnings().String(); got != "no warnings" {
+		t.Errorf("a drawing over http said something was wrong: %s", got)
+	}
+}
+
 func TestADeferredPreserveAspectRatioIsReadWithoutIt(t *testing.T) {
 	// SVG 1.1 writes a leading `defer` for a picture pointed at from a
 	// drawing with a fit of its own; there is no drawing behind an address

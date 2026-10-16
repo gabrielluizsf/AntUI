@@ -13,5 +13,5 @@ package svg
 // paint; one whose size cannot be read falls back to what its viewBox says, and
 // a drawing with neither is a hundred by a hundred.
 func Parse(src string) (*Image, error) {
-	return parseText(src, "")
+	return parseText(src, "", nil)
 }

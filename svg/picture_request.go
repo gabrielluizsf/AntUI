@@ -10,6 +10,10 @@ type pictureRequest struct {
 	opacity float64
 	href    string
 	warn    func(string, ...any)
+	// chain is the drawings being read through one another to get to this
+	// element, which an address that names one of them is stopped by. See
+	// [svgFrames].
+	chain []string
 }
 
 // apply puts a fetched picture where the element asked for it: into its slot,

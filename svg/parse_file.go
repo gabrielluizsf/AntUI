@@ -15,5 +15,5 @@ func ParseFile(path string) (*Image, error) {
 	if err != nil {
 		return nil, err
 	}
-	return parseText(string(data), path)
+	return parseText(string(data), path, nil)
 }

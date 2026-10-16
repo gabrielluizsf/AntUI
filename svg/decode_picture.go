@@ -8,15 +8,20 @@ import (
 	"github.com/gabrielluizsf/antui/canvas"
 )
 
-// decodePicture is a PNG, a JPEG or a GIF turned into the frames it draws —
-// one for a picture that does not move, every frame of the loop for a GIF that
-// animates, so a paint picks by the clock which one is showing. The channels
-// come out of the decoder premultiplied by their alpha and a canvas holds them
-// straight, which is what [pictureCanvas] undoes.
-func decodePicture(data []byte) (*pictureFrames, error) {
+// decodePicture is what an address answered with: the frames it draws — one
+// for a picture that does not move, every frame of the loop for a GIF that
+// animates — either a photograph read by the decoders of the standard library
+// or a drawing read by this package's own. chain is the drawings being read
+// through one `<image>` after another to get here, which is what keeps a
+// circle of them from reading forever, and target is the address they were
+// read from.
+func decodePicture(chain []string, target string, data []byte) (*pictureFrames, error) {
+	if sniffSVG(data) {
+		return svgFrames(chain, target, data)
+	}
 	src, format, err := image.Decode(bytes.NewReader(data))
 	if err != nil {
-		return nil, fmt.Errorf("it is not a PNG, a JPEG or a GIF: %w", err)
+		return nil, fmt.Errorf("it is not a drawing, a PNG, a JPEG or a GIF: %w", err)
 	}
 	if format == "gif" {
 		// The first frame is all `image.Decode` answers; the animation is the

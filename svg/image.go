@@ -106,6 +106,12 @@ type Image struct {
 	// the first repeat.
 	uses []string
 
+	// chain is the drawings being read through an `<image>` after another to
+	// get to this one — outermost first, this one last — for the same reason
+	// as uses: an address naming one of them closes a circle, and it is
+	// stopped rather than read forever. See [svgFrames].
+	chain []string
+
 	// The last size and colour painted and the canvas it was painted on, so that
 	// a frame which asks for the same icon again costs nothing. Guarded by mu,
 	// because two goroutines may ask for the same icon at once and the worst

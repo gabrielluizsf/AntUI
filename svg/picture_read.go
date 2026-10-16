@@ -12,10 +12,11 @@ type pictureRead struct {
 // decoded is the read turned into the frames the element draws, which is the
 // only thing drawing an `<image>` needs from it. A failure is answered the same
 // way whatever it was: as the reason the picture is not there, named by the
-// error it carries.
-func (r pictureRead) decoded() (*pictureFrames, error) {
+// error it carries. The chain and the target say which drawing is being read
+// through which, for an address that turns out to be a drawing of its own.
+func (r pictureRead) decoded(chain []string, target string) (*pictureFrames, error) {
 	if r.err != nil {
 		return nil, r.err
 	}
-	return decodePicture(r.data)
+	return decodePicture(chain, target, r.data)
 }

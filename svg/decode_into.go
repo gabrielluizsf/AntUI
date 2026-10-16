@@ -5,7 +5,7 @@ package svg
 // that name the same one. What could not be decoded is said and leaves the slot
 // empty, the same as what could not be fetched.
 func (img *Image) decodeInto(target string, read pictureRead, r pictureRequest) bool {
-	pic, err := read.decoded()
+	pic, err := read.decoded(r.chain, target)
 	if err != nil {
 		r.unmet(err)
 		return false

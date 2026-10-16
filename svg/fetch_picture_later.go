@@ -7,10 +7,16 @@ package svg
 // entry is settled before they are told, and a read that did not answer is
 // dropped from the table on the way out, so the next drawing that names the
 // address asks the server again.
+//
+// An address that turns out to be a drawing of its own is read here with no
+// chain of its own: a circle through a server comes back as the waiters
+// already make it — the address is one the process is fetching, so what waits
+// on it waits rather than reading it again — and never as another read on
+// this stack.
 func fetchPictureLater(target string, e *pictureBytes) {
 	data, fetchErr := fetchPicture(target)
 	read := pictureRead{data: data, err: fetchErr}
-	pic, err := read.decoded()
+	pic, err := read.decoded(nil, target)
 
 	e.mu.Lock()
 	e.read, e.done = read, true
