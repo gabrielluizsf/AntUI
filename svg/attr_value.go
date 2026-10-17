@@ -1,6 +1,15 @@
 package svg
 
-import "fmt"
+import (
+	"fmt"
+	"strings"
+)
+
+// attrSpace reads the whitespace XML normalizes inside every attribute value:
+// a tab or a line break written literally in the value is one space. A
+// character reference holds the character itself and is left to be read as it
+// says, which is why this runs before the value is unescaped.
+var attrSpace = strings.NewReplacer("\t", " ", "\n", " ")
 
 // attrValue reads the value of one attribute, unwrapping its quotes and turning
 // what is inside them into the characters it stands for. A `<` is refused in
@@ -38,5 +47,5 @@ func (p *xmlParser) attrValue() (string, error) {
 	}
 	v := p.src[start:p.pos]
 	p.pos++
-	return p.unescape(v)
+	return p.unescape(attrSpace.Replace(v))
 }
