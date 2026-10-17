@@ -21,15 +21,18 @@ func (ns namespace) uriOf(prefix string) (string, bool) {
 // case where what was written is not this package's to draw. A prefix nothing
 // declares is an error, the same as it is to an XML Namespaces reader: a
 // drawing that wears one is not the drawing it declares, and guessing at what
-// it stood for would paint something the file did not say.
+// it stood for would paint something the file did not say. A default the file
+// declares itself is the one the element stands in — an empty one puts it in
+// no namespace, which is not the SVG one — while a drawing that declares no
+// default at all is read in the SVG namespace, a snippet in its own language.
 func (ns namespace) resolve(name string) (string, bool, error) {
 	prefix, local := "", name
 	if i := strings.IndexByte(name, ':'); i > 0 {
 		prefix, local = name[:i], name[i+1:]
 	}
 	if prefix == "" {
-		uri := ns[""]
-		return local, uri != "" && uri != svgNS, nil
+		uri, bound := ns[""]
+		return local, bound && uri != svgNS, nil
 	}
 	uri, bound := ns.uriOf(prefix)
 	if !bound {

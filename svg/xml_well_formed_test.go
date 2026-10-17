@@ -136,3 +136,26 @@ func TestAMismatchedCloseSaysWhatClosedIt(t *testing.T) {
 		t.Errorf("error = %q, want it to name </rect>", err)
 	}
 }
+
+func TestACharacterXMLKeepsOutOfADocumentIsAnError(t *testing.T) {
+	// XML allows tab, line break and carriage return and nothing else below a
+	// space, and every byte has to be part of the UTF-8 the document is
+	// written in. A control character or a stray byte is an error wherever it
+	// stands — in the text, in a value, in a comment or in a CDATA section —
+	// because a reader that passed one on would paint a document the file does
+	// not hold.
+	for _, bad := range []string{
+		"<svg>\x01</svg>",
+		"<rect x=\"\x0b\"/>",
+		"<!--\x0c--><svg/>",
+		"<svg><![CDATA[\x00]]></svg>",
+		"<svg>\xff</svg>",
+	} {
+		if _, err := parseDocument(bad); err == nil {
+			t.Errorf("parse %q: no error, where a character XML keeps out stands", bad)
+		}
+	}
+	if _, err := parseDocument("<svg>\t\n\r</svg>"); err != nil {
+		t.Errorf("parse: %v, where the characters are the three XML allows", err)
+	}
+}

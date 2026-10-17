@@ -9,6 +9,10 @@ package svg
 // cannot be read at all, while anything else inside it is either drawn or
 // reported as a warning.
 func parseDocument(src string) (*element, error) {
-	p := &xmlParser{src: decodeText(src)}
+	text := decodeText(src)
+	if err := checkChars(text); err != nil {
+		return nil, err
+	}
+	p := &xmlParser{src: text}
 	return p.document()
 }

@@ -117,3 +117,28 @@ func TestThePrefixesXMLKeepsForItselfAreNotAFileToBind(t *testing.T) {
 		t.Errorf("parse: %v, where the xml prefix is bound to the XML namespace", err)
 	}
 }
+
+func TestAPrefixDeclaredToNoNamespaceIsAnError(t *testing.T) {
+	// A prefix has to stand for something: `xmlns=""` empties the default and
+	// is how a file says an element is in no namespace, but a prefix declared
+	// to nothing names nothing and is not a binding a reader can take.
+	if _, err := parseDocument(`<svg xmlns:x=""><x:g/></svg>`); err == nil {
+		t.Error("parse: no error, where a prefix is declared to no namespace")
+	}
+	if _, err := parseDocument(`<svg xmlns=""/>`); err != nil {
+		t.Errorf("parse: %v, where only the default is emptied", err)
+	}
+}
+
+func TestAnEmptiedDefaultIsNotTheSVGNamespace(t *testing.T) {
+	// `xmlns=""` undeclares the default, so the element is in no namespace at
+	// all — not the SVG one — and what is written in it is not this package's
+	// to paint, the same as a browser draws none of it.
+	_, cv := painted(t, `<svg width="4" height="4"><g xmlns="">`+greenRect+`</g></svg>`, 4, 4)
+	if got := cv.At(2, 2); got.G() != 0 {
+		t.Errorf("pixel = %v, want an emptied default namespace painted nowhere", got)
+	}
+	if _, err := Parse(`<svg xmlns=""/>`); err == nil {
+		t.Error("parse: no error, where the root empties the default namespace")
+	}
+}
