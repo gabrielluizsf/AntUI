@@ -749,6 +749,32 @@ func TestAnImageSlicesItsPictureToTheBox(t *testing.T) {
 	}
 }
 
+func TestAnImageSlicesItsPictureAtTheBoxOfATurnedElement(t *testing.T) {
+	// The box the picture is cut to goes wherever the element's transform
+	// takes it: a box turned 45 degrees is a diamond, and the picture stops
+	// at its edges rather than at the axis-aligned rectangle drawn around
+	// them, which leaves the corners of the drawing empty however much of
+	// the picture reaches there.
+	pic := solidPicture(t, 2, 2, color.NRGBA{G: 255, A: 255})
+	img := mustParse(t, fmt.Sprintf(
+		`<svg viewBox="0 0 16 16"><image href="%s" x="4" y="4" width="8" height="8" preserveAspectRatio="xMidYMid slice" transform="rotate(45 8 8)"/></svg>`,
+		asDataURI(pic)))
+	if got := img.Warnings().String(); got != "no warnings" {
+		t.Errorf("a turned slice said something was wrong: %s", got)
+	}
+	cv := img.Render(16, 16)
+	// The middle of the diamond keeps the picture whole...
+	wantColour(t, cv, 8, 8, canvas.RGB(0, 255, 0))
+	// ...and the pixels beside its edges, which the axis-aligned rectangle
+	// the cut used to be reached into, are empty now: they lie outside every
+	// edge of the turned rectangle.
+	for _, p := range [][2]int{{5, 2}, {10, 2}, {2, 5}, {13, 5}, {2, 10}, {13, 10}, {5, 13}, {10, 13}} {
+		if got := cv.At(p[0], p[1]); got != canvas.Transparent {
+			t.Errorf("outside the turned box at %v kept %v, want nothing", p, got)
+		}
+	}
+}
+
 func TestAnImageStretchesItsPictureWithNone(t *testing.T) {
 	// The fit that throws the picture's own shape away for the box: a wide
 	// picture over every pixel of a square one, top row and bottom included.
