@@ -1,18 +1,22 @@
 package svg
 
-import "strings"
+import (
+	"fmt"
+	"strings"
+)
 
-// readCdata appends the text of a `<![CDATA[ ... ]]>` section to b and leaves
+// readCdata appends the text of a `<![CDATA[ … ]]>` section to b and leaves
 // the position past it. The section ends where `]]>` begins, so the text is
-// what is between the two rather than up to the end of them.
-func (p *xmlParser) readCdata(b *strings.Builder) {
+// what is between the two rather than up to the end of them. A section that
+// was never closed is an error rather than the rest of the file quietly
+// becoming text.
+func (p *xmlParser) readCdata(b *strings.Builder) error {
 	p.pos += len("<![CDATA[")
-	start := p.pos
-	if i := strings.Index(p.src[p.pos:], "]]>"); i >= 0 {
-		b.WriteString(p.src[start : start+i])
-		p.pos += i + len("]]>")
-	} else {
-		b.WriteString(p.src[start:])
-		p.pos = len(p.src)
+	i := strings.Index(p.src[p.pos:], "]]>")
+	if i < 0 {
+		return fmt.Errorf("antui/svg: a CDATA section is never closed")
 	}
+	b.WriteString(p.src[p.pos : p.pos+i])
+	p.pos += i + len("]]>")
+	return nil
 }

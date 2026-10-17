@@ -27,31 +27,22 @@ func (p *xmlParser) children(e *element, preserve bool) error {
 			e.Text = textOf(e)
 			return nil
 		}
-		if p.at("<!--") {
-			p.through("-->")
-			continue
-		}
-		if p.at("<![CDATA[") {
-			p.readCdata(&text)
-			continue
-		}
-		if p.at("<?") {
-			p.through("?>")
-			continue
-		}
-		if p.at("<!") {
-			p.skipDecl()
-			continue
-		}
 		if p.at("<") {
 			keep()
-			kid, err := p.element(preserve)
+			kid, err := p.inside(preserve, &text)
 			if err != nil {
 				return err
 			}
-			e.Kids = append(e.Kids, kid)
-			e.Parts = append(e.Parts, part{Elem: kid})
+			if kid != nil {
+				e.Kids = append(e.Kids, kid)
+				e.Parts = append(e.Parts, part{Elem: kid})
+			}
 			continue
+		}
+		// `]]>` may only close a CDATA section, never stand in a drawing's own
+		// writing, where XML keeps it out.
+		if p.src[p.pos] == ']' && p.at("]]>") {
+			return fmt.Errorf("antui/svg: the writing of <%s> holds a `]]>`, which XML keeps out of text", e.Name)
 		}
 		text.WriteByte(p.src[p.pos])
 		p.pos++

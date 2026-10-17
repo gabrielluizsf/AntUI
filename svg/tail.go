@@ -12,10 +12,16 @@ func (p *xmlParser) tail() error {
 		switch {
 		case p.eof():
 			return nil
+		case p.atXMLDecl():
+			return fmt.Errorf("antui/svg: the xml declaration may only open the document, not follow the root")
 		case p.at("<!--"):
-			p.through("-->")
+			if err := p.comment(); err != nil {
+				return err
+			}
 		case p.at("<?"):
-			p.through("?>")
+			if err := p.pi(); err != nil {
+				return err
+			}
 		default:
 			return fmt.Errorf("antui/svg: the drawing carries on past its root with %q, where only whitespace, a comment or an instruction may follow", p.peek(12))
 		}
