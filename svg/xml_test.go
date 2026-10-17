@@ -142,16 +142,21 @@ func TestParseDocumentUnescapesEntities(t *testing.T) {
 	}
 }
 
-func TestParseDocumentLeavesAnUnknownEntityAlone(t *testing.T) {
-	// An entity this package does not know is left as it was written, because
-	// guessing at what it meant would draw something other than what the file
-	// says.
-	e, err := parseDocument(`<text label="a &unknown; b"/>`)
-	if err != nil {
-		t.Fatalf("parse: %v", err)
-	}
-	if got, want := e.attr("label"), "a &unknown; b"; got != want {
-		t.Errorf("label = %q, want %q", got, want)
+func TestAnEntityTheDrawingDoesNotDefineIsAnError(t *testing.T) {
+	// A name nothing defines has nothing to stand for, and reading past it
+	// would draw something other than what the file says. A bare ampersand is
+	// the same sort of thing: XML keeps it out because there is no telling
+	// what was meant by it.
+	for _, src := range []string{
+		`<text label="a &unknown; b"/>`,
+		`<text label="a & b"/>`,
+		`<text label="a &amp b"/>`,
+		`<task>a &unknown; b</task>`,
+		`<task>a & b</task>`,
+	} {
+		if _, err := parseDocument(src); err == nil {
+			t.Errorf("%s was read, want an error", src)
+		}
 	}
 }
 

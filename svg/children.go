@@ -42,12 +42,11 @@ func (p *xmlParser) children(e *element, preserve bool, ns namespace) error {
 			}
 			continue
 		}
-		// `]]>` may only close a CDATA section, never stand in a drawing's own
-		// writing, where XML keeps it out.
-		if p.src[p.pos] == ']' && p.at("]]>") {
-			return fmt.Errorf("antui/svg: the writing of <%s> holds a `]]>`, which XML keeps out of text", e.Name)
+		// The next piece of writing, an entity read into the character it
+		// stands for. A name nothing defines is an error, since a drawing that
+		// holds one does not say what it means.
+		if err := p.writeText(e, &text); err != nil {
+			return err
 		}
-		text.WriteByte(p.src[p.pos])
-		p.pos++
 	}
 }

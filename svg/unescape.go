@@ -1,46 +1,38 @@
 package svg
 
-import (
-	"strings"
-	"unicode/utf8"
-)
+import "strings"
 
-// unescape turns the entities inside an attribute value or a piece of text into
-// the characters they stand for. XML has five of its own and a drawing uses
-// them constantly, and anything else it writes as `&#…;` — a number, or the
-// number of a character — which is how a label with an ampersand in it or a
-// path with a degree sign in a comment gets through.
-//
-// An entity this does not know is left exactly as it was written. Guessing at
-// what `&foo;` was meant to be would turn a typo into a different drawing, and
-// an unknown entity is almost always a nameless one that the reader can see.
-func unescape(s string) string {
+// unescape reads an attribute value as the drawing means it: the five entities
+// XML defines, the characters written as `&#…;`, and any name the drawing's
+// own doctype defines are each read into the place they were written. A bare
+// `&`, or a name nothing defines, is an error — a drawing whose text holds one
+// does not say what it means, and reading past it would paint something other
+// than the file.
+func (p *xmlParser) unescape(s string) (string, error) {
+	return p.expand(s, nil)
+}
+
+// expand reads the entities inside a piece of text, where over holds the names
+// whose text is being read right now: one whose text brings its own name back
+// around would never stop reading, so it is an error instead.
+func (p *xmlParser) expand(s string, over []string) (string, error) {
 	if !strings.ContainsRune(s, '&') {
-		return s
+		return s, nil
 	}
 	var out strings.Builder
 	out.Grow(len(s))
 	for i := 0; i < len(s); {
 		if s[i] != '&' {
-			_, size := utf8.DecodeRuneInString(s[i:])
-			out.WriteString(s[i : i+size])
-			i += size
-			continue
-		}
-		end := strings.IndexByte(s[i:], ';')
-		if end < 0 || end > 12 {
-			// No semicolon, so this is a bare ampersand and not an entity.
-			out.WriteByte('&')
+			out.WriteByte(s[i])
 			i++
 			continue
 		}
-		name := s[i+1 : i+end]
-		if r, ok := decodeEntity(name); ok {
-			out.WriteRune(r)
-		} else {
-			out.WriteString(s[i : i+end+1])
+		word, size, err := p.entityAt(s, i, over)
+		if err != nil {
+			return "", err
 		}
-		i += end + 1
+		out.WriteString(word)
+		i += size
 	}
-	return out.String()
+	return out.String(), nil
 }

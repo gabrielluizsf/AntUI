@@ -14,6 +14,7 @@ func (p *xmlParser) document() (*element, error) {
 			return nil, err
 		}
 	}
+	doctyped := false
 	for {
 		p.skipSpace()
 		switch {
@@ -30,10 +31,13 @@ func (p *xmlParser) document() (*element, error) {
 				return nil, err
 			}
 		case p.at("<!"):
-			// A doctype or another declaration: it ends at the first > that is
-			// not inside a pair of brackets, which is where the internal subset
-			// of a DTD would otherwise run past it.
-			p.skipDecl()
+			if doctyped {
+				return nil, fmt.Errorf("antui/svg: a document may only have one doctype")
+			}
+			doctyped = true
+			if err := p.doctype(); err != nil {
+				return nil, err
+			}
 		case p.at("<"):
 			root, err := p.element(false, namespace{})
 			if err != nil {

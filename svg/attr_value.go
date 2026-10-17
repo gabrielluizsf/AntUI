@@ -23,7 +23,7 @@ func (p *xmlParser) attrValue() (string, error) {
 			}
 			p.pos++
 		}
-		return unescape(p.src[start:p.pos]), nil
+		return p.unescape(p.src[start:p.pos])
 	}
 	p.pos++
 	start := p.pos
@@ -38,5 +38,5 @@ func (p *xmlParser) attrValue() (string, error) {
 	}
 	v := p.src[start:p.pos]
 	p.pos++
-	return unescape(v), nil
+	return p.unescape(v)
 }
