@@ -414,7 +414,7 @@ func TestAnImageFallsBackToTheXlinkHref(t *testing.T) {
 	// beside every modern file that has one.
 	pic := solidPicture(t, 4, 4, color.NRGBA{R: 255, G: 255, A: 255})
 	img := mustParse(t, fmt.Sprintf(
-		`<svg viewBox="0 0 4 4"><image xlink:href="%s" x="0" y="0" width="4" height="4"/></svg>`,
+		`<svg viewBox="0 0 4 4" xmlns:xlink="http://www.w3.org/1999/xlink"><image xlink:href="%s" x="0" y="0" width="4" height="4"/></svg>`,
 		asDataURI(pic)))
 	if got := img.Warnings().String(); got != "no warnings" {
 		t.Errorf("an xlink:href said something was wrong: %s", got)

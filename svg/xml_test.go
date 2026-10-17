@@ -118,8 +118,8 @@ func TestParseDocumentNamespacedTags(t *testing.T) {
 	// in full, and both read the same as the bare name.
 	for _, src := range []string{
 		`<circle/>`,
-		`<svg:circle/>`,
-		`<ns:circle/>`,
+		`<svg:circle xmlns:svg="http://www.w3.org/2000/svg"/>`,
+		`<ns:circle xmlns:ns="http://www.w3.org/2000/svg"/>`,
 		`<circle xmlns="http://www.w3.org/2000/svg"/>`,
 	} {
 		e, err := parseDocument(src)

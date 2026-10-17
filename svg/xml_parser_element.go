@@ -24,8 +24,17 @@ func (p *xmlParser) element(preserve bool, ns namespace) (*element, error) {
 	if err := p.attributes(e); err != nil {
 		return nil, err
 	}
-	scope := ns.child(e)
-	e.Name, e.foreign = scope.resolve(name)
+	scope, err := ns.child(e)
+	if err != nil {
+		return nil, err
+	}
+	if err := scope.takeAttrs(e); err != nil {
+		return nil, err
+	}
+	e.Name, e.foreign, err = scope.resolve(name)
+	if err != nil {
+		return nil, err
+	}
 	if e.Attr[""] != "" {
 		// A lone slash before the closing bracket is the older way of writing a
 		// tag that closes itself, and it means the same thing.

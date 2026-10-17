@@ -15,7 +15,10 @@ func (p *xmlParser) closeTag(e *element, ns namespace) error {
 	for !p.eof() && !isSpace(p.src[p.pos]) && p.src[p.pos] != '>' {
 		p.pos++
 	}
-	closing, foreign := ns.resolve(p.src[start:p.pos])
+	closing, foreign, err := ns.resolve(p.src[start:p.pos])
+	if err != nil {
+		return err
+	}
 	p.skipSpace()
 	if p.eof() || p.src[p.pos] != '>' {
 		return fmt.Errorf("antui/svg: <%s> is closed by </%s>, which is not a closing tag", e.Name, closing)

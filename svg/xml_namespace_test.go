@@ -5,8 +5,10 @@ import "testing"
 // An element is drawn through the namespace it stands in, not through the
 // letters of its local name: a prefix or a default bound anywhere but the SVG
 // namespace is a drawing within the drawing, and what is written in it is not
-// this package's to paint. A prefix nothing declares is read as the SVG one,
-// because that is how the drawings that arrive here spell one.
+// this package's to paint. A prefix nothing declares is an error, as it is to
+// an XML Namespaces reader: a drawing wearing one is not the drawing it
+// declares, and guessing at what it stood for would paint what the file did
+// not say.
 
 const greenRect = `<rect width="4" height="4" fill="#00ff00"/>`
 
@@ -14,7 +16,7 @@ func TestAnElementOutsideTheSVGNamespaceIsNotPainted(t *testing.T) {
 	cases := []string{
 		`<svg width="4" height="4"><g xmlns="http://example.com"><rect width="4" height="4" fill="#ff0000"/></g>` + greenRect + `</svg>`,
 		`<svg width="4" height="4" xmlns:x="http://example.com"><x:g><rect width="4" height="4" fill="#ff0000"/></x:g>` + greenRect + `</svg>`,
-		`<svg width="4" height="4"><x:circle xmlns:x="http://example.com" r="9"/><x:rect width="4" height="4" fill="#ff0000"/>` + greenRect + `</svg>`,
+		`<svg width="4" height="4" xmlns:x="http://example.com"><x:circle r="9"/><x:rect width="4" height="4" fill="#ff0000"/>` + greenRect + `</svg>`,
 	}
 	for _, src := range cases {
 		_, cv := painted(t, src, 4, 4)
@@ -34,8 +36,8 @@ func TestAPrefixOrDefaultInTheSVGNamespaceDraws(t *testing.T) {
 	cases := []string{
 		`<svg width="4" height="4" xmlns:q="http://www.w3.org/2000/svg"><q:rect width="4" height="4" fill="#00ff00"/></svg>`,
 		`<svg width="4" height="4" xmlns="http://www.w3.org/2000/svg">` + greenRect + `</svg>`,
-		`<svg width="4" height="4"><q:rect width="4" height="4" fill="#00ff00"/></svg>`,
-		`<svg width="4" height="4"><svg:rect width="4" height="4" fill="#00ff00"/></svg>`,
+		`<svg width="4" height="4"><q:rect xmlns:q="http://www.w3.org/2000/svg" width="4" height="4" fill="#00ff00"/></svg>`,
+		`<svg width="4" height="4"><svg:rect xmlns:svg="http://www.w3.org/2000/svg" width="4" height="4" fill="#00ff00"/></svg>`,
 	}
 	for _, src := range cases {
 		_, cv := painted(t, src, 4, 4)
@@ -65,5 +67,53 @@ func TestAnElementInAForeignNamespaceStillClosesRight(t *testing.T) {
 	}
 	if _, err := parseDocument(`<svg><x:g xmlns:x="http://example.com"></x:g></svg>`); err != nil {
 		t.Errorf("parse: %v", err)
+	}
+}
+
+func TestAPrefixNothingDeclaresIsAnError(t *testing.T) {
+	for _, bad := range []string{
+		`<svg><x:g/></svg>`,
+		`<svg xmlns:x="http://example.com"><y:g/></svg>`,
+		`<svg><rect x:href="#a"/></svg>`,
+		`<svg><x:g></x:g2></svg>`,
+	} {
+		if _, err := parseDocument(bad); err == nil {
+			t.Errorf("parse %s: no error, where a prefix is worn that nothing declares", bad)
+		}
+	}
+}
+
+func TestAnAttributeIsHeldToTheNamespaceItsPrefixStandsFor(t *testing.T) {
+	// An attribute written against XLink or XML is kept under the name the
+	// drawing reads it by, whatever prefix a file spelled it with; an
+	// attribute of any other namespace is another document's and is let go.
+	e, err := parseDocument(`<svg xmlns:xl="http://www.w3.org/1999/xlink" xmlns:o="urn:other">` +
+		`<image xl:href="#a" o:tweak="1" xml:space="preserve" x="1"/></svg>`)
+	if err != nil {
+		t.Fatalf("parse: %v", err)
+	}
+	img := e.Kids[0]
+	if got := img.attr("xlink:href"); got != "#a" {
+		t.Errorf("xlink:href = %q, want it kept under the name the drawing reads", got)
+	}
+	if got := img.attr("xml:space"); got != "preserve" {
+		t.Errorf("xml:space = %q, want it kept", got)
+	}
+	if img.hasAttr("o:tweak") {
+		t.Error("an attribute of another namespace was kept")
+	}
+}
+
+func TestThePrefixesXMLKeepsForItselfAreNotAFileToBind(t *testing.T) {
+	for _, bad := range []string{
+		`<svg xmlns:xml="urn:other"/>`,
+		`<svg xmlns:xmlns="urn:other"/>`,
+	} {
+		if _, err := parseDocument(bad); err == nil {
+			t.Errorf("parse %s: no error, where a prefix XML keeps for itself is bound elsewhere", bad)
+		}
+	}
+	if _, err := parseDocument(`<svg xmlns:xml="http://www.w3.org/XML/1998/namespace"/>`); err != nil {
+		t.Errorf("parse: %v, where the xml prefix is bound to the XML namespace", err)
 	}
 }

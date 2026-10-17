@@ -96,9 +96,9 @@ func TestNamesXMLAllowsAreRead(t *testing.T) {
 	for _, good := range []string{
 		`<rect x="1"/>`,
 		`<linearGradient id="g1"/>`,
-		`<rect xlink:href="#a"/>`,
+		`<rect xlink:href="#a" xmlns:xlink="http://www.w3.org/1999/xlink"/>`,
 		`<text xml:space="preserve"> </text>`,
-		`<a_b.c-d:e/>`,
+		`<a_b.c-d:e xmlns:a_b.c-d="http://www.w3.org/2000/svg"/>`,
 	} {
 		if _, err := parseDocument(good); err != nil {
 			t.Errorf("parse %s: %v", good, err)

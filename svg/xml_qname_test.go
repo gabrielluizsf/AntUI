@@ -6,7 +6,7 @@ func TestANameMayBeWrittenWithOnePrefix(t *testing.T) {
 	// A name parts in two at most, a prefix in front of a local part, whether
 	// the name is a tag's or the element binds the prefix it wears.
 	for _, src := range []string{
-		`<a_b.c-d:e/>`,
+		`<a_b.c-d:e xmlns:a_b.c-d="http://www.w3.org/2000/svg"/>`,
 		`<circle xmlns:s="http://www.w3.org/2000/svg" s:fill="red"/>`,
 	} {
 		if _, err := parseDocument(src); err != nil {
