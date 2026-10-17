@@ -10,7 +10,7 @@ import (
 // declaration, which is not allowed there at all; or a tag, whose element
 // comes back as the child it is. The text builder takes what a CDATA section
 // writes.
-func (p *xmlParser) inside(preserve bool, text *strings.Builder) (*element, error) {
+func (p *xmlParser) inside(preserve bool, text *strings.Builder, ns namespace) (*element, error) {
 	switch {
 	case p.at("<!--"):
 		return nil, p.comment()
@@ -24,5 +24,5 @@ func (p *xmlParser) inside(preserve bool, text *strings.Builder) (*element, erro
 	case p.at("<!"):
 		return nil, fmt.Errorf("antui/svg: a declaration may not stand inside the drawing, where only a comment, a CDATA section or a tag may")
 	}
-	return p.element(preserve)
+	return p.element(preserve, ns)
 }

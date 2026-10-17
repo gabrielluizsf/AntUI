@@ -35,7 +35,7 @@ func (p *xmlParser) document() (*element, error) {
 			// of a DTD would otherwise run past it.
 			p.skipDecl()
 		case p.at("<"):
-			root, err := p.element(false)
+			root, err := p.element(false, namespace{})
 			if err != nil {
 				return nil, err
 			}

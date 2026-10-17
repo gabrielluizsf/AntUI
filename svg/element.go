@@ -22,4 +22,7 @@ type element struct {
 	// and reading it as one string beside a list of children would put the
 	// writing on either side of a `<tspan>` in the wrong order.
 	Parts []part
+	// foreign says the element stands in a namespace other than the SVG one,
+	// so it is a drawing within the drawing and not this package's to paint.
+	foreign bool
 }

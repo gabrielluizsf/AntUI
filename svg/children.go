@@ -12,7 +12,7 @@ import (
 // because the writing of a `<text>` runs on across the elements between it.
 // preserve says the writing is kept exactly as the file wrote it, whitespace
 // runs and line breaks and all, which is what `xml:space="preserve"` asks for.
-func (p *xmlParser) children(e *element, preserve bool) error {
+func (p *xmlParser) children(e *element, preserve bool, ns namespace) error {
 	var text strings.Builder
 	keep := func() { keepText(e, &text, preserve) }
 	for {
@@ -20,7 +20,7 @@ func (p *xmlParser) children(e *element, preserve bool) error {
 			return fmt.Errorf("antui/svg: <%s> is never closed", e.Name)
 		}
 		if p.at("</") {
-			if err := p.closeTag(e); err != nil {
+			if err := p.closeTag(e, ns); err != nil {
 				return err
 			}
 			keep()
@@ -29,11 +29,14 @@ func (p *xmlParser) children(e *element, preserve bool) error {
 		}
 		if p.at("<") {
 			keep()
-			kid, err := p.inside(preserve, &text)
+			kid, err := p.inside(preserve, &text, ns)
 			if err != nil {
 				return err
 			}
-			if kid != nil {
+			// An element in a foreign namespace is a drawing within the
+			// drawing: it is read so that what follows it is read right, and
+			// left out of the tree so that nothing paints it.
+			if kid != nil && !kid.foreign {
 				e.Kids = append(e.Kids, kid)
 				e.Parts = append(e.Parts, part{Elem: kid})
 			}
