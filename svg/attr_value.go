@@ -12,27 +12,19 @@ import (
 var attrSpace = strings.NewReplacer("\t", " ", "\n", " ")
 
 // attrValue reads the value of one attribute, unwrapping its quotes and turning
-// what is inside them into the characters it stands for. A `<` is refused in
-// either shape of value: XML keeps it out of an attribute because there is
-// nothing an attribute may open, and letting one through would draw a value
-// the file did not declare.
+// what is inside them into the characters it stands for. A value is taken in
+// quotes only, as XML has it — one spelled without them is not a value a reader
+// can take, since where it ends is anyone's guess. A `<` is refused inside the
+// quotes too: XML keeps it out of an attribute because there is nothing an
+// attribute may open, and letting one through would draw a value the file did
+// not declare.
 func (p *xmlParser) attrValue() (string, error) {
 	if p.eof() {
 		return "", fmt.Errorf("the value is missing")
 	}
 	quote := p.src[p.pos]
 	if quote != '"' && quote != '\'' {
-		// An unquoted value runs to the first space, as XML has it — and not
-		// into the slash of a `/>`, which closes the tag rather than being part
-		// of what is written on it.
-		start := p.pos
-		for !p.eof() && !isSpace(p.src[p.pos]) && p.src[p.pos] != '>' && p.src[p.pos] != '<' {
-			if p.src[p.pos] == '/' && p.pos+1 < len(p.src) && p.src[p.pos+1] == '>' {
-				break
-			}
-			p.pos++
-		}
-		return p.unescape(p.src[start:p.pos])
+		return "", fmt.Errorf("the value is not in quotes, which every attribute value is")
 	}
 	p.pos++
 	start := p.pos

@@ -5,11 +5,12 @@ import (
 	"strings"
 )
 
-// attributes reads everything up to the closing bracket of the tag. A value may
-// be quoted or not — a drawing written by hand does the last when it holds no
-// space, which XML does not ask for but SVG in the wild arrives as. A name
-// repeated on one tag is an error rather than the second value quietly winning,
-// and a name that is not a name at all is the same sort of error.
+// attributes reads everything up to the closing bracket of the tag. A value is
+// taken in quotes, as XML has it, and an attribute written without one — a
+// bare name on its own, or a value spelled without quotes — is an error rather
+// than a guess at where the value ends. A name repeated on one tag is an error
+// rather than the second value quietly winning, and a name that is not a name
+// at all is the same sort of error.
 func (p *xmlParser) attributes(e *element) error {
 	for {
 		p.skipSpace()
@@ -44,9 +45,7 @@ func (p *xmlParser) attributes(e *element) error {
 		}
 		p.skipSpace()
 		if !p.at("=") {
-			// An attribute written on its own means what its own name means.
-			e.Attr[key] = name
-			continue
+			return fmt.Errorf("antui/svg: <%s> is given %s, which no value follows", e.Name, name)
 		}
 		p.pos++
 		p.skipSpace()

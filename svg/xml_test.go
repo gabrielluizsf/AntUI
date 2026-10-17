@@ -48,12 +48,12 @@ func TestParseDocumentNested(t *testing.T) {
 }
 
 func TestParseDocumentAttributeStyles(t *testing.T) {
-	// An attribute may be in either sort of quote, and one written on its own
-	// has its own name for a value.
+	// An attribute may be in either sort of quote. XML gives it no other
+	// spelling: a value without quotes, or an attribute with no value at all,
+	// is not one a reader can take.
 	for _, src := range []string{
 		`<rect fill='red'/>`,
 		`<rect fill="red"/>`,
-		`<rect fill=red/>`,
 	} {
 		e, err := parseDocument(src)
 		if err != nil {
@@ -63,12 +63,13 @@ func TestParseDocumentAttributeStyles(t *testing.T) {
 			t.Errorf("%s gave fill = %q, want red", src, got)
 		}
 	}
-	e, err := parseDocument(`<rect hidden/>`)
-	if err != nil {
-		t.Fatalf("parse: %v", err)
-	}
-	if !e.hasAttr("hidden") {
-		t.Error("an attribute written on its own was not kept")
+	for _, src := range []string{
+		`<rect fill=red/>`,
+		`<rect hidden/>`,
+	} {
+		if _, err := parseDocument(src); err == nil {
+			t.Errorf("%s was read, want an error", src)
+		}
 	}
 }
 
