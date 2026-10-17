@@ -112,6 +112,14 @@ type Image struct {
 	// stopped rather than read forever. See [svgFrames].
 	chain []string
 
+	// docFit and docAlign are this drawing's own preserveAspectRatio, as its
+	// root wrote it, with hasDocFit saying whether it wrote one at all. They
+	// travel with the frames when the drawing is read as a picture, since a
+	// `defer` on the `<image>` pointing at it asks to be fitted by them.
+	docFit    PictureFit
+	docAlign  PictureAlign
+	hasDocFit bool
+
 	// The last size and colour painted and the canvas it was painted on, so that
 	// a frame which asks for the same icon again costs nothing. Guarded by mu,
 	// because two goroutines may ask for the same icon at once and the worst

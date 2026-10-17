@@ -9,16 +9,20 @@ import "strings"
 // the default standing, because a picture fitted the wrong way is one an author
 // can see, while a picture fitted the default way beside a warning is one they
 // can go and fix.
-func readPreserveAspect(raw string, warn func(string, ...any)) (PictureFit, PictureAlign) {
+//
+// The answer also says whether the value began with `defer`, which SVG 1.1
+// allows on an `<image>`: the word asks for the preserveAspectRatio of the
+// content being pointed at rather than of this element, and which of the two
+// wins is settled where the picture arrives — see [pictureRequest.apply]. On
+// every other element the word is passed over and the rest is read as it would
+// be without it, as the spec has it.
+func readPreserveAspect(raw string, warn func(string, ...any)) (PictureFit, PictureAlign, bool) {
 	fit, align := PictureFitMeet, AlignXMidYMid
 	fields := strings.Fields(raw)
-	// SVG 1.1 allows a leading `defer`, which asks for the fit of a drawing
-	// this picture is pointed at rather than of this one. There is no drawing
-	// behind an address being fetched here, so the word is passed over and the
-	// rest is read as it would be without it.
 	i := 0
+	deferred := false
 	if i < len(fields) && strings.EqualFold(fields[i], "defer") {
-		i++
+		deferred, i = true, i+1
 	}
 	if i < len(fields) {
 		switch tok := strings.ToLower(fields[i]); {
@@ -49,5 +53,5 @@ func readPreserveAspect(raw string, warn func(string, ...any)) (PictureFit, Pict
 	if i < len(fields) {
 		warn("the preserveAspectRatio %q has more in it than an alignment and a meet or a slice, so the rest is left out", raw)
 	}
-	return fit, align
+	return fit, align, deferred
 }

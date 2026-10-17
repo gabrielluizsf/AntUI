@@ -18,6 +18,7 @@ func parseText(src, path string, chain []string) (*Image, error) {
 	}
 	img := &Image{base: path, chain: append(slices.Clone(chain), path), Root: &Node{Name: "svg"}, grads: map[string]*gradient{}, pictures: map[string]*pictureFrames{}}
 	img.readSize(root)
+	img.readDocFit(root)
 	// The gradients come before the shapes, because a shape may name one that is
 	// only written later in the file, and every gradient that names another has
 	// to be followed before either is asked about a colour.

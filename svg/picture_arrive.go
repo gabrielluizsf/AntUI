@@ -35,12 +35,16 @@ func (p *Picture) frameIndex(now float64) int {
 
 // arrive puts the fetched picture into the slot the node was built with, so
 // the next paint of the drawing shows it without the drawing being read again
-// — and finishes the box while it is at it, taking the sides the drawing left
-// open from the size the picture answered with.
-func (p *Picture) arrive(pic *pictureFrames) {
+// — and finishes the box and the fit while it is at it: the sides the drawing
+// left open come from the size the picture answered with, and the fit is the
+// one the element and the picture finally agreed on. Both are written under
+// the lock for the same reason the frames are: a picture fetched off the frame
+// lands while the drawing may be painting.
+func (p *Picture) arrive(pic *pictureFrames, fit PictureFit, align PictureAlign) {
 	ownW, ownH := pic.ownSize()
 	p.mu.Lock()
 	p.Box = autoBox(p.declared, p.autoW, p.autoH, ownW, ownH)
+	p.Fit, p.Align = fit, align
 	p.frames = pic
 	p.mu.Unlock()
 }

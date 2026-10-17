@@ -673,6 +673,50 @@ func TestADeferredPreserveAspectRatioIsReadWithoutIt(t *testing.T) {
 	wantColour(t, cv, 2, 3, canvas.Transparent)
 }
 
+func TestADeferredPreserveAspectRatioTakesTheDrawingBehindTheAddress(t *testing.T) {
+	// SVG 1.1's normative rule: a `defer` on an `<image>` asks for the
+	// preserveAspectRatio of the content pointed at, and a drawing with one
+	// of its own answers — the wide picture pinned to the top by the
+	// document's xMinYMin, where the element's own xMaxYMax would have put
+	// it at the bottom.
+	dir := t.TempDir()
+	path := filepath.Join(dir, "drawing.svg")
+	src := `<svg viewBox="0 0 4 2" preserveAspectRatio="xMinYMin meet"><rect width="4" height="2" fill="blue"/></svg>`
+	if err := os.WriteFile(path, []byte(src), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	img := mustParse(t, fmt.Sprintf(
+		`<svg viewBox="0 0 4 4"><image href="%s" width="4" height="4" preserveAspectRatio="defer xMaxYMax meet"/></svg>`, path))
+	if got := img.Warnings().String(); got != "no warnings" {
+		t.Errorf("a deferred preserveAspectRatio said something was wrong: %s", got)
+	}
+	cv := img.Render(4, 4)
+	wantColour(t, cv, 2, 0, canvas.RGB(0, 0, 255))
+	wantColour(t, cv, 2, 3, canvas.Transparent)
+}
+
+func TestADeferredPreserveAspectRatioWithoutOneBehindItIsTheElementsOwn(t *testing.T) {
+	// The other half of the same rule: a drawing that lacks a
+	// preserveAspectRatio leaves the element's own attribute to be processed
+	// as normal, 'defer' ignored — so the xMinYMin it wrote still pins the
+	// picture to the top, rather than the centred meet a drawing saying
+	// nothing at all would fall back to.
+	dir := t.TempDir()
+	path := filepath.Join(dir, "drawing.svg")
+	src := `<svg viewBox="0 0 4 2"><rect width="4" height="2" fill="blue"/></svg>`
+	if err := os.WriteFile(path, []byte(src), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	img := mustParse(t, fmt.Sprintf(
+		`<svg viewBox="0 0 4 4"><image href="%s" width="4" height="4" preserveAspectRatio="defer xMinYMin meet"/></svg>`, path))
+	if got := img.Warnings().String(); got != "no warnings" {
+		t.Errorf("a deferred preserveAspectRatio said something was wrong: %s", got)
+	}
+	cv := img.Render(4, 4)
+	wantColour(t, cv, 2, 0, canvas.RGB(0, 0, 255))
+	wantColour(t, cv, 2, 3, canvas.Transparent)
+}
+
 func TestAnImageSlicesItsPictureToTheBox(t *testing.T) {
 	// A picture cut down to the box: the left half red and the right half
 	// blue, so which half the alignment pins is there to see — and the whole

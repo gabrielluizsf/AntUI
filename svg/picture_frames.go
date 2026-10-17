@@ -1,8 +1,6 @@
 package svg
 
 import (
-	"math"
-
 	"github.com/gabrielluizsf/antui/canvas"
 )
 
@@ -18,6 +16,16 @@ type pictureFrames struct {
 	// encoded at, or the size the document behind it says it is — which is
 	// what a side of an `<image>` box left open answers with. See [autoBox].
 	ownW, ownH float64
+
+	// docFit and docAlign are the preserveAspectRatio of the drawing these
+	// frames were painted from, when it wrote one: which is what a `defer` on
+	// the `<image>` pointing at it asks to be fitted by. A photograph has
+	// none — no PNG carries the attribute — so hasDocFit says whether there
+	// is one at all, and without one a deferred element is fitted by its own
+	// attribute, 'defer' ignored, as SVG 1.1 has it.
+	docFit    PictureFit
+	docAlign  PictureAlign
+	hasDocFit bool
 }
 
 // ownSize is that size, as the fitting wants it: two numbers where a picture
@@ -32,40 +40,3 @@ func (f *pictureFrames) ownSize() (w, h float64) {
 // moves says the picture animates: more than one frame going around a loop,
 // which is what makes repainting it as the clock runs worth doing.
 func (f *pictureFrames) moves() bool { return f != nil && len(f.frames) > 1 }
-
-// indexAt is the frame showing at a moment on the clock: the frames laid end to
-// end into one loop, the moment wrapped into it, and the frame whose stretch of
-// it holds the moment. A loop of no time at all keeps the first frame — there
-// is nowhere for the moment to advance to.
-func (f *pictureFrames) indexAt(now float64) int {
-	if f == nil || len(f.frames) == 0 {
-		return 0
-	}
-	var total float64
-	for _, s := range f.show {
-		total += s
-	}
-	if total <= 0 {
-		return 0
-	}
-	t := math.Mod(now, total)
-	if t < 0 {
-		t += total
-	}
-	for i, s := range f.show {
-		if t < s {
-			return i
-		}
-		t -= s
-	}
-	return len(f.frames) - 1
-}
-
-// at is the frame showing at that moment, or nothing when there is no picture
-// to show — an element whose bytes have yet to arrive draws its hole.
-func (f *pictureFrames) at(now float64) *canvas.Canvas {
-	if f == nil || len(f.frames) == 0 {
-		return nil
-	}
-	return f.frames[f.indexAt(now)]
-}

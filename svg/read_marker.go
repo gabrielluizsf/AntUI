@@ -46,10 +46,12 @@ func (img *Image) readMarker(def *markerDef, e *element) {
 	def.deg, def.auto, def.startReverse = readOrient(e.attr("orient"), warn)
 	def.visible = overflowIn(e)
 	// preserveAspectRatio decides the fit of a viewBox, so without one it is
-	// passed over in silence, as the spec has it, and the default stands.
-	def.fit, def.align = PictureFitMeet, AlignXMidYMid
+	// passed over in silence, as the spec has it, and the default stands. A
+	// `defer` is passed over too: the word belongs to an `<image>` pointing at
+	// a drawing, and on every other element only the rest of the value counts.
+	def.fit, def.align, _ = PictureFitMeet, AlignXMidYMid, false
 	if def.hasView {
-		def.fit, def.align = readPreserveAspect(e.attr("preserveAspectRatio"), warn)
+		def.fit, def.align, _ = readPreserveAspect(e.attr("preserveAspectRatio"), warn)
 	}
 	if def.w <= 0 || def.h <= 0 {
 		warn("the marker is %g by %g, which has no room for anything in it, so nothing is drawn where it is named", def.w, def.h)

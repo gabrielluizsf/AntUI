@@ -372,6 +372,23 @@ func TestAMarkerReadsItsOwnPreserveAspectRatio(t *testing.T) {
 	if ws := img.Warnings(); len(ws) != 0 {
 		t.Errorf("a preserveAspectRatio with no viewBox to fit was said %d times, want none (%v)", len(ws), ws)
 	}
+	// A `defer` belongs to an `<image>` pointing at a drawing; on every other
+	// element the word is passed over and the rest of the value is what
+	// counts, as the spec has it.
+	img, _ = painted(t, `<svg viewBox="0 0 20 20">
+		<defs>
+			<marker id="m" viewBox="0 0 10 10" preserveAspectRatio="defer xMinYMax slice">
+				<rect width="4" height="4" fill="red"/>
+			</marker>
+		</defs>
+	</svg>`, 20, 20)
+	m = img.markers["m"]
+	if m.fit != PictureFitSlice || m.align != AlignXMinYMax {
+		t.Errorf("a deferred preserveAspectRatio read as %v / %v, want the rest of it: a slice pinned to xMinYMax", m.fit, m.align)
+	}
+	if ws := img.Warnings(); len(ws) != 0 {
+		t.Errorf("a deferred preserveAspectRatio was said %d times, want none (%v)", len(ws), ws)
+	}
 }
 
 func TestAMarkersViewBoxIsFittedTheWayItsOwnAttributeAsks(t *testing.T) {

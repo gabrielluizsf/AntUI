@@ -38,5 +38,12 @@ func svgFrames(chain []string, target string, data []byte) (*pictureFrames, erro
 	if cv == nil {
 		return nil, fmt.Errorf("it has no size to it")
 	}
-	return &pictureFrames{frames: []*canvas.Canvas{cv}, ownW: img.Width, ownH: img.Height}, nil
+	return &pictureFrames{
+		frames:    []*canvas.Canvas{cv},
+		ownW:      img.Width,
+		ownH:      img.Height,
+		docFit:    img.docFit,
+		docAlign:  img.docAlign,
+		hasDocFit: img.hasDocFit,
+	}, nil
 }

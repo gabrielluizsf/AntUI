@@ -17,12 +17,7 @@ package svg
 // [Image.Warnings] reads back after the fact.
 func (img *Image) imageNode(e *element, st Style, warn func(string, ...any)) *Node {
 	n := &Node{Name: e.Name, Style: st}
-	href := e.attr("href")
-	if href == "" {
-		// The older spelling of the same attribute, which is the one a drawing
-		// written for SVG 1.1 carries — the same fallback a `<use>` takes.
-		href = e.attr("xlink:href")
-	}
+	href := pictureHref(e)
 	if href == "" {
 		warn("it has no href, so there is no picture for it to draw")
 		return n
@@ -38,7 +33,7 @@ func (img *Image) imageNode(e *element, st Style, warn func(string, ...any)) *No
 		warn("it has no width or height to draw the picture into, so the picture is left out")
 		return n
 	}
-	fit, align := readPreserveAspect(e.attr("preserveAspectRatio"), warn)
+	fit, align, deferred := readPreserveAspect(e.attr("preserveAspectRatio"), warn)
 	if st.Opacity <= 0 {
 		// Opacity of nothing: the picture would come out transparent however
 		// good it is, so it is not worth fetching. Unlike display:none this is
@@ -46,13 +41,16 @@ func (img *Image) imageNode(e *element, st Style, warn func(string, ...any)) *No
 		// going to be seen, so there is nothing to say about it either.
 		return n
 	}
-	slot := &Picture{Box: box, Fit: fit, Align: align, declared: box, autoW: autoW, autoH: autoH}
+	// The fit is the element's own for now: a `defer` hands it to the drawing
+	// behind the address only if that drawing has a preserveAspectRatio of
+	// its own, which is not known until the picture is there.
+	slot := &Picture{Box: box, declared: box, autoW: autoW, autoH: autoH}
 	// The opacity is put into pixels of their own rather than onto the ones in
 	// the cache, which every other element pointing at the same address shares:
 	// what is in the cache is the picture as it was written, and one element
 	// drawing it faint does not fade the rest. The request carries it because a
 	// picture still on its way has to be faded when it lands.
-	ask := pictureRequest{slot: slot, opacity: st.Opacity, href: href, warn: warn, chain: img.chain}
+	ask := pictureRequest{slot: slot, fit: fit, align: align, opacity: st.Opacity, href: href, warn: warn, deferred: deferred, chain: img.chain}
 	if !img.fillPicture(resolveHref(st.base, href), ask) {
 		return n
 	}

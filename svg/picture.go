@@ -41,7 +41,9 @@ type Picture struct {
 	Box [4]float64
 	// Fit is whether the picture keeps its own shape inside the box (meet), is
 	// cut down to the box (slice), or is stretched to fill it (none), which is
-	// what `preserveAspectRatio` says.
+	// what `preserveAspectRatio` says — the element's own value, or the one
+	// the drawing behind the address asks for when the element deferred to it.
+	// Like Box it is finished when the picture arrives.
 	Fit PictureFit
 	// Align is which corner or edge of the box the picture is pinned to when
 	// the fit leaves anything over: one of the nine alignments the attribute
