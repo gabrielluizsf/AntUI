@@ -15,6 +15,9 @@ func (p *xmlParser) element(preserve bool) (*element, error) {
 	if name == "" {
 		return nil, fmt.Errorf("antui/svg: a tag has no name at offset %d", start)
 	}
+	if !validName(name) {
+		return nil, fmt.Errorf("antui/svg: a tag is written as %q at offset %d, which is not a name XML allows", name, start)
+	}
 	e := &element{Name: localName(name), Attr: map[string]string{}}
 	if err := p.attributes(e); err != nil {
 		return nil, err

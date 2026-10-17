@@ -2,8 +2,13 @@ package svg
 
 import "fmt"
 
-// document reads from the opening angle bracket to the end of the root element.
+// document reads from the opening angle bracket to the end of the root element
+// and then to the end of the text, because a drawing that carries on after its
+// root with another tag or a stray word is not the single-rooted document XML
+// describes and the tree it would leave behind is not the tree that was
+// declared.
 func (p *xmlParser) document() (*element, error) {
+	p.stripBOM()
 	for {
 		p.skipSpace()
 		if p.at("<?") {
@@ -31,6 +36,9 @@ func (p *xmlParser) document() (*element, error) {
 	}
 	root, err := p.element(false)
 	if err != nil {
+		return nil, err
+	}
+	if err := p.tail(); err != nil {
 		return nil, err
 	}
 	return root, nil
