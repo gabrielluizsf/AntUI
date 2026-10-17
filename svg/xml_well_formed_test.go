@@ -55,14 +55,34 @@ func TestADrawingMayHoldACommentOrInstructionAfterItsRoot(t *testing.T) {
 }
 
 func TestAnAttributeMayNotBeWrittenTwiceOnOneTag(t *testing.T) {
+	// A name repeated exactly is an error; a name in another case is another
+	// name, as XML reads one, and says nothing about the first.
 	for _, bad := range []string{
 		`<rect width="1" width="2"/>`,
-		`<rect hidden hidden/>`,
-		`<rect x="1" X="2"/>`,
+		`<rect hidden="1" hidden="2"/>`,
 	} {
 		if _, err := parseDocument(bad); err == nil {
 			t.Errorf("parse %s: no error, where the attribute is repeated", bad)
 		}
+	}
+	if _, err := parseDocument(`<rect x="1" X="2"/>`); err != nil {
+		t.Errorf("parse: %v, where the two names are different names", err)
+	}
+}
+
+func TestAnAttributeNameIsReadAsTheFileSpellsIt(t *testing.T) {
+	// `viewBox` and `viewbox` are two different names, and only the one XML
+	// spells means the viewBox: a file that writes the other has said nothing
+	// about it, the same as it says nothing to a browser.
+	e, err := parseDocument(`<svg viewbox="0 0 1 1" width="4"/>`)
+	if err != nil {
+		t.Fatalf("parse: %v", err)
+	}
+	if e.attr("viewBox") != "" {
+		t.Errorf("a lowercase viewbox was read as the viewBox: %q", e.attr("viewBox"))
+	}
+	if got := e.attr("viewbox"); got != "0 0 1 1" {
+		t.Errorf("the name as written is kept: %q", got)
 	}
 }
 

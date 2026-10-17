@@ -6,13 +6,13 @@ import "strings"
 // place, so an attribute that is not there is left alone: that is what lets an
 // href decide it afterwards.
 func (g *gradient) read(attrs map[string]string, warn func(string, ...any)) {
-	units := strings.TrimSpace(attrs["gradientunits"])
+	units := strings.TrimSpace(attrs["gradientUnits"])
 	if units != "" {
 		g.userSpace = strings.EqualFold(units, "userspaceonuse")
-		g.set["gradientunits"] = true
+		g.set["gradientUnits"] = true
 	}
-	if v := strings.TrimSpace(attrs["spreadmethod"]); v != "" {
-		g.set["spreadmethod"] = true
+	if v := strings.TrimSpace(attrs["spreadMethod"]); v != "" {
+		g.set["spreadMethod"] = true
 		switch strings.ToLower(v) {
 		case "reflect":
 			g.spread = spreadReflect
@@ -24,8 +24,8 @@ func (g *gradient) read(attrs map[string]string, warn func(string, ...any)) {
 			g.spread = spreadPad
 		}
 	}
-	if v := strings.TrimSpace(attrs["gradienttransform"]); v != "" {
-		g.set["gradienttransform"] = true
+	if v := strings.TrimSpace(attrs["gradientTransform"]); v != "" {
+		g.set["gradientTransform"] = true
 		if m, ok := parseTransform(v); ok {
 			g.transform, g.hasXform = m, true
 		} else {

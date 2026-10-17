@@ -2,7 +2,6 @@ package svg
 
 import (
 	"fmt"
-	"strings"
 )
 
 // attributes reads everything up to the closing bracket of the tag. A value is
@@ -39,7 +38,7 @@ func (p *xmlParser) attributes(e *element) error {
 		if !validQName(name) {
 			return fmt.Errorf("antui/svg: <%s> has an attribute %q, which is not a name XML allows", e.Name, name)
 		}
-		key := strings.ToLower(name)
+		key := name
 		if _, seen := e.Attr[key]; seen && key != "" {
 			return fmt.Errorf("antui/svg: <%s> is given %s twice", e.Name, name)
 		}

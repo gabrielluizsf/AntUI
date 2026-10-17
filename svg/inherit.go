@@ -12,11 +12,11 @@ func (out *gradient) inherit(from *gradient) {
 			continue
 		}
 		switch name {
-		case "gradientunits":
+		case "gradientUnits":
 			out.userSpace = from.userSpace
-		case "spreadmethod":
+		case "spreadMethod":
 			out.spread = from.spread
-		case "gradienttransform":
+		case "gradientTransform":
 			out.transform, out.hasXform = from.transform, from.hasXform
 		case "x1":
 			out.x1 = from.x1

@@ -28,6 +28,13 @@ func TestADrawingHoldsToTheVersionItDeclares(t *testing.T) {
 		`<?xml version="1.0" encoding="ISO-8859-1"?><svg/>`,
 		`<?xml version="1.0" encoding="Windows-1252"?><svg/>`,
 		`<?xml version="1.0"`,
+		`<?xml VERSION="1.0"?><svg/>`,
+		`<?xml version="1.0" foo="bar"?><svg/>`,
+		`<?xml encoding="UTF-8" version="1.0"?><svg/>`,
+		`<?xml version="1.0" version="1.0"?><svg/>`,
+		`<?xml version="1.0" standalone="maybe"?><svg/>`,
+		`<?xml version=1.0?><svg/>`,
+		`<?xml version="1.0" junk?><svg/>`,
 	} {
 		if _, err := parseDocument(bad); err == nil {
 			t.Errorf("parse %s: no error, where the declaration is not one this reads", bad)

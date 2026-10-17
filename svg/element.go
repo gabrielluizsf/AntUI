@@ -7,8 +7,8 @@ type element struct {
 	// Name is the tag with any namespace taken off, so a document that spells
 	// its tags `svg:circle` and one that spells them `circle` read the same.
 	Name string
-	// Attr holds what the tag was given, keys lowercased because attribute
-	// names are not case sensitive.
+	// Attr holds what the tag was given, under the names it was written with:
+	// a name is read exactly as the file spells it, as XML reads one.
 	Attr map[string]string
 	// Kids are the elements written inside this one, in the order they came.
 	Kids []*element

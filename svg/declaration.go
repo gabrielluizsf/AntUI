@@ -26,12 +26,18 @@ func (p *xmlParser) declaration() error {
 // 1.1, which a declaration has to carry, and an encoding this reads, where
 // none written means UTF-8.
 func checkDecl(decl string) error {
-	said := declAttrs(decl)
+	said, err := declAttrs(decl)
+	if err != nil {
+		return err
+	}
 	if v := said["version"]; v != "1.0" && v != "1.1" {
 		return fmt.Errorf("antui/svg: the xml declaration says version %q, which is not one this reads", v)
 	}
 	if enc := said["encoding"]; enc != "" && !readableEncoding(enc) {
 		return fmt.Errorf("antui/svg: the drawing is written in %s, which is not a reading this package has", enc)
+	}
+	if v, ok := said["standalone"]; ok && v != "yes" && v != "no" {
+		return fmt.Errorf("antui/svg: the xml declaration says standalone %q, where the word is yes or no", v)
 	}
 	return nil
 }

@@ -21,7 +21,7 @@ func (s *Style) applyStrokeAttrs(attrs map[string]string, warn func(string, ...a
 			}
 		case "vector-effect":
 			s.withVectorEffect(raw, warn)
-		case "pathlength":
+		case "pathLength":
 			s.pathLength = readPathLength(raw, warn)
 		}
 	}
