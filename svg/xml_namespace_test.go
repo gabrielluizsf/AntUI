@@ -142,3 +142,20 @@ func TestAnEmptiedDefaultIsNotTheSVGNamespace(t *testing.T) {
 		t.Error("parse: no error, where the root empties the default namespace")
 	}
 }
+
+func TestTwoAttributesOfOneExpandedNameAreAnError(t *testing.T) {
+	// Two prefixes standing for the same namespace make one expanded name out
+	// of the same local part, which XML Namespaces keeps off a tag; two
+	// different namespaces, or a prefixed name and a bare one, are two names.
+	for _, bad := range []string{
+		`<svg xmlns:a="urn:u" xmlns:b="urn:u"><rect a:x="1" b:x="2"/></svg>`,
+		`<svg xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:xl="http://www.w3.org/1999/xlink"><use xlink:href="#a" xl:href="#b"/></svg>`,
+	} {
+		if _, err := parseDocument(bad); err == nil {
+			t.Errorf("parse %s: no error, where two attributes are one expanded name", bad)
+		}
+	}
+	if _, err := parseDocument(`<svg xmlns:a="urn:u" xmlns:b="urn:v"><rect a:x="1" b:x="2" x="3"/></svg>`); err != nil {
+		t.Errorf("parse: %v, where the names are three different names", err)
+	}
+}
