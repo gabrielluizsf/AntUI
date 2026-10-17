@@ -22,6 +22,11 @@ type element struct {
 	// and reading it as one string beside a list of children would put the
 	// writing on either side of a `<tspan>` in the wrong order.
 	Parts []part
+	// sheet is what the drawing's own `<style>` sheets say about this element,
+	// left here by the pass that matches every rule against every element
+	// before anything is built. It is nil where no rule matched, which is the
+	// whole drawing that wrote no sheet.
+	sheet *sheetDecls
 	// foreign says the element stands in a namespace other than the SVG one,
 	// so it is a drawing within the drawing and not this package's to paint.
 	foreign bool

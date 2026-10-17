@@ -1,7 +1,5 @@
 package svg
 
-import "slices"
-
 // parseText reads a drawing that came from path — "" when it came from no file
 // at all — and keeps path as the base a relative address inside it resolves
 // against, which is what every `<image>` later asks for while it is built.
@@ -18,7 +16,7 @@ func parseText(src, path string, chain []string) (*Image, error) {
 	if root.Name != "svg" {
 		return nil, &Error{What: "the root tag is <" + root.Name + ">, not <svg>"}
 	}
-	img := &Image{base: path, chain: append(slices.Clone(chain), path), Root: &Node{Name: "svg"}, grads: map[string]*gradient{}, pictures: map[string]*pictureFrames{}}
+	img := imageFor(root, path, chain)
 	img.readSize(root)
 	img.readDocFit(root)
 	// The gradients come before the shapes, because a shape may name one that is
