@@ -35,7 +35,7 @@ func (p *xmlParser) attributes(e *element) error {
 			}
 			return fmt.Errorf("antui/svg: <%s> has something in it that is not an attribute", e.Name)
 		}
-		if !validName(name) {
+		if !validQName(name) {
 			return fmt.Errorf("antui/svg: <%s> has an attribute %q, which is not a name XML allows", e.Name, name)
 		}
 		key := strings.ToLower(name)
