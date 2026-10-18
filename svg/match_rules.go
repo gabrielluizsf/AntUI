@@ -1,10 +1,10 @@
 package svg
 
-import "strings"
-
 // matchDecls answers the declarations the sheets give one element, or nil
 // where no rule matches it. For every property the whole cascade of matching
-// rules is weighed, the important and the heavier and the later winning.
+// rules is weighed, the important and the heavier and the later winning. A
+// custom property is settled here like any other, because it is inherited and
+// what var() resolves against.
 func matchDecls(n *selNode, rules []cssRule) *sheetDecls {
 	var best map[string]cssWinner
 	for order, r := range rules {
@@ -13,9 +13,6 @@ func matchDecls(n *selNode, rules []cssRule) *sheetDecls {
 			continue
 		}
 		for _, d := range r.decls {
-			if strings.HasPrefix(d.name, "--") {
-				continue // a custom property is read where it is used
-			}
 			cur, seen := best[d.name]
 			if !seen || stronger(d, spec, order, cur) {
 				if best == nil {

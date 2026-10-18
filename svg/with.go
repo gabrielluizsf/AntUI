@@ -10,7 +10,7 @@ package svg
 // that a drawing with a number that is not one says so rather than being painted
 // as though it had never asked.
 func (s Style) with(e *element, warn func(string, ...any)) Style {
-	attrs := withAttrs(e)
+	attrs := s.withVars(withAttrs(e))
 
 	// pathLength is of the path on the element it is written on, so it does not
 	// travel: a group that declares how long its own shape is says nothing

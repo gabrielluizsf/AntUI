@@ -5,8 +5,10 @@ import "strings"
 // parseSheet reads the CSS of a `<style>` element into the rules it holds. A
 // rule is a selector list and a block of declarations. An at-rule is read past
 // whole — a still drawing has no screen for `@media` to query and no sheet for
-// `@import` to bring in — and is warned about rather than half-applied.
-func parseSheet(css string, warn func(string, ...any)) []cssRule {
+// `@import` to bring in — and is warned about rather than half-applied. ns is
+// the namespaces in scope where the `<style>` stands, which a selector with a
+// prefix is read through.
+func parseSheet(css string, ns namespace, warn func(string, ...any)) []cssRule {
 	css = stripCSSComments(css)
 	var rules []cssRule
 	for i := 0; i < len(css); {
@@ -30,7 +32,7 @@ func parseSheet(css string, warn func(string, ...any)) []cssRule {
 			warn("the at-rule @%s is not one a drawing applies, so it is left out", atRuleName(prelude))
 			continue
 		}
-		selectors, err := parseSelectorList(prelude)
+		selectors, err := parseSelectorList(prelude, ns)
 		if err != nil {
 			warn("the selector %q is not one a drawing can read, so it is left out: %v", prelude, err)
 			continue

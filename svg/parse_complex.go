@@ -3,12 +3,13 @@ package svg
 import "fmt"
 
 // parseComplex reads one selector — compound selectors joined by combinators —
-// into the chain it names.
-func parseComplex(s string) (complexSelector, error) {
+// into the chain it names, against the namespaces in scope where the sheet
+// stands.
+func parseComplex(s string, ns namespace) (complexSelector, error) {
 	var cs complexSelector
 	i := skipSelSpace(s, 0)
 	for {
-		comp, next, err := parseCompound(s, i)
+		comp, next, err := parseCompound(s, i, ns)
 		if err != nil {
 			return cs, err
 		}

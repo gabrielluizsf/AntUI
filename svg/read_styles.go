@@ -8,7 +8,7 @@ package svg
 // weight, then the element's own `style`, and the presentation attributes
 // under both.
 func (img *Image) readStyles(root *element) {
-	rules := img.styleRules(root)
+	rules := img.styleRules(root, namespace{})
 	if len(rules) == 0 {
 		return
 	}
@@ -16,14 +16,20 @@ func (img *Image) readStyles(root *element) {
 }
 
 // styleRules gathers the rules of every `<style>` in the drawing, in the order
-// they were written, which is the order CSS breaks a tie by.
-func (img *Image) styleRules(e *element) []cssRule {
+// they were written, which is the order CSS breaks a tie by. ns is the
+// namespaces in scope at each element, so a selector with a prefix is read
+// through the ones the drawing itself binds where the sheet stands.
+func (img *Image) styleRules(e *element, ns namespace) []cssRule {
+	inner, err := ns.child(e)
+	if err != nil {
+		inner = ns
+	}
 	var rules []cssRule
 	if e.Name == "style" {
-		rules = append(rules, parseSheet(e.Text, func(f string, a ...any) { img.warn(e, f, a...) })...)
+		rules = append(rules, parseSheet(e.Text, inner, func(f string, a ...any) { img.warn(e, f, a...) })...)
 	}
 	for _, k := range e.Kids {
-		rules = append(rules, img.styleRules(k)...)
+		rules = append(rules, img.styleRules(k, inner)...)
 	}
 	return rules
 }

@@ -20,23 +20,7 @@ func matchLeft(cs complexSelector, i int, node *selNode) bool {
 		return true
 	}
 	comb, comp := cs.combs[i-1], cs.compounds[i-1]
-	switch comb {
-	case child:
-		return node.parent != nil && matchCompound(comp, node.parent) && matchLeft(cs, i-1, node.parent)
-	case adjacent:
-		return node.prev != nil && matchCompound(comp, node.prev) && matchLeft(cs, i-1, node.prev)
-	case sibling:
-		for s := node.prev; s != nil; s = s.prev {
-			if matchCompound(comp, s) && matchLeft(cs, i-1, s) {
-				return true
-			}
-		}
-	case descendant:
-		for a := node.parent; a != nil; a = a.parent {
-			if matchCompound(comp, a) && matchLeft(cs, i-1, a) {
-				return true
-			}
-		}
-	}
-	return false
+	return stepBack(comb, node, func(x *selNode) bool {
+		return matchCompound(comp, x) && matchLeft(cs, i-1, x)
+	})
 }

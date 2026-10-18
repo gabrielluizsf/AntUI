@@ -156,15 +156,16 @@ func TestSheetStripsComments(t *testing.T) {
 }
 
 func TestSheetLeavesOutWhatItCannotRead(t *testing.T) {
-	// A rule asking for a state a still drawing has none of stands aside, and
-	// the drawing is told why rather than painted as if the selector matched.
+	// A rule asking for a state a still drawing has none of stands aside: it
+	// is a valid selector, so nothing is said, and the drawing is painted as
+	// if the rule had not named it.
 	img := mustParse(t, `<svg viewBox="0 0 10 10">`+
 		`<style>rect:hover { fill: red }</style><rect width="10" height="10"/></svg>`)
 	if got := pixelAt(img.Render(10, 10), 5, 5); got != cssBlack {
 		t.Errorf("fill = %v, want the rect left black rather than :hover applied", got)
 	}
-	if !strings.Contains(img.Warnings().String(), "hover") {
-		t.Errorf("the drawing said %v, want it to name the pseudo-class it cannot answer", img.Warnings())
+	if w := img.Warnings().String(); strings.Contains(w, "hover") {
+		t.Errorf("the drawing said %v, want a valid :hover left unremarked", w)
 	}
 	// An at-rule a still drawing does not use is skipped whole, and said so.
 	img = mustParse(t, `<svg viewBox="0 0 10 10">`+
@@ -186,9 +187,18 @@ func TestParseSelectorList(t *testing.T) {
 		{"rect, circle.foo", 2},
 		{"g > rect", 1},
 		{"#a .b[c] *", 1},
+		{"rect:hover", 1},
+		{":nth-child(2)", 1},
+		{"li:nth-child(2n+1)", 1},
+		{"a:not(.x, .y)", 1},
+		{":is(h1, h2, h3)", 1},
+		{":has(> rect)", 1},
+		{"::before", 1},
+		{"svg|rect", 1},
+		{"[fill=\"red\" i]", 1},
 		{"", 0},
 	} {
-		got, err := parseSelectorList(tc.in)
+		got, err := parseSelectorList(tc.in, testNS)
 		if err != nil {
 			t.Errorf("parseSelectorList(%q) = %v, want no error", tc.in, err)
 			continue
@@ -197,8 +207,8 @@ func TestParseSelectorList(t *testing.T) {
 			t.Errorf("parseSelectorList(%q) read %d selectors, want %d", tc.in, len(got), tc.want)
 		}
 	}
-	for _, bad := range []string{"rect:hover", ":nth-child(2)", "rect >", "[", "rect.."} {
-		if _, err := parseSelectorList(bad); err == nil {
+	for _, bad := range []string{"rect:bogus", "rect:not()", ":nth-child(x)", "rect >", "[", "rect..", ":bogus(1)"} {
+		if _, err := parseSelectorList(bad, testNS); err == nil {
 			t.Errorf("parseSelectorList(%q) = nil error, want one", bad)
 		}
 	}
@@ -217,7 +227,7 @@ func TestSpecificity(t *testing.T) {
 		{"#x.a[b]", 10200},
 		{"#x rect.a", 10101},
 	} {
-		sel, err := parseSelectorList(tc.in)
+		sel, err := parseSelectorList(tc.in, testNS)
 		if err != nil {
 			t.Fatalf("parseSelectorList(%q): %v", tc.in, err)
 		}

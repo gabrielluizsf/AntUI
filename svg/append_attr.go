@@ -2,17 +2,25 @@ package svg
 
 import "fmt"
 
-// appendAttr reads one `[…]` attribute condition: the name, and the operator
-// and value it is compared with where it asked for one.
-func appendAttr(c *compoundSelector, s string, i int) (int, error) {
+// appendAttr reads one `[…]` attribute condition: the name, the operator and
+// value it is compared with where it asked for one, and the `i` or `s` flag
+// that may follow. The name's namespace is resolved as a type selector's is,
+// so a sheet can tell the `href` of no namespace from XLink's.
+func appendAttr(c *compoundSelector, s string, i int, ns namespace) (int, error) {
 	i = skipSelSpace(s, i+1)
-	name, next := readSelIdent(s, i)
+	name, prefix, named, next := readAttrName(s, i)
 	if name == "" {
 		return i, fmt.Errorf("an attribute selector names no attribute")
 	}
+	uri, any, err := attrNS(prefix, named, ns)
+	if err != nil {
+		return i, err
+	}
+	cond := simpleSelector{kind: kindAttribute, name: name, uri: uri, any: any}
 	i = skipSelSpace(s, next)
 	if i < len(s) && s[i] == ']' {
-		c.simples = append(c.simples, simpleSelector{kind: kindAttribute, name: name, op: attrExists})
+		cond.op = attrExists
+		c.simples = append(c.simples, cond)
 		return i + 1, nil
 	}
 	op, w := attrOpOf(s[i:])
@@ -24,35 +32,14 @@ func appendAttr(c *compoundSelector, s string, i int) (int, error) {
 		return i, err
 	}
 	i = skipSelSpace(s, next)
+	caseless, i, err := attrCaseFlag(s, i)
+	if err != nil {
+		return i, err
+	}
 	if i >= len(s) || s[i] != ']' {
 		return i, fmt.Errorf("an attribute selector is never closed with a `]`")
 	}
-	c.simples = append(c.simples, simpleSelector{kind: kindAttribute, name: name, op: op, val: val})
+	cond.op, cond.val, cond.caseless = op, val, caseless
+	c.simples = append(c.simples, cond)
 	return i + 1, nil
-}
-
-// attrOpOf reads the operator of an attribute selector and how many bytes it
-// took, or a width of none.
-func attrOpOf(s string) (attrOp, int) {
-	if s == "" {
-		return 0, 0
-	}
-	if s[0] == '=' {
-		return attrEquals, 1
-	}
-	if len(s) > 1 && s[1] == '=' {
-		switch s[0] {
-		case '~':
-			return attrIncludes, 2
-		case '|':
-			return attrDash, 2
-		case '^':
-			return attrPrefix, 2
-		case '$':
-			return attrSuffix, 2
-		case '*':
-			return attrSubstr, 2
-		}
-	}
-	return 0, 0
 }

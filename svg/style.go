@@ -109,6 +109,14 @@ type Style struct {
 	// units. Zero is `letter-spacing="normal"` and also no letter-spacing at
 	// all, which are the same thing.
 	LetterSpacing float64
+	// Custom holds the custom properties (`--name: value`) in force on the
+	// element: what its `<style>` sheets and its own `style="…"` declared,
+	// over what it inherited from above, because a custom property inherits
+	// like any other and a `var(--name)` written further down reads it from
+	// here. It is settled before the other attributes are read, so a var() in
+	// one of them has already been replaced by the time the element is
+	// painted. See [Style.withVars].
+	Custom map[string]string
 	// A fill or a stroke may be a gradient or a pattern rather than a colour,
 	// and the three never both hold: `fillGradient` is set only when the paint
 	// named a gradient that was in the drawing, `fillPattern` the same for a

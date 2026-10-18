@@ -3,31 +3,36 @@ package svg
 import "strings"
 
 // matchAttr says whether an element's attribute meets the condition a selector
-// wrote: that it is there at all, or how its value compares.
+// wrote: that it is there at all, or how its value compares. The comparison is
+// by case unless the selector asked for `i`.
 func matchAttr(e *element, s simpleSelector) bool {
-	v, ok := e.Attr[s.name]
+	v, ok := attrUnder(e, s)
 	if !ok {
 		return false
+	}
+	val := s.val
+	if s.caseless {
+		v, val = strings.ToLower(v), strings.ToLower(val)
 	}
 	switch s.op {
 	case attrExists:
 		return true
 	case attrEquals:
-		return v == s.val
+		return v == val
 	case attrIncludes:
 		for _, f := range strings.Fields(v) {
-			if f == s.val {
+			if f == val {
 				return true
 			}
 		}
 	case attrDash:
-		return s.val != "" && (v == s.val || strings.HasPrefix(v, s.val+"-"))
+		return val != "" && (v == val || strings.HasPrefix(v, val+"-"))
 	case attrPrefix:
-		return s.val != "" && strings.HasPrefix(v, s.val)
+		return val != "" && strings.HasPrefix(v, val)
 	case attrSuffix:
-		return s.val != "" && strings.HasSuffix(v, s.val)
+		return val != "" && strings.HasSuffix(v, val)
 	case attrSubstr:
-		return s.val != "" && strings.Contains(v, s.val)
+		return val != "" && strings.Contains(v, val)
 	}
 	return false
 }
