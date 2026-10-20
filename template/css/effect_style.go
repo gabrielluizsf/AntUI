@@ -21,4 +21,11 @@ type effectStyle struct {
 	// TransformOrigin is the transform pivot: the initial value sits in the
 	// box's centre.
 	TransformOrigin [2]Length
+
+	// ClipPath is the clip-path polygon, in order, as pairs of raw
+	// box-relative coordinate expressions ("0", "100%", "calc(100% - 6px)").
+	// They resolve against the box at paint time, so a percentage or a calc()
+	// sees the widget's real width and height. Nil means the box is not
+	// clipped and keeps its border radius shape.
+	ClipPath [][2]string
 }

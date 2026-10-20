@@ -43,6 +43,8 @@ func routeDecl(e *declEnv) []string {
 		return applyEffectDecl(e)
 	case "outline", "outline-width", "outline-style", "outline-color", "outline-offset":
 		return applyOutlineDecl(e)
+	case "clip-path":
+		return applyClipDecl(e)
 	case "transition", "transition-property", "transition-duration", "transition-timing-function", "transition-delay":
 		return applyTransitionDecl(e)
 	case "animation", "animation-name", "animation-duration", "animation-timing-function", "animation-delay", "animation-iteration-count", "animation-direction", "animation-fill-mode":

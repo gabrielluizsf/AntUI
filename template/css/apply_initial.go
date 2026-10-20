@@ -41,7 +41,7 @@ func applyInitial(st *Style, prop string) {
 		initialColumns(st, prop)
 	case "box-shadow", "text-shadow", "outline", "outline-width", "outline-style",
 		"outline-color", "outline-offset", "filter", "backdrop-filter",
-		"transform", "transform-origin":
+		"transform", "transform-origin", "clip-path":
 		initialEffects(st, prop)
 	case "transition", "transition-property", "transition-duration",
 		"transition-timing-function", "transition-delay", "animation",

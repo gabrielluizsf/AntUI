@@ -26,5 +26,7 @@ func initialEffects(st *Style, prop string) {
 		st.Transform = nil
 	case "transform-origin":
 		st.TransformOrigin = InitialTransformOrigin
+	case "clip-path":
+		st.ClipPath = nil
 	}
 }
