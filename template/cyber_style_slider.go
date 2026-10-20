@@ -1,9 +1,7 @@
 package template
 
-// Slider paints a precision control: a thin lit trough, graduations along
-// it, and a knob that is a ring around a bright core — a reticle, the same
-// language the rest of the theme speaks. The filled run gives off a faint
-// glow of its own, so it reads as powered rather than painted.
+// Slider paints a slim rail the way the site paints progress: a dark trough
+// with a hairline frame, a flat accent fill and a solid thumb — no glow.
 func (cyberStyle) Slider(p SliderParams) {
 	win := p.Win
 	cv := win.Canvas()
@@ -25,14 +23,12 @@ func (cyberStyle) Slider(p SliderParams) {
 	trackX := p.X + knobRadius
 	trackW := max(p.W-2*knobRadius, 1)
 
-	trackH := 8 * u
+	trackH := 4 * u
 	trackY := cy - trackH/2
 
 	knobX := trackX + int(value*float32(trackW)+0.5)
 	knobX = min(max(knobX, trackX), trackX+trackW)
 
-	paintCyberTrack(cv, v, trackX, trackY, trackW, trackH, knobX, u)
-	paintCyberMarks(cv, v, trackX, trackY, trackW, trackH, knobX, u)
-	paintCyberTerminals(cv, v, trackX, cy, trackW, u)
+	paintCyberTrack(cv, v, trackX, trackY, trackW, trackH, knobX)
 	paintCyberKnob(cv, v, p.State, knobX, cy, knobRadius, u)
 }

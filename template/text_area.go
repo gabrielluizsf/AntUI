@@ -24,7 +24,12 @@ func (builtinStyle) TextArea(p TextAreaParams) {
 	innerW := p.W - 2*padding
 	textW := max(innerW/u, 12)
 	cursor := min(max(p.Cursor, 0), len(p.Text))
-	lines := textLines(p.Text, textW)
+	placeholder := p.Text == ""
+	display := p.Text
+	if placeholder {
+		display = "Escreva uma anotação..."
+	}
+	lines := textLines(display, textW)
 
 	lineH := textHeight(u)
 	visible := max((p.H-2*padding)/lineH, 1)
@@ -45,8 +50,13 @@ func (builtinStyle) TextArea(p TextAreaParams) {
 			continue
 		}
 		cy := p.Y + padding + (lif-viewTop)*lineH
-		line := p.Text[l[0]:l[1]]
-		cv.TextScaled(canvas.Point{X: float64(p.X + padding), Y: float64(cy)}, line, canvas.TextStyle{Color: th.Text, Scale: u})
+		line := display[l[0]:l[1]]
+		colour := th.Text
+		if placeholder {
+			line = "Escreva uma anotação..."
+			colour = th.TextMuted
+		}
+		cv.TextScaled(canvas.Point{X: float64(p.X + padding), Y: float64(cy)}, line, canvas.TextStyle{Color: colour, Scale: u})
 		if p.State.Focused && p.Caret && cursor >= l[0] && cursor <= l[1] {
 			off := cursor - l[0]
 			cx := p.X + padding + textWidth(u, line[:off])

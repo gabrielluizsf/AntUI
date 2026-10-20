@@ -4,36 +4,16 @@ import (
 	"github.com/gabrielluizsf/antui/canvas"
 )
 
-// paintCyberKnob draws the thumb: a glow that swells with the hover and press
-// state, a neon shell, a dark body and a bright core.
+// paintCyberKnob draws the thumb: a solid accent dot separated from the fill
+// by a dark ring. Hover and press only grow it a touch — no halo.
 func paintCyberKnob(cv *canvas.Canvas, v vivid, s State, knobX, cy, knobRadius, u int) {
-	reach := 22
-
-	if s.Hovered {
-		reach = 40
+	r := knobRadius
+	if s.Hovered || s.Active {
+		r += 2 * u
 	}
-
-	if s.Active {
-		reach = 70
-	}
-
-	// Large but soft glow around the knob.
-	glow(cv, halo{x: knobX - knobRadius - 3*u, y: cy - knobRadius - 3*u, w: knobRadius*2 + 6*u, h: knobRadius*2 + 6*u, radius: knobRadius + 2*u, colour: v.neon, strength: int(float64(reach) * v.glow), u: u})
-
-	// Outer neon shell.
-	cv.FillCircle(canvas.Circle{X: knobX, Y: cy, R: knobRadius + 2*u}, v.neon)
-
-	// Dark body.
-	cv.FillCircle(canvas.Circle{X: knobX, Y: cy, R: knobRadius}, cyberPalette.panelAct)
-
-	// Bright inner ring.
-	cv.Circle(canvas.Circle{X: knobX, Y: cy, R: knobRadius - 2*u}, v.neon)
-
-	// Inner core.
-	cv.FillCircle(canvas.Circle{X: knobX, Y: cy, R: 3 * u}, v.neon)
-
-	// Focus gives the thumb an additional outer ring.
+	cv.FillCircle(canvas.Circle{X: knobX, Y: cy, R: r}, cyberPalette.bg)
+	cv.FillCircle(canvas.Circle{X: knobX, Y: cy, R: r - 2*u}, v.neon)
 	if s.Focused {
-		cv.Circle(canvas.Circle{X: knobX, Y: cy, R: knobRadius + 5*u}, v.text)
+		cv.Circle(canvas.Circle{X: knobX, Y: cy, R: r + 3*u}, canvas.Fade(v.neon, 120))
 	}
 }

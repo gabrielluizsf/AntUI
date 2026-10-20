@@ -15,10 +15,17 @@ import (
 func (cs *cssStyle) paintBackground(win *antui.Window, st css.Style, x, y, w, h, rx, ry int) {
 	cv := win.Canvas()
 	if st.Has("background-color") || st.Has("background") {
-		cv.FillRoundRect(canvas.Rounded{Area: canvas.Area{X: x, Y: y, Width: w, Height: h}, RX: rx, RY: ry}, cs.fill(st))
+		if pts := clipPoints(st, x, y, w, h); pts != nil {
+			fillClip(cv, pts, cs.fill(st))
+		} else {
+			cv.FillRoundRect(canvas.Rounded{Area: canvas.Area{X: x, Y: y, Width: w, Height: h}, RX: rx, RY: ry}, cs.fill(st))
+		}
 	}
-	n := len(st.BackgroundImages)
-	if n == 0 {
+	if len(st.BackgroundImages) == 0 {
+		return
+	}
+	if pts := clipPoints(st, x, y, w, h); pts != nil {
+		cs.paintClipLayers(win, st, x, y, w, h, pts)
 		return
 	}
 	// Rounded corners are fractions of the box side, so a layer clipped to a
@@ -27,7 +34,7 @@ func (cs *cssStyle) paintBackground(win *antui.Window, st css.Style, x, y, w, h,
 	if min(w, h) > 0 {
 		cr = max(float64(rx), float64(ry)) / float64(min(w, h))
 	}
-	for i := n - 1; i >= 0; i-- {
+	for i := len(st.BackgroundImages) - 1; i >= 0; i-- {
 		layer := cs.paintBackgroundLayer(win, st, i, x, y, w, h, cr)
 		if layer != nil {
 			cv.BlitOver(x, y, layer)

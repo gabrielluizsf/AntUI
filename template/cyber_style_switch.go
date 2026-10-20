@@ -10,25 +10,24 @@ func (cyberStyle) Switch(p SwitchParams) {
 	u := Scale(win)
 	v := vividFor(win)
 	trackW, trackH := switchTrackW*u, switchTrackH*u
+	track := canvas.Round(canvas.Area{X: p.X, Y: p.Y, Width: trackW, Height: trackH}, trackH/2)
 
-	if p.State.Focused || p.State.Hovered {
-		glow(cv, halo{x: p.X, y: p.Y, w: trackW, h: trackH, radius: trackH, colour: v.neon, strength: int(float64(30) * v.glow), u: u})
+	if p.State.Focused {
+		glow(cv, halo{x: p.X, y: p.Y, w: trackW, h: trackH, radius: trackH, colour: v.neon, strength: int(float64(12) * v.glow), u: u})
 	}
-	body := cyberPalette.panel
+	// Off is a dark rail; on fills it with an accent wash. Hover only lifts
+	// the edge, checked lights it.
+	body, border := cyberPalette.field, v.edge
 	if p.State.Hovered {
-		body = cyberPalette.panelHov
+		border = canvas.Fade(v.neon, 110)
 	}
-	border := v.edge
-	if p.On || p.State.Focused {
-		border = v.neon
-	}
-	cv.FillRoundRect(canvas.Round(canvas.Area{X: p.X, Y: p.Y, Width: trackW, Height: trackH}, trackH/2), body)
-	cv.RoundRect(canvas.Round(canvas.Area{X: p.X, Y: p.Y, Width: trackW, Height: trackH}, trackH/2), border)
-
 	if p.On {
-		cv.FillRoundRect(canvas.Round(canvas.Area{X: p.X, Y: p.Y, Width: trackH, Height: trackH}, trackH/2), canvas.Fade(v.neon, 120))
+		body, border = canvas.Fade(v.neon, 40), v.neon
 	}
-	colour := v.edge
+	cv.FillRoundRect(track, body)
+	cv.RoundRect(track, border)
+
+	colour := v.dim
 	if p.On {
 		colour = v.neon
 	}
@@ -37,6 +36,5 @@ func (cyberStyle) Switch(p SwitchParams) {
 		cx = p.X + trackW - trackH/2
 	}
 	cv.FillCircle(canvas.Circle{X: cx, Y: p.Y + trackH/2, R: trackH/2 - 3*u}, colour)
-	cv.Circle(canvas.Circle{X: cx, Y: p.Y + trackH/2, R: trackH/2 - 4*u}, cyberPalette.panelAct)
 	cv.TextScaled(canvas.Point{X: float64(p.X + trackW + labelGap*u), Y: float64(p.Y + (trackH-textHeight(u))/2)}, p.Label, canvas.TextStyle{Color: v.text, Scale: u})
 }

@@ -11,6 +11,17 @@ import (
 func (cs *cssStyle) paintBorder(cv *canvas.Canvas, st css.Style, x, y, w, h, rx, ry int, fill canvas.Color) {
 	u := cs.u()
 
+	if pts := clipPoints(st, x, y, w, h); pts != nil {
+		// A clipped box is a polygon, so its border is the polygon's own
+		// outline rather than a rectangle's radius.
+		bw := st.BorderWidth[css.SideTop] * u
+		if bw <= 0 {
+			bw = u
+		}
+		strokeClip(cv, pts, bw, cs.fade(st, st.BoxColor[css.SideTop]))
+		return
+	}
+
 	if !cs.perSideBorder(st) && len(st.BackgroundImages) == 0 {
 		bw := st.BorderWidth[css.SideTop] * u
 		if bw <= 0 {

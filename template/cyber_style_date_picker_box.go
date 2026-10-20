@@ -9,13 +9,13 @@ func (cyberStyle) DatePickerBox(p DatePickerBoxParams) {
 	v := vividFor(win)
 	radius := buttonRadius(p.H, u)
 
-	body, border := cyberPalette.panel, v.edge
-	reach := 0
+	// Same field language as Select: open and focus light the frame, hover
+	// only lifts the edge.
+	body, border, reach := cyberPalette.field, canvas.Fade(v.neon, 51), 0
 	if p.State.Focused || p.Open {
-		body, border, reach = cyberPalette.panel, v.neon, 18
-	}
-	if p.State.Hovered {
-		body = cyberPalette.panelHov
+		border, reach = v.neon, 20
+	} else if p.State.Hovered {
+		body, border = cyberPalette.panelHov, canvas.Fade(v.neon, 102)
 	}
 	if reach > 0 {
 		glow(cv, halo{x: p.X, y: p.Y, w: p.W, h: p.H, radius: radius, colour: v.neon, strength: int(float64(reach) * v.glow), u: u})

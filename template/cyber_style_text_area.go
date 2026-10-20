@@ -11,12 +11,14 @@ func (cyberStyle) TextArea(p TextAreaParams) {
 	v := vividFor(win)
 	radius := buttonRadius(p.H, u)
 
-	body, border := cyberPalette.panel, v.edge
+	// Same field as Input: near-black glass, hairline accent frame, focus
+	// lights it, hover only lifts the edge a step.
+	body, border := cyberPalette.field, canvas.Fade(v.neon, 51)
 	if p.State.Focused {
 		border = v.neon
 		glow(cv, halo{x: p.X, y: p.Y, w: p.W, h: p.H, radius: radius, colour: v.neon, strength: int(float64(20) * v.glow), u: u})
 	} else if p.State.Hovered {
-		body, border = cyberPalette.panelHov, v.neon
+		border = canvas.Fade(v.neon, 102)
 	}
 	neonFill(cv, p.X, p.Y, p.W, p.H, radius, body, border)
 
@@ -24,7 +26,12 @@ func (cyberStyle) TextArea(p TextAreaParams) {
 	innerW := p.W - 2*padding
 	textW := max(innerW/u, 12)
 	cursor := min(max(p.Cursor, 0), len(p.Text))
-	lines := textLines(p.Text, textW)
+	placeholder := p.Text == ""
+	display := p.Text
+	if placeholder {
+		display = "Escreva uma anotação..."
+	}
+	lines := textLines(display, textW)
 
 	lineH := textHeight(u)
 	visible := max((p.H-2*padding)/lineH, 1)
@@ -38,9 +45,12 @@ func (cyberStyle) TextArea(p TextAreaParams) {
 			continue
 		}
 		cy := p.Y + padding + (lif-viewTop)*lineH
-		line := p.Text[l[0]:l[1]]
+		line := display[l[0]:l[1]]
 		colour := v.text
-		if line == "" {
+		if placeholder {
+			line = "Escreva uma anotação..."
+			colour = v.dim
+		} else if line == "" {
 			colour = v.dim
 		}
 		cv.TextScaled(canvas.Point{X: float64(p.X + padding), Y: float64(cy)}, line, canvas.TextStyle{Color: colour, Scale: u})

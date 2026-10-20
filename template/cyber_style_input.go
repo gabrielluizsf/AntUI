@@ -4,21 +4,32 @@ import (
 	"github.com/gabrielluizsf/antui/canvas"
 )
 
+// Input is the site's field: a near-black octagonal window with a thin blue
+// edge. Hover lights the edge, focus lights a full edge and a halo.
 func (cyberStyle) Input(p InputParams) {
 	win := p.Win
 	cv := win.Canvas()
 	u := Scale(win)
 	v := vividFor(win)
-	radius := buttonRadius(p.H, u)
 
-	body, border := cyberPalette.panel, v.edge
+	body, border := cyberPalette.field, canvas.Fade(v.neon, 51)
 	if p.State.Focused {
 		border = v.neon
-		glow(cv, halo{x: p.X, y: p.Y, w: p.W, h: p.H, radius: radius, colour: v.neon, strength: int(float64(20) * v.glow), u: u})
+		glow(cv, halo{x: p.X, y: p.Y, w: p.W, h: p.H, radius: 0, colour: v.neon, strength: int(float64(20) * v.glow), u: u})
 	} else if p.State.Hovered {
-		body, border = cyberPalette.panelHov, v.neon
+		border = canvas.Fade(v.neon, 102)
 	}
-	neonFill(cv, p.X, p.Y, p.W, p.H, radius, body, border)
+	octagonFill(cv, p.X, p.Y, p.W, p.H, 6*u, u, body, border)
+	cyberStyle{}.inputDraw(p)
+}
+
+// inputDraw is the rest of [cyberStyle.Input] after its frame, kept apart so
+// the frame can take the site's chamfered shape without the text trailing it.
+func (cyberStyle) inputDraw(p InputParams) {
+	win := p.Win
+	cv := win.Canvas()
+	u := Scale(win)
+	v := vividFor(win)
 
 	padding := 8 * u
 	cursor := min(max(p.Cursor, 0), len(p.Text))
@@ -29,11 +40,12 @@ func (cyberStyle) Input(p InputParams) {
 	cv.SetClip(canvas.Area{X: p.X + padding, Y: p.Y + u, Width: p.W - 2*padding, Height: p.H - 2*u})
 
 	textY := p.Y + (p.H-textHeight(u))/2
+	text := p.Text
 	colour := v.text
-	if p.Text == "" {
-		colour = v.dim
+	if text == "" {
+		text, colour = "Seu nome", v.dim
 	}
-	cv.TextScaled(canvas.Point{X: float64(p.X + padding - scroll), Y: float64(textY)}, p.Text, canvas.TextStyle{Color: colour, Scale: u})
+	cv.TextScaled(canvas.Point{X: float64(p.X + padding - scroll), Y: float64(textY)}, text, canvas.TextStyle{Color: colour, Scale: u})
 	if p.State.Focused && p.Caret {
 		cx := p.X + padding - scroll + cursorPx
 		cv.FillRect(canvas.Area{X: cx, Y: textY, Width: 2 * u, Height: textHeight(u)}, v.neon)
