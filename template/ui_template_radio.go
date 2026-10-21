@@ -27,11 +27,14 @@ func (t *uiTemplate) Radio(win *antui.Window, area canvas.Area, params antui.Rad
 	}
 	selected := *value == option
 
-	if clicked && !selected {
-		*value = option
-		selected = true
-	} else {
-		clicked = false
+	if clicked {
+		if selected {
+			*value = antui.NoOption
+			selected = false
+		} else {
+			*value = option
+			selected = true
+		}
 	}
 	t.style.Radio(RadioParams{
 		Win:   win,

@@ -71,7 +71,7 @@ func TestCheckboxToggles(t *testing.T) {
 	}
 }
 
-func TestRadioSelectsOnceOnly(t *testing.T) {
+func TestRadioTogglesSelection(t *testing.T) {
 	win, _ := newTestWindow(t, 200, 200)
 	choice := 0
 
@@ -85,12 +85,15 @@ func TestRadioSelectsOnceOnly(t *testing.T) {
 		t.Errorf("choice = %d, want 1", choice)
 	}
 
-	// Clicking the option that is already selected changes nothing.
+	// Clicking the selected option clears the group.
 	click(win, 15, 15)
 	win.Radio(10, 10, RadioParams{Label: "Second", Value: &choice, Option: 1})
 	release(win, 15, 15)
-	if win.Radio(10, 10, RadioParams{Label: "Second", Value: &choice, Option: 1}) {
-		t.Error("re-clicking the selected option should not report a change")
+	if !win.Radio(10, 10, RadioParams{Label: "Second", Value: &choice, Option: 1}) {
+		t.Error("re-clicking the selected option should report a change")
+	}
+	if choice != NoOption {
+		t.Errorf("choice = %d, want %d after clearing", choice, NoOption)
 	}
 }
 

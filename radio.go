@@ -4,8 +4,8 @@ import (
 	"github.com/gabrielluizsf/antui/canvas"
 )
 
-// Radio draws one option of a group. Clicking it sets value to option and
-// reports true; clicking the already-selected option changes nothing.
+// Radio draws one option of a group. Clicking an active option clears the
+// group by storing NoOption, so the group can have no selection.
 func (win *Window) Radio(x, y int, params RadioParams) bool {
 	if params.Value == nil {
 		return false
@@ -23,11 +23,14 @@ func (win *Window) Radio(x, y int, params RadioParams) bool {
 	}
 	selected := *value == option
 
-	if clicked && !selected {
-		*value = option
-		selected = true
-	} else {
-		clicked = false
+	if clicked {
+		if selected {
+			*value = NoOption
+			selected = false
+		} else {
+			*value = option
+			selected = true
+		}
 	}
 
 	surface := win.theme.Surface

@@ -7,8 +7,8 @@ import (
 	"github.com/gabrielluizsf/antui/template/event"
 )
 
-// Radio draws one option of a group. Clicking it sets value to option and
-// reports true; clicking the already-selected option changes nothing.
+// Radio draws one option of a group. Clicking an active option clears the
+// group by storing antui.NoOption; otherwise it selects option.
 func (c *CSS) Radio(label string, value *int, option int) event.Event {
 	x, y, w, h, st, ok := c.layout(css.RoleRadio, label)
 	if !ok {

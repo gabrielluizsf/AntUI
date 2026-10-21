@@ -25,8 +25,8 @@ type Template interface {
 	// Checkbox draws a labelled checkbox, flips value when clicked, and
 	// reports whether it flipped this frame.
 	Checkbox(win *antui.Window, area canvas.Area, params antui.CheckboxParams) event.Event
-	// Radio draws one option of a group. Clicking it sets value to option and
-	// reports true; clicking the already-selected option changes nothing.
+	// Radio draws one option of a group. Clicking its active option clears the
+	// group by storing antui.NoOption in Value; otherwise it selects Option.
 	Radio(win *antui.Window, area canvas.Area, params antui.RadioParams) event.Event
 	// Slider draws a horizontal slider and reports whether its value changed.
 	Slider(win *antui.Window, area canvas.Area, params antui.SliderParams) event.Event
