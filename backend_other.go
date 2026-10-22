@@ -27,7 +27,7 @@ var errNoBackend = errors.New("antui: there is no window backend for " + runtime
 func (noWindows) open(*Window, string, int, int) error { return errNoBackend }
 func (noWindows) close()                               {}
 func (noWindows) pump(*Window)                         {}
-func (noWindows) present(*Window, canvas.Area)         {}
+func (noWindows) present(*Window, canvas.Area) bool    { return false }
 func (noWindows) setTitle(string)                      {}
 func (noWindows) setFullscreen(bool) bool              { return false }
 func (noWindows) setOpacity(uint8) bool                { return false }
@@ -45,5 +45,7 @@ func (noWindows) systemDark() (bool, bool) { return false, false }
 func (noWindows) clipboard() (string, []string) { return "", nil }
 
 func (noWindows) setIcon([]*canvas.Canvas) bool { return false }
+
+func (noWindows) setCursor(CursorIcon) bool { return false }
 
 func (noWindows) setClipboard(string) bool { return false }
