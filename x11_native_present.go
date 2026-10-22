@@ -6,6 +6,6 @@ import (
 	"github.com/gabrielluizsf/antui/canvas"
 )
 
-func (n *x11Native) present(win *Window, dirty canvas.Area) {
-	n.d.Present(win, dirty)
+func (n *x11Native) present(win *Window, dirty canvas.Area) bool {
+	return n.d.Present(win, dirty)
 }

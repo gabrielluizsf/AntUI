@@ -19,7 +19,10 @@ type platform interface {
 	open(win *Window, title string, width, height int) error
 	close()
 	pump(win *Window)
-	present(win *Window, dirty canvas.Area)
+	// present reports whether the dirty rectangle actually reached the
+	// display, so a connection that drops partway through a frame does not
+	// get mistaken for one that delivered it.
+	present(win *Window, dirty canvas.Area) bool
 	setTitle(title string)
 	// setFullscreen reports whether the request could be made at all, not
 	// whether the window manager honoured it.

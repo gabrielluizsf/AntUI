@@ -7,16 +7,17 @@ import (
 	"github.com/gabrielluizsf/antui/canvas"
 )
 
-// present blits the frame into the buffer the compositor lends us.
+// present blits the frame into the buffer the compositor lends us, reporting
+// whether it got posted.
 //
 // The rectangle handed in is what changed. The compositor's answer to it is
 // usually larger — it hands out buffers in rotation, so the one being locked
 // holds a frame from two or three ago, and everything stale in it has to be
 // written. Lock rewrites the rectangle with what must be filled, and that is
 // the one to blit.
-func (b *androidWindow) present(win *Window, dirty canvas.Area) {
+func (b *androidWindow) present(win *Window, dirty canvas.Area) bool {
 	if b.surface == nil || dirty.Width <= 0 || dirty.Height <= 0 {
-		return
+		return false
 	}
 	r := ndk.Rect{
 		Left:   int32(dirty.X),
@@ -31,11 +32,13 @@ func (b *androidWindow) present(win *Window, dirty canvas.Area) {
 		// way and pump will park.
 		ndk.Warnf("cannot lock the surface: %v", err)
 		b.surface = nil
-		return
+		return false
 	}
 	blit(buf, win.cv, r)
 	if err := b.surface.UnlockAndPost(); err != nil {
 		ndk.Warnf("cannot post the frame: %v", err)
 		b.surface = nil
+		return false
 	}
+	return true
 }

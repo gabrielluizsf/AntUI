@@ -32,8 +32,8 @@ func (n *darwinNative) close() {
 }
 
 func (n *darwinNative) pump(win *Window) { n.d.Pump(win) }
-func (n *darwinNative) present(win *Window, dirty canvas.Area) {
-	n.d.Present(win, dirty)
+func (n *darwinNative) present(win *Window, dirty canvas.Area) bool {
+	return n.d.Present(win, dirty)
 }
 func (n *darwinNative) setTitle(title string) { n.d.SetTitle(title) }
 func (n *darwinNative) setFullscreen(on bool) bool {

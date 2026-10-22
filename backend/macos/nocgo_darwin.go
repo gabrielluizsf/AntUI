@@ -35,7 +35,7 @@ func (d *Driver) Close() {}
 func (d *Driver) Pump(win backend.Face) {}
 
 // Present copies the window's dirty rectangle to the platform surface.
-func (d *Driver) Present(win backend.Face, dirty canvas.Area) {}
+func (d *Driver) Present(win backend.Face, dirty canvas.Area) bool { return false }
 
 // SetTitle names the window in the system's decoration.
 func (d *Driver) SetTitle(title string) {}

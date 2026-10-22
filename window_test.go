@@ -12,11 +12,13 @@ type stubBackend struct {
 	clip      string
 	clipFiles []string
 	icons     []*canvas.Canvas
+	cursor    CursorIcon
 
-	presented []canvas.Area
-	title     string
-	full      bool
-	opacity   uint8
+	presented     []canvas.Area
+	refusePresent bool // what present answers with, so a dropped connection can be rehearsed
+	title         string
+	full          bool
+	opacity       uint8
 
 	// What the stub was asked for, and what it answers with. A zero display
 	// size stands for the 1920 by 1080 the older tests were written against.
@@ -36,7 +38,10 @@ type stubBackend struct {
 func (s *stubBackend) open(*Window, string, int, int) error { return nil }
 func (s *stubBackend) close()                               {}
 func (s *stubBackend) pump(*Window)                         {}
-func (s *stubBackend) present(_ *Window, dirty canvas.Area) { s.presented = append(s.presented, dirty) }
+func (s *stubBackend) present(_ *Window, dirty canvas.Area) bool {
+	s.presented = append(s.presented, dirty)
+	return !s.refusePresent
+}
 func (s *stubBackend) setTitle(title string)                { s.title = title }
 func (s *stubBackend) setFullscreen(on bool) bool           { s.full = on; return true }
 func (s *stubBackend) setOpacity(alpha uint8) bool          { s.opacity = alpha; return true }

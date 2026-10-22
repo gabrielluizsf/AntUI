@@ -8,10 +8,13 @@ import (
 )
 
 // Present copies the window's dirty rectangle to the drawable, in as many
-// chunks as the server's maximum request size demands.
-func (x *Driver) Present(win backend.Face, dirty canvas.Area) {
+// chunks as the server's maximum request size demands. It reports whether
+// every chunk got written: a connection that drops partway through leaves
+// the drawable holding only the rows sent before it did, and the caller
+// needs to know that rather than mistake it for a delivered frame.
+func (x *Driver) Present(win backend.Face, dirty canvas.Area) bool {
 	if !x.alive || dirty.Width <= 0 || dirty.Height <= 0 {
-		return
+		return false
 	}
 	cv := win.Canvas()
 	rowPixels := dirty.Width
@@ -31,7 +34,8 @@ func (x *Driver) Present(win backend.Face, dirty canvas.Area) {
 		}
 
 		if !x.putChunk(dirty, y, rows, rowBytes) {
-			return
+			return false
 		}
 	}
+	return true
 }

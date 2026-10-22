@@ -26,8 +26,17 @@ func (win *Window) End() bool {
 	// do. The canvas's own copy of the screen has already been brought up to
 	// date by the measuring, so the next frame starts from the right place.
 	if dirty.Width > 0 && dirty.Height > 0 {
-		win.native.present(win, dirty)
-		win.presented = true
+		win.presented = win.native.present(win, dirty)
+		if !win.presented {
+			// The measuring above already adopted this frame as the screen's
+			// new baseline, trusting the platform to deliver it. It did not:
+			// a connection that drops partway through a resize's full redraw
+			// is the case this guards. Diffing the next frame against a
+			// baseline nothing confirmed would read as "nothing changed" and
+			// the window would stay wrong forever, so the next frame is told
+			// to send everything again rather than trust the diff.
+			win.fullRedraw = true
+		}
 	} else {
 		win.presented = false
 	}

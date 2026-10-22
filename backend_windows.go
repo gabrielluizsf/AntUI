@@ -32,8 +32,8 @@ func (n *windowsNative) close() {
 }
 
 func (n *windowsNative) pump(win *Window) { n.d.Pump(win) }
-func (n *windowsNative) present(win *Window, dirty canvas.Area) {
-	n.d.Present(win, dirty)
+func (n *windowsNative) present(win *Window, dirty canvas.Area) bool {
+	return n.d.Present(win, dirty)
 }
 func (n *windowsNative) setTitle(title string) { n.d.SetTitle(title) }
 func (n *windowsNative) setFullscreen(on bool) bool {

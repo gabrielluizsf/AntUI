@@ -7,19 +7,21 @@ import (
 	"github.com/gabrielluizsf/antui/canvas"
 )
 
-// Present copies the window's dirty rectangle to the platform surface.
+// Present copies the window's dirty rectangle to the platform surface,
+// reporting whether there was a surface to copy it to.
 //
 // GDI is not told the rectangle is dirty; it is handed the whole frame the
 // way a game hands one over, and the dirty rectangle decides on the other
 // side whether the frame is even copied. Which is this call as it is.
-func (d *Driver) Present(win backend.Face, dirty canvas.Area) {
+func (d *Driver) Present(win backend.Face, dirty canvas.Area) bool {
 	if dirty.Width <= 0 || dirty.Height <= 0 || d.hwnd == 0 {
-		return
+		return false
 	}
 	hdc, _, _ := procGetDC.Call(d.hwnd)
 	if hdc == 0 {
-		return
+		return false
 	}
 	d.blit(hdc)
 	procReleaseDC.Call(d.hwnd, hdc)
+	return true
 }
