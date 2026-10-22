@@ -8,9 +8,9 @@ import "github.com/gabrielluizsf/antui"
 func (t *uiTemplate) dateInput(win *antui.Window, value *Date, id uint32, hovered, focused bool, g dateGeom, v dateView) dateView {
 	wasOpen := v.open
 	if v.open {
-		v.year, v.month, v.day = t.dateYear, t.dateMonth, t.dateCursor
+		v.year, v.month, v.day, v.pickMonth = t.dateYear, t.dateMonth, t.dateCursor, t.datePickMonth
 	}
-	if v.open && focused {
+	if v.open && focused && !v.pickMonth {
 		v = t.dateKeys(win, value, v)
 	}
 	if v.open {
@@ -19,11 +19,11 @@ func (t *uiTemplate) dateInput(win *antui.Window, value *Date, id uint32, hovere
 	if wasOpen == v.open && !v.changed {
 		v = t.dateBoxClick(win, value, v, id, hovered)
 	}
-	if v.open {
+	if v.open && !v.pickMonth {
 		v = t.dateHover(win, v, g)
 	}
 	if v.open {
-		t.dateYear, t.dateMonth, t.dateCursor, t.dateOpen = v.year, v.month, v.day, id
+		t.dateYear, t.dateMonth, t.dateCursor, t.dateOpen, t.datePickMonth = v.year, v.month, v.day, id, v.pickMonth
 	} else {
 		t.dateOpen = 0
 	}

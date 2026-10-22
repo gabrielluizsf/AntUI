@@ -31,4 +31,12 @@ type windowState struct {
 	// widget painted in flow order, so an open dropdown or calendar stays on
 	// top of whatever the layout drew under it.
 	frontmost []func()
+
+	// modalID is the widget an open popup belongs to — every other widget's
+	// click is refused for as long as this stands. Set the moment the popup
+	// opens and refreshed every frame it stays open, this is what a widget
+	// drawn earlier in the same frame, underneath where the popup will
+	// land, has to go on before it has painted at all: see
+	// [Window.ClaimModal].
+	modalID uint32
 }

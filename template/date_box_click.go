@@ -13,7 +13,7 @@ func (t *uiTemplate) dateBoxClick(win *antui.Window, value *Date, v dateView, id
 		return v
 	}
 	v.year, v.month, v.day = value.Year, value.Month, value.Day
-	v.open = true
+	v.open, v.pickMonth = true, false
 	win.WidgetFocusSet(id)
 	return v
 }

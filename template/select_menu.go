@@ -32,8 +32,12 @@ func (t *uiTemplate) selectMenu(win *antui.Window, x, y, w, h int, index *int, o
 		draws = append(draws, optionDraw{x: x, y: oy, label: opt, sel: sel, state: st})
 	}
 	// The menu is drawn dead last, above every widget the flow painted under
-	// it, so an open menu never hides behind fields below.
+	// it, so an open menu never hides behind fields below — behind a scrim
+	// over the whole window first, which is what tells the eye the menu is
+	// the only thing asking for it right now.
 	win.WidgetFrontmost(func() {
+		cv := win.Canvas()
+		cv.FillRect(canvas.Area{X: 0, Y: 0, Width: win.Width(), Height: win.Height()}, canvas.Fade(canvas.Black, modalScrimAlpha))
 		for _, d := range draws {
 			t.style.SelectOption(SelectOptionParams{
 				Win:   win,

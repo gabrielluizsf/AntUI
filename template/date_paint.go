@@ -22,6 +22,7 @@ type datePaint struct {
 	selected    int
 	today       int
 	hover       int
+	pick        bool // showing the month grid a tap on the header opened, not the day grid
 }
 
 // header is the height of the title row the month and the arrows sit in.

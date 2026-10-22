@@ -2,6 +2,9 @@ package antui
 
 // widgetClick is the press-and-release logic every clickable widget shares.
 func (win *Window) widgetClick(id uint32, hovered bool) bool {
+	if hovered && win.blockedByModal(id) {
+		hovered = false
+	}
 	if hovered {
 		win.uiHot = id
 	}

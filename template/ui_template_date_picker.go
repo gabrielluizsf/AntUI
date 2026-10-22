@@ -31,6 +31,16 @@ func (t *uiTemplate) DatePicker(win *antui.Window, area canvas.Area, value *Date
 	wasOpen := v.open
 	v = t.dateInput(win, value, id, hovered, focused, g, v)
 
+	// Claimed every frame the popup is open, released the frame it is not —
+	// which is what keeps a widget drawn earlier in flow order, underneath
+	// where the popup lands, from taking a click meant for whatever the
+	// popup is covering it with.
+	if v.open {
+		win.ClaimModal(id)
+	} else {
+		win.ReleaseModal(id)
+	}
+
 	firstWD, days, sel, hoverDay := dateCalendar(win, v, g)
 	t.style.DatePickerBox(DatePickerBoxParams{
 		Win:   win,
@@ -42,7 +52,8 @@ func (t *uiTemplate) DatePicker(win *antui.Window, area canvas.Area, value *Date
 	if v.open {
 		p := datePaint{x: g.px, y: g.py, w: g.dw, h: g.dh, u: g.u,
 			year: v.year, month: v.month, firstWD: firstWD, days: days,
-			selected: sel, today: dateToday(v.year, v.month, days), hover: hoverDay}
+			selected: sel, today: dateToday(v.year, v.month, days), hover: hoverDay,
+			pick: v.pickMonth}
 		t.showDatePopup(win, State{Focused: focused, Hovered: hovered}, p)
 	}
 

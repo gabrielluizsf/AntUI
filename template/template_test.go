@@ -192,6 +192,45 @@ func TestSelectOpensPicksAndCloses(t *testing.T) {
 	}
 }
 
+// TestSelectStaysClosedAfterAnOutsideClick guards a bug where closing the
+// menu with a press outside it only changed the local variable this frame's
+// Select drew with, never the field that survives to the next one — so a
+// menu an outside click had just closed opened again on its own the very
+// next frame, as if the click had never landed.
+func TestSelectStaysClosedAfterAnOutsideClick(t *testing.T) {
+	win, _, _ := antui.Offscreen(400, 300)
+	tpl := Builtin()
+	options := []string{"Apple", "Banana", "Cherry"}
+	index := 0
+	area := canvas.Area{X: 50, Y: 25, Width: 140, Height: 30}
+
+	// Click the box: the menu opens.
+	win.Begin()
+	testClick(t, win, 100, 40)
+	e := tpl.Select(win, area, SelectParams{Index: &index, Options: options})
+	win.End()
+	if !e.Is(event.Select, event.Open) {
+		t.Fatalf("expected Select/Open, got %v", e)
+	}
+
+	// Click well outside the box and the menu both: it closes.
+	win.Begin()
+	testClick(t, win, 350, 280)
+	e = tpl.Select(win, area, SelectParams{Index: &index, Options: options})
+	win.End()
+	if !e.Is(event.Select, event.Close) {
+		t.Fatalf("expected Select/Close, got %v", e)
+	}
+
+	// A frame later, with no further input, it is still closed.
+	win.Begin()
+	e = tpl.Select(win, area, SelectParams{Index: &index, Options: options})
+	win.End()
+	if e.Ok() {
+		t.Errorf("an untouched frame after the outside click produced %v, want no event", e)
+	}
+}
+
 func TestSelectKeyboardPicks(t *testing.T) {
 	win, _, _ := antui.Offscreen(400, 300)
 	tpl := Builtin()

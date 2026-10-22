@@ -44,18 +44,37 @@ func (t *uiTemplate) Select(win *antui.Window, area canvas.Area, params SelectPa
 			open = !open
 			if open {
 				t.selectCursor = *index
-				t.selectOpen = id
 				win.WidgetFocusSet(id)
-			} else {
-				t.selectOpen = 0
 			}
 		}
 	}
+	// open may also have closed above — a press outside, Escape, a pick —
+	// paths that only ever touch the local variable; selectOpen is the one
+	// that has to agree with it, since it alone survives to the next frame,
+	// or a menu a click outside just closed springs back open on it.
 	if open {
+		t.selectOpen = id
+	} else if t.selectOpen == id {
+		t.selectOpen = 0
+	}
+	if open {
+		// The claim is released before the menu's own rows get a turn at the
+		// pointer: each row is its own widget, with its own id the trigger's
+		// claim does not cover, and answers for itself regardless.
+		win.ReleaseModal(id)
 		if t.selectMenu(win, x, y, w, h, index, options, focused) {
 			open = false
 			picked = true
 		}
+	}
+	// Claimed every frame the menu is open, released the frame it is not —
+	// which is what keeps a widget drawn earlier in flow order, underneath
+	// where the menu lands, from taking a click meant for whatever the menu
+	// is covering it with.
+	if open {
+		win.ClaimModal(id)
+	} else {
+		win.ReleaseModal(id)
 	}
 
 	t.style.Select(SelectParams{

@@ -15,7 +15,8 @@ type uiTemplate struct {
 	dateOpen         uint32 // the widget id of an open calendar popup, 0 when none
 	dateYear         int    // the month an open calendar popup shows
 	dateMonth        int
-	dateCursor       int // the day an open calendar popup highlights
+	dateCursor       int  // the day an open calendar popup highlights
+	datePickMonth    bool // whether that popup is showing the month grid instead of the day grid
 
 	// ld is the start-up loading screen this template wears until the
 	// program says Ready — see [loading]. It is nil for a template built
