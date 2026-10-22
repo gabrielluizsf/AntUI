@@ -15,7 +15,9 @@ func (c *CSS) paint(st css.Style, role, label string, x, y, w, h int, draw func(
 	}
 	c.style.transformed(st, x, y, w, h, func() {
 		if interactive(st) && c.style.boxOn(st) {
-			if ownSurface(role) {
+			// A widget that paints its own surface gets the frame only:
+			// the border, the shadows and the outline around it.
+			if ownSurface(role) || c.style.ringProgress(role, st, w, h) {
 				c.style.paintFrame(c.win, st, x, y, w, h)
 			} else {
 				c.style.paintBox(c.win, st, x, y, w, h)

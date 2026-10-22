@@ -10,6 +10,7 @@ func (builtinStyle) Select(p SelectParams) {
 	th := win.Theme()
 	u := Scale(win)
 
+	radius := min(th.Radius*u, p.H/2)
 	local := th.Surface
 	if p.State.Hovered {
 		local = th.SurfaceHover
@@ -18,12 +19,15 @@ func (builtinStyle) Select(p SelectParams) {
 	if p.State.Focused || p.Open {
 		border = th.Accent
 	}
-	cv.FillRoundRect(canvas.Round(canvas.Area{X: p.X, Y: p.Y, Width: p.W, Height: p.H}, th.Radius), local)
-	cv.RoundRect(canvas.Round(canvas.Area{X: p.X, Y: p.Y, Width: p.W, Height: p.H}, th.Radius), border)
+	cv.FillRoundRect(canvas.Round(canvas.Area{X: p.X, Y: p.Y, Width: p.W, Height: p.H}, radius), local)
+	cv.RoundRect(canvas.Round(canvas.Area{X: p.X, Y: p.Y, Width: p.W, Height: p.H}, radius), border)
 
 	padding := 8 * u
 	textY := p.Y + (p.H-textHeight(u))/2
+	savedClip := cv.Clip
+	cv.SetClip(canvas.Area{X: p.X + padding, Y: p.Y, Width: p.W - 2*padding, Height: p.H})
 	cv.TextScaled(canvas.Point{X: float64(p.X + padding), Y: float64(textY)}, p.Value, canvas.TextStyle{Color: th.Text, Scale: u})
+	cv.Clip = savedClip
 
 	// The arrow that says "there is more below". It is drawn inside a square
 	// bigger than the arrow so that the arrow itself comes out at the size the

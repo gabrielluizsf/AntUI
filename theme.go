@@ -16,8 +16,10 @@ type Theme struct {
 	Text          canvas.Color
 	TextMuted     canvas.Color
 	TextOnAccent  canvas.Color
-	Radius        int // radius of the rounded corners
-	Padding       int // inner spacing
+	Shadow        canvas.Color // the tint a raised surface casts under itself
+	Radius        int          // radius of a control's rounded corners
+	RadiusLarge   int          // radius of a container's — a card, a panel
+	Padding       int          // inner spacing
 }
 
 // LightTheme is the default: dark text on a light background, and what a
@@ -35,7 +37,9 @@ func LightTheme() Theme {
 		Text:          0xFF1C1C1F,
 		TextMuted:     0xFF6F6F7B,
 		TextOnAccent:  0xFFFFFFFF,
-		Radius:        6,
+		Shadow:        0x1E14141B,
+		Radius:        10,
+		RadiusLarge:   16,
 		Padding:       8,
 	}
 }
@@ -54,7 +58,13 @@ func DarkTheme() Theme {
 		Text:          0xFFF0F0F3,
 		TextMuted:     0xFF9B9BA6,
 		TextOnAccent:  0xFFFFFFFF,
-		Radius:        6,
-		Padding:       8,
+		// Shadows read poorly once the surface they would fall on is already
+		// dark; a quieter one than the light theme's still gives a popover or
+		// a dialog some separation from the window behind it, and the border
+		// above does the rest of the lifting that a shadow would elsewhere.
+		Shadow:      0x3C000000,
+		Radius:      10,
+		RadiusLarge: 16,
+		Padding:     8,
 	}
 }

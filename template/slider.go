@@ -30,6 +30,6 @@ func (builtinStyle) Slider(p SliderParams) {
 	knobX := trackX + int(value*float32(trackW)+0.5)
 	knobX = min(max(knobX, trackX), trackX+trackW)
 
-	paintSliderTrack(cv, th, trackX, trackY, trackW, trackH, knobX)
-	paintSliderThumb(cv, th, p.State, knobX, cy, knobRadius, u)
+	paintSliderTrack(cv, th, sliderTrack{X: trackX, Y: trackY, Width: trackW, Height: trackH, KnobX: knobX})
+	paintSliderThumb(cv, th, sliderThumb{X: knobX, Y: cy, Radius: knobRadius, U: u, State: p.State})
 }

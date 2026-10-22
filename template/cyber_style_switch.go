@@ -27,14 +27,17 @@ func (cyberStyle) Switch(p SwitchParams) {
 	cv.FillRoundRect(track, body)
 	cv.RoundRect(track, border)
 
-	colour := v.dim
+	// Off is a small dot adrift in its half of the rail; on is a disc that
+	// all but fills it, lit and carrying a check — the size is as much the
+	// state as the colour is.
+	cy := p.Y + trackH/2
+	cx, r, colour := p.X+trackH/2, trackH/2-6*u, v.dim
 	if p.On {
-		colour = v.neon
+		cx, r, colour = p.X+trackW-trackH/2, trackH/2-2*u, cyberPalette.field
 	}
-	cx := p.X + trackH/2
+	cv.FillCircle(canvas.Circle{X: cx, Y: cy, R: r}, colour)
 	if p.On {
-		cx = p.X + trackW - trackH/2
+		drawIconIn(cv, IconCheck, cx-r+2*u, cy-r+2*u, r*2-4*u, v.neon)
 	}
-	cv.FillCircle(canvas.Circle{X: cx, Y: p.Y + trackH/2, R: trackH/2 - 3*u}, colour)
 	cv.TextScaled(canvas.Point{X: float64(p.X + trackW + labelGap*u), Y: float64(p.Y + (trackH-textHeight(u))/2)}, p.Label, canvas.TextStyle{Color: v.text, Scale: u})
 }

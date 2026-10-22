@@ -10,8 +10,9 @@ func (builtinStyle) TextArea(p TextAreaParams) {
 	th := win.Theme()
 	u := Scale(win)
 	padding := 8 * u
+	radius := min(th.Radius*u, p.H/2)
 
-	cv.FillRoundRect(canvas.Round(canvas.Area{X: p.X, Y: p.Y, Width: p.W, Height: p.H}, th.Radius), th.Surface)
+	cv.FillRoundRect(canvas.Round(canvas.Area{X: p.X, Y: p.Y, Width: p.W, Height: p.H}, radius), th.Surface)
 	border := th.Border
 	switch {
 	case p.State.Focused:
@@ -19,7 +20,10 @@ func (builtinStyle) TextArea(p TextAreaParams) {
 	case p.State.Hovered:
 		border = th.TextMuted
 	}
-	cv.RoundRect(canvas.Round(canvas.Area{X: p.X, Y: p.Y, Width: p.W, Height: p.H}, th.Radius), border)
+	cv.RoundRect(canvas.Round(canvas.Area{X: p.X, Y: p.Y, Width: p.W, Height: p.H}, radius), border)
+	if p.State.Focused {
+		cv.RoundRect(canvas.Round(canvas.Area{X: p.X - u, Y: p.Y - u, Width: p.W + 2*u, Height: p.H + 2*u}, radius+u), canvas.Fade(th.Accent, 70))
+	}
 
 	innerW := p.W - 2*padding
 	textW := max(innerW/u, 12)
@@ -53,7 +57,6 @@ func (builtinStyle) TextArea(p TextAreaParams) {
 		line := display[l[0]:l[1]]
 		colour := th.Text
 		if placeholder {
-			line = "Escreva uma anotação..."
 			colour = th.TextMuted
 		}
 		cv.TextScaled(canvas.Point{X: float64(p.X + padding), Y: float64(cy)}, line, canvas.TextStyle{Color: colour, Scale: u})

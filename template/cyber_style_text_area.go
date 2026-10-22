@@ -16,11 +16,11 @@ func (cyberStyle) TextArea(p TextAreaParams) {
 	body, border := cyberPalette.field, canvas.Fade(v.neon, 51)
 	if p.State.Focused {
 		border = v.neon
-		glow(cv, halo{x: p.X, y: p.Y, w: p.W, h: p.H, radius: radius, colour: v.neon, strength: int(float64(20) * v.glow), u: u})
+		chamferGlow(cv, halo{x: p.X, y: p.Y, w: p.W, h: p.H, radius: radius, colour: v.neon, strength: int(float64(20) * v.glow), u: u})
 	} else if p.State.Hovered {
 		border = canvas.Fade(v.neon, 102)
 	}
-	neonFill(cv, p.X, p.Y, p.W, p.H, radius, body, border)
+	neonFill(cv, p.X, p.Y, p.W, p.H, radius, u, body, border)
 
 	padding := 8 * u
 	innerW := p.W - 2*padding
@@ -48,7 +48,6 @@ func (cyberStyle) TextArea(p TextAreaParams) {
 		line := display[l[0]:l[1]]
 		colour := v.text
 		if placeholder {
-			line = "Escreva uma anotação..."
 			colour = v.dim
 		} else if line == "" {
 			colour = v.dim
@@ -57,8 +56,7 @@ func (cyberStyle) TextArea(p TextAreaParams) {
 		if p.State.Focused && p.Caret && cursor >= l[0] && cursor <= l[1] {
 			off := cursor - l[0]
 			cx := p.X + padding + textWidth(u, line[:off])
-			cv.FillRect(canvas.Area{X: cx, Y: cy, Width: 2 * u, Height: lineH}, v.neon)
-			cv.FillRect(canvas.Area{X: cx, Y: cy + lineH, Width: 2 * u, Height: 2 * u}, canvas.Fade(v.neon, 150))
+			drawCyberCaret(cv, caretGlyph{X: cx, Y: cy, H: lineH, U: u, Color: v.neon})
 		}
 	}
 	cv.Clip = savedClip

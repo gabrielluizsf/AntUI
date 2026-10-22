@@ -8,8 +8,9 @@ func (builtinStyle) Input(p InputParams) {
 	th := win.Theme()
 	u := Scale(win)
 	padding := 8 * u
+	radius := min(th.Radius*u, p.H/2)
 
-	cv.FillRoundRect(canvas.Round(canvas.Area{X: p.X, Y: p.Y, Width: p.W, Height: p.H}, th.Radius), th.Surface)
+	cv.FillRoundRect(canvas.Round(canvas.Area{X: p.X, Y: p.Y, Width: p.W, Height: p.H}, radius), th.Surface)
 	border := th.Border
 	switch {
 	case p.State.Focused:
@@ -17,7 +18,10 @@ func (builtinStyle) Input(p InputParams) {
 	case p.State.Hovered:
 		border = th.TextMuted
 	}
-	cv.RoundRect(canvas.Round(canvas.Area{X: p.X, Y: p.Y, Width: p.W, Height: p.H}, th.Radius), border)
+	cv.RoundRect(canvas.Round(canvas.Area{X: p.X, Y: p.Y, Width: p.W, Height: p.H}, radius), border)
+	if p.State.Focused {
+		cv.RoundRect(canvas.Round(canvas.Area{X: p.X - u, Y: p.Y - u, Width: p.W + 2*u, Height: p.H + 2*u}, radius+u), canvas.Fade(th.Accent, 70))
+	}
 
 	cursor := min(max(p.Cursor, 0), len(p.Text))
 	cursorPx := canvas.TextWidth(p.Text[:cursor]) * u

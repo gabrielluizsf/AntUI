@@ -21,10 +21,11 @@ func (cyberStyle) Button(p ButtonParams) {
 	case p.State.Focused:
 		reach = 16
 	}
+	cut := 10 * u
 	if reach > 0 {
-		glow(cv, halo{x: p.X, y: p.Y, w: p.W, h: p.H, radius: 0, colour: v.neon, strength: int(float64(reach) * v.glow), u: u})
+		chamferGlow(cv, halo{x: p.X, y: p.Y, w: p.W, h: p.H, radius: cut, colour: v.neon, strength: int(float64(reach) * v.glow), u: u})
 	}
-	pts := chamfer(p.X, p.Y, p.W, p.H, 10*u)
+	pts := chamfer(p.X, p.Y, p.W, p.H, cut)
 	fillClip(cv, pts, body)
 	cv.TextScaled(canvas.Point{X: float64(p.X + (p.W-textWidth(u, p.Label))/2), Y: float64(p.Y + (p.H-textHeight(u))/2)}, p.Label,
 		canvas.TextStyle{Color: cyberPalette.bg, Scale: u, Bold: true, LetterSpacing: u})
