@@ -54,6 +54,11 @@ func (s *stubBackend) setIcon(images []*canvas.Canvas) bool {
 	return true
 }
 
+func (s *stubBackend) setCursor(icon CursorIcon) bool {
+	s.cursor = icon
+	return true
+}
+
 func (s *stubBackend) setClipboard(text string) bool {
 	s.clip = text
 	return true
@@ -309,5 +314,31 @@ func TestSetOpacityForwardsToThePlatform(t *testing.T) {
 	}
 	if stub.opacity != 255 || win.Opacity() != 255 {
 		t.Fatalf("restoring opacity lost it: stub %d, window %d", stub.opacity, win.Opacity())
+	}
+}
+
+// TestSetCursorForwardsToThePlatform mirrors
+// TestSetOpacityForwardsToThePlatform: asking for a custom pointer runs the
+// platform's own setCursor and the window reports what it answered.
+func TestSetCursorForwardsToThePlatform(t *testing.T) {
+	win, stub := newTestWindow(t, 320, 200)
+	cv, err := canvas.NewCanvas(8, 8)
+	if err != nil {
+		t.Fatalf("NewCanvas: %v", err)
+	}
+	icon := CursorIcon{Image: cv, HotX: 4, HotY: 4}
+
+	if got := win.SetCursor(icon); !got {
+		t.Fatal("the backend accepted the cursor; SetCursor should report it")
+	}
+	if stub.cursor != icon {
+		t.Fatalf("stub got %+v, want %+v", stub.cursor, icon)
+	}
+
+	if got := win.SetCursor(CursorIcon{}); !got {
+		t.Fatal("putting the ordinary pointer back should still be accepted")
+	}
+	if stub.cursor.Image != nil {
+		t.Fatalf("stub cursor image = %v, want nil once the custom pointer is dropped", stub.cursor.Image)
 	}
 }

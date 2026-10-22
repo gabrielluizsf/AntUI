@@ -55,3 +55,6 @@ func (n *darwinNative) clipboard() (text string, files []string) {
 }
 func (n *darwinNative) setIcon(images []*canvas.Canvas) bool { return n.d.SetIcon(images) }
 func (n *darwinNative) setClipboard(text string) bool        { return n.d.SetClipboard(text) }
+func (n *darwinNative) setCursor(icon backend.CursorIcon) bool {
+	return n.d.SetCursor(icon)
+}

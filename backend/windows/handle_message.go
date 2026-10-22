@@ -53,6 +53,9 @@ func (d *Driver) handleMessage(m wndMsg) (uintptr, bool) {
 
 	case wmGetMinMaxInfo, wmSizing:
 		return d.handleResizeMessage(m)
+
+	case wmSetCursor:
+		return d.handleSetCursor(m)
 	}
 	return 0, false
 }

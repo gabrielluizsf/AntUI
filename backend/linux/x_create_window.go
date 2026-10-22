@@ -15,9 +15,13 @@ const (
 	xSetSelectionOwner      = 22
 	xConvertSelection       = 24
 	xSendEvent              = 25
+	xCreatePixmap           = 53
+	xFreePixmap             = 54
 	xCreateGC               = 55
 	xFreeGC                 = 60
 	xPutImage               = 72
+	xCreateCursor           = 93
+	xFreeCursor             = 95
 	xQueryExtension         = 98
 	xGetKeyboardMap         = 101
 )

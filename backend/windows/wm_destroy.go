@@ -14,6 +14,7 @@ const (
 	wmEraseBkgnd    = 0x0014
 	wmSettingChange = 0x001A
 	wmGetMinMaxInfo = 0x0024
+	wmSetCursor     = 0x0020
 	wmNCCreate      = 0x0081
 	wmKeyDown       = 0x0100
 	wmKeyUp         = 0x0101

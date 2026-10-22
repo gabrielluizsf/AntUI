@@ -37,6 +37,10 @@ func (d *Driver) Clipboard() (text string, files []string) { return "", nil }
 // SetIcon gives the window an icon where the system shows one.
 func (d *Driver) SetIcon(images []*canvas.Canvas) bool { return false }
 
+// SetCursor replaces the mouse pointer with icon's picture. There is no
+// window to put it on here.
+func (d *Driver) SetCursor(icon backend.CursorIcon) bool { return false }
+
 // SetClipboard puts text on the system clipboard, reporting whether the
 // system took it.
 func (d *Driver) SetClipboard(text string) bool { return false }

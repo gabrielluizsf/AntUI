@@ -95,6 +95,13 @@ const char *antui_d_drop_path(antui_d_window *w, int index);
 void antui_d_set_icon(antui_d_window *w, const uint32_t *pixels,
                       int width, int height);
 
+// Replaces the mouse pointer with a picture while it is over the window's
+// content, given as straight ARGB pixels and hung from the point
+// hot_x,hot_y — the pixel in it that the pointer actually points at. A NULL
+// pixels puts the ordinary arrow back.
+void antui_d_set_cursor(antui_d_window *w, const uint32_t *pixels,
+                        int width, int height, int hot_x, int hot_y);
+
 // The clipboard. The text is a fresh string the caller frees; the file paths
 // belong to the pasteboard's own list, which is read again — and so replaced
 // — by the next call to antui_d_clipboard_count.

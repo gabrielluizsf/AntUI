@@ -14,6 +14,12 @@ type Driver struct {
 	iconBig, iconSmall uintptr
 	instance           uintptr
 
+	// cursor is the custom cursor [Driver.SetCursor] last gave the window,
+	// reapplied every time Windows asks with WM_SETCURSOR — it forgets the
+	// pointer's picture on its own the moment the mouse so much as moves.
+	// Zero means the ordinary system arrow.
+	cursor uintptr
+
 	limits        backend.Limits
 	info          bitmapInfoHeader
 	highSurrogate uint16 // the high half of a pending UTF-16 pair

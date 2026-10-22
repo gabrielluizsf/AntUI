@@ -118,6 +118,13 @@ struct antui_d_window {
     // The paths of the last drop, kept until the next one: an event carries
     // numbers, and a list of names is not a number.
     NSArray<NSString *> *dropped;
+
+    // The pointer's picture while it sits over this window's content, or nil
+    // for the ordinary arrow. AntuiView reapplies it in resetCursorRects,
+    // which AppKit calls whenever the cursor's rects might need redoing —
+    // setting it here is not enough on its own, since nothing else holds
+    // the mouse over the view looking at this field.
+    NSCursor *cursor;
 };
 
 static void antui_d_push(antui_d_window *w, antui_d_event ev)
@@ -138,6 +145,18 @@ static void antui_d_push(antui_d_window *w, antui_d_event ev)
 // spares it blending the whole window against whatever is behind it.
 - (BOOL)isOpaque { return YES; }
 - (BOOL)acceptsFirstResponder { return YES; }
+
+// Tells AppKit which cursor belongs over which part of the view. Called
+// whenever the window is asked to work this out afresh — becoming key,
+// resizing, or antui_d_set_cursor invalidating it by hand — which is what
+// keeps a custom cursor showing without this view tracking mouse-entered
+// and mouse-exited itself.
+- (void)resetCursorRects
+{
+    antui_d_window *w = self.owner;
+    NSCursor *cursor = (w && w->cursor) ? w->cursor : [NSCursor arrowCursor];
+    [self addCursorRect:[self bounds] cursor:cursor];
+}
 
 // --- files dragged onto the window ----------------------------------------
 
@@ -351,6 +370,8 @@ void antui_d_close(antui_d_window *w)
             [w->window close];
             [w->dropped release];
             w->dropped = nil;
+            [w->cursor release];
+            w->cursor = nil;
         }
     });
     free(w->pixels);
@@ -632,6 +653,49 @@ void antui_d_set_icon(antui_d_window *w, const uint32_t *pixels,
             NSImage *icon = [[NSImage alloc] initWithSize:NSMakeSize(width, height)];
             [icon addRepresentation:rep];
             [NSApp setApplicationIconImage:icon];
+        }
+    });
+}
+
+void antui_d_set_cursor(antui_d_window *w, const uint32_t *pixels,
+                        int width, int height, int hot_x, int hot_y)
+{
+    if (!w) return;
+
+    antui_d_on_main(^{
+        @autoreleasepool {
+            NSCursor *cursor = nil;
+            if (pixels && width > 0 && height > 0) {
+                NSBitmapImageRep *rep = [[NSBitmapImageRep alloc]
+                    initWithBitmapDataPlanes:NULL
+                                  pixelsWide:width
+                                  pixelsHigh:height
+                               bitsPerSample:8
+                             samplesPerPixel:4
+                                    hasAlpha:YES
+                                    isPlanar:NO
+                              colorSpaceName:NSDeviceRGBColorSpace
+                                bitmapFormat:NSBitmapFormatAlphaFirst
+                                 bytesPerRow:width * 4
+                                bitsPerPixel:32];
+                if (rep) {
+                    memcpy([rep bitmapData], pixels, (size_t)width * (size_t)height * 4);
+                    NSImage *image = [[NSImage alloc] initWithSize:NSMakeSize(width, height)];
+                    [image addRepresentation:rep];
+                    cursor = [[NSCursor alloc] initWithImage:image
+                                                      hotSpot:NSMakePoint(hot_x, hot_y)];
+                    [image release];
+                    [rep release];
+                }
+            }
+
+            NSCursor *previous = w->cursor;
+            w->cursor = cursor;
+            [previous release];
+
+            if (w->window && w->view) {
+                [w->window invalidateCursorRectsForView:w->view];
+            }
         }
     });
 }

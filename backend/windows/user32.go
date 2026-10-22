@@ -38,6 +38,8 @@ var (
 	procReleaseCapture       = user32.NewProc("ReleaseCapture")
 	procGetKeyState          = user32.NewProc("GetKeyState")
 	procLoadCursorW          = user32.NewProc("LoadCursorW")
+	procSetCursor            = user32.NewProc("SetCursor")
+	procDestroyCursor        = user32.NewProc("DestroyCursor")
 	procSetProcessDPIAware   = user32.NewProc("SetProcessDPIAware")
 	procGetDpiForWindow      = user32.NewProc("GetDpiForWindow")
 	procStretchDIBits        = gdi32.NewProc("StretchDIBits")

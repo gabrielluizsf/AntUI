@@ -21,10 +21,23 @@ type Driver struct {
 	maxRequestBytes          uint32
 	seq                      uint16
 
+	// cursor is the custom cursor [Driver.SetCursor] last gave the window,
+	// freed the moment it is replaced rather than left for the server to
+	// notice the window no longer wants it.
+	cursor uint32
+
 	rootDepth      byte
 	imageByteOrder byte // 0 = LSB first
 	bitsPerPixel   byte
 	swapRB         bool // a visual with red and blue the other way round
+
+	// bitmapBitOrder and bitmapScanlinePad are how a 1-bit-deep image — the
+	// source and mask [Driver.SetCursor] sends a cursor's shape as — has to
+	// be packed: which end of each byte is the leftmost pixel, and how many
+	// bits a row is padded out to. Nothing else on this connection carries
+	// a bitmap, which is why nothing else reads them.
+	bitmapBitOrder    byte
+	bitmapScanlinePad byte
 
 	atomWMProtocols, atomWMDeleteWindow      uint32
 	atomNetWMName, atomUTF8String            uint32

@@ -21,6 +21,8 @@ func (x *Driver) parseSetup(body []byte) error {
 	screens := int(body[20])
 	formats := int(body[21])
 	x.imageByteOrder = body[22]
+	x.bitmapBitOrder = body[23]
+	x.bitmapScanlinePad = body[25]
 	x.minKeycode = body[26]
 	x.maxKeycode = body[27]
 

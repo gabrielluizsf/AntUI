@@ -55,3 +55,6 @@ func (n *windowsNative) clipboard() (text string, files []string) {
 }
 func (n *windowsNative) setIcon(images []*canvas.Canvas) bool { return n.d.SetIcon(images) }
 func (n *windowsNative) setClipboard(text string) bool        { return n.d.SetClipboard(text) }
+func (n *windowsNative) setCursor(icon backend.CursorIcon) bool {
+	return n.d.SetCursor(icon)
+}

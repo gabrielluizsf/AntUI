@@ -56,6 +56,9 @@ type platform interface {
 	// setIcon gives the window an icon, largest first. It reports whether the
 	// window system took it.
 	setIcon(images []*canvas.Canvas) bool
+	// setCursor replaces the mouse pointer with icon's picture, reporting
+	// whether the window system took it.
+	setCursor(icon CursorIcon) bool
 	// setClipboard puts text on the system clipboard, reporting whether the
 	// system took it.
 	setClipboard(text string) bool
