@@ -36,6 +36,13 @@ func (f *TTF) ColorGlyph(glyph int, pixels float64) *ColorGlyph {
 	if !ok {
 		return nil
 	}
+	// The size a PNG says it is is allocated before a byte of it is
+	// decoded, so it is asked first: seventy bytes may say they are sixty
+	// thousand pixels on a side.
+	cfg, err := png.DecodeConfig(bytes.NewReader(data))
+	if err != nil || cfg.Width <= 0 || cfg.Height <= 0 || cfg.Width > maxColorGlyphSide || cfg.Height > maxColorGlyphSide {
+		return nil
+	}
 	img, err := png.Decode(bytes.NewReader(data))
 	if err != nil {
 		return nil
