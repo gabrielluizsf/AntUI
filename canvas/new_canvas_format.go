@@ -13,7 +13,7 @@ func NewCanvasFormat(width, height int, format Format) (*Canvas, error) {
 	if format != RGB565 && format != Pal8 {
 		return nil, fmt.Errorf("antui: there is no format %d", int(format))
 	}
-	if width <= 0 || height <= 0 {
+	if !sizeFits(width, height) {
 		return nil, fmt.Errorf("antui: canvas size %dx%d is not valid", width, height)
 	}
 	cv := &Canvas{

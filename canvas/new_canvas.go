@@ -4,7 +4,7 @@ import "fmt"
 
 // NewCanvas makes an ARGB32 canvas with its pixels zeroed.
 func NewCanvas(width, height int) (*Canvas, error) {
-	if width <= 0 || height <= 0 {
+	if !sizeFits(width, height) {
 		return nil, fmt.Errorf("antui: canvas size %dx%d is not valid", width, height)
 	}
 	cv := &Canvas{

@@ -16,7 +16,7 @@ var layerPool sync.Pool
 // are all transparent, its clip is the whole of it, and anything bigger it was
 // last used as is trimmed away, so a caller can treat it as if it were new.
 func acquireLayer(w, h int) (*Canvas, bool) {
-	if w <= 0 || h <= 0 {
+	if !sizeFits(w, h) {
 		return nil, false
 	}
 	cv, _ := layerPool.Get().(*Canvas)
