@@ -20,6 +20,10 @@ type Driver struct {
 	// Zero means the ordinary system arrow.
 	cursor uintptr
 
+	// notifyIcon is whether [Driver.SendNotification] has put an icon in the
+	// notification area, which [Driver.Close] has to take away again.
+	notifyIcon bool
+
 	limits        backend.Limits
 	info          bitmapInfoHeader
 	highSurrogate uint16 // the high half of a pending UTF-16 pair

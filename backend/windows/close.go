@@ -13,6 +13,7 @@ func (d *Driver) Close() {
 	delete(windows, d.hwnd)
 	windowsMu.Unlock()
 
+	d.removeNotifyIcon()
 	procDestroyWindow.Call(d.hwnd)
 	d.hwnd = 0
 	runtime.UnlockOSThread()

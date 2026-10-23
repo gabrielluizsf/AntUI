@@ -48,4 +48,6 @@ func (noWindows) setIcon([]*canvas.Canvas) bool { return false }
 
 func (noWindows) setCursor(CursorIcon) bool { return false }
 
+func (noWindows) sendNotification(string, string) bool { return false }
+
 func (noWindows) setClipboard(string) bool { return false }

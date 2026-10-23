@@ -41,6 +41,12 @@ func (d *Driver) SetIcon(images []*canvas.Canvas) bool { return false }
 // window to put it on here.
 func (d *Driver) SetCursor(icon backend.CursorIcon) bool { return false }
 
+// SendNotification shows a notification, which without cgo has no
+// UserNotifications to go through — osascript is the one way left.
+func (d *Driver) SendNotification(title, body string) bool {
+	return osascriptNotify(title, body) == nil
+}
+
 // SetClipboard puts text on the system clipboard, reporting whether the
 // system took it.
 func (d *Driver) SetClipboard(text string) bool { return false }

@@ -110,4 +110,11 @@ void        antui_d_set_clipboard(const char *text);
 int         antui_d_clipboard_count(void);
 const char *antui_d_clipboard_path(int index);
 
+// Posts a notification through UNUserNotificationCenter, asking for
+// permission the first time. 1 means the request was made — permission is
+// answered later, so not that it was shown — and 0 that it could not be.
+// -1 means the process has no bundle identifier, which that framework
+// refuses outright, and the caller has to go another way.
+int antui_d_send_notification(const char *title, const char *body);
+
 #endif /* ANTUI_DARWIN_H */

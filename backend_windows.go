@@ -58,3 +58,6 @@ func (n *windowsNative) setClipboard(text string) bool        { return n.d.SetCl
 func (n *windowsNative) setCursor(icon backend.CursorIcon) bool {
 	return n.d.SetCursor(icon)
 }
+func (n *windowsNative) sendNotification(title, body string) bool {
+	return n.d.SendNotification(title, body)
+}

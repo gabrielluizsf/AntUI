@@ -58,3 +58,6 @@ func (n *darwinNative) setClipboard(text string) bool        { return n.d.SetCli
 func (n *darwinNative) setCursor(icon backend.CursorIcon) bool {
 	return n.d.SetCursor(icon)
 }
+func (n *darwinNative) sendNotification(title, body string) bool {
+	return n.d.SendNotification(title, body)
+}

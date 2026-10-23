@@ -13,6 +13,7 @@ type stubBackend struct {
 	clipFiles []string
 	icons     []*canvas.Canvas
 	cursor    CursorIcon
+	notified  []string // each notification sent, as "title: body"
 
 	presented     []canvas.Area
 	refusePresent bool // what present answers with, so a dropped connection can be rehearsed
@@ -42,10 +43,10 @@ func (s *stubBackend) present(_ *Window, dirty canvas.Area) bool {
 	s.presented = append(s.presented, dirty)
 	return !s.refusePresent
 }
-func (s *stubBackend) setTitle(title string)                { s.title = title }
-func (s *stubBackend) setFullscreen(on bool) bool           { s.full = on; return true }
-func (s *stubBackend) setOpacity(alpha uint8) bool          { s.opacity = alpha; return true }
-func (s *stubBackend) displayRefresh() int                  { return 60 }
+func (s *stubBackend) setTitle(title string)       { s.title = title }
+func (s *stubBackend) setFullscreen(on bool) bool  { s.full = on; return true }
+func (s *stubBackend) setOpacity(alpha uint8) bool { s.opacity = alpha; return true }
+func (s *stubBackend) displayRefresh() int         { return 60 }
 
 func (s *stubBackend) clipboard() (string, []string) { return s.clip, s.clipFiles }
 
@@ -56,6 +57,11 @@ func (s *stubBackend) setIcon(images []*canvas.Canvas) bool {
 
 func (s *stubBackend) setCursor(icon CursorIcon) bool {
 	s.cursor = icon
+	return true
+}
+
+func (s *stubBackend) sendNotification(title, body string) bool {
+	s.notified = append(s.notified, title+": "+body)
 	return true
 }
 
@@ -340,5 +346,30 @@ func TestSetCursorForwardsToThePlatform(t *testing.T) {
 	}
 	if stub.cursor.Image != nil {
 		t.Fatalf("stub cursor image = %v, want nil once the custom pointer is dropped", stub.cursor.Image)
+	}
+}
+
+// TestSendNotificationForwardsToThePlatform: a notification runs the
+// platform's own sendNotification and the window reports what it answered.
+func TestSendNotificationForwardsToThePlatform(t *testing.T) {
+	win, stub := newTestWindow(t, 320, 200)
+
+	if got := win.SendNotification("Download", "report.pdf is ready"); !got {
+		t.Fatal("the backend accepted the notification; SendNotification should report it")
+	}
+	if len(stub.notified) != 1 || stub.notified[0] != "Download: report.pdf is ready" {
+		t.Fatalf("stub got %q, want one \"Download: report.pdf is ready\"", stub.notified)
+	}
+}
+
+// TestSendNotificationWithoutAWindow: a window that was never opened, or was
+// closed, has no platform to hand the notification to and says so.
+func TestSendNotificationWithoutAWindow(t *testing.T) {
+	var nilWin *Window
+	if nilWin.SendNotification("t", "b") {
+		t.Fatal("a nil window cannot send a notification")
+	}
+	if (&Window{}).SendNotification("t", "b") {
+		t.Fatal("a window with no platform cannot send a notification")
 	}
 }

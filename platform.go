@@ -59,6 +59,10 @@ type platform interface {
 	// setCursor replaces the mouse pointer with icon's picture, reporting
 	// whether the window system took it.
 	setCursor(icon CursorIcon) bool
+	// sendNotification shows a system notification — the desktop's toast,
+	// the phone's shade — reporting whether the system took it, not whether
+	// the user saw it.
+	sendNotification(title, body string) bool
 	// setClipboard puts text on the system clipboard, reporting whether the
 	// system took it.
 	setClipboard(text string) bool

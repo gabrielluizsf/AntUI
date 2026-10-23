@@ -12,6 +12,9 @@ var (
 	procDragQueryPoint  = shell32.NewProc("DragQueryPoint")
 	procDragFinish      = shell32.NewProc("DragFinish")
 
+	procShellNotifyIconW = shell32.NewProc("Shell_NotifyIconW")
+	procLoadIconW        = user32.NewProc("LoadIconW")
+
 	procOpenClipboard    = user32.NewProc("OpenClipboard")
 	procCloseClipboard   = user32.NewProc("CloseClipboard")
 	procGetClipboardData = user32.NewProc("GetClipboardData")
