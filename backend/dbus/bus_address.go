@@ -3,7 +3,7 @@ package dbus
 import (
 	"errors"
 	"os"
-	"path/filepath"
+	"path"
 )
 
 // busAddress is the session bus's address: what DBUS_SESSION_BUS_ADDRESS
@@ -14,7 +14,7 @@ func busAddress() (string, error) {
 		return addr, nil
 	}
 	if dir := os.Getenv("XDG_RUNTIME_DIR"); dir != "" {
-		return "unix:path=" + filepath.Join(dir, "bus"), nil
+		return "unix:path=" + path.Join(dir, "bus"), nil
 	}
 	return "", errors.New("dbus: DBUS_SESSION_BUS_ADDRESS is not set, so there is no session bus to talk to")
 }
