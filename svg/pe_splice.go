@@ -46,5 +46,8 @@ func (p *xmlParser) peAt(s string, i int, over []string) (string, int, error) {
 	if err != nil {
 		return "", 0, err
 	}
+	if err := p.spendExpansion(len(text)); err != nil {
+		return "", 0, fmt.Errorf("antui/svg: %w", err)
+	}
 	return text, size, nil
 }

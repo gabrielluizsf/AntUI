@@ -3,7 +3,6 @@ package svg
 import (
 	"fmt"
 	"net/url"
-	"os"
 )
 
 // pictureFile reads a `file:` address from this machine: the path it names,
@@ -25,5 +24,5 @@ func pictureFile(target string) ([]byte, error) {
 		// an address that is only an opaque string.
 		path = u.Opaque
 	}
-	return os.ReadFile(path)
+	return readLocalPicture(path)
 }

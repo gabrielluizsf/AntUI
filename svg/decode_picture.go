@@ -19,6 +19,9 @@ func decodePicture(chain []string, target string, data []byte) (*pictureFrames, 
 	if sniffSVG(data) {
 		return svgFrames(chain, target, data)
 	}
+	if err := checkPictureSize(data, 1); err != nil {
+		return nil, err
+	}
 	src, format, err := image.Decode(bytes.NewReader(data))
 	if err != nil {
 		return nil, fmt.Errorf("it is not a drawing, a PNG, a JPEG or a GIF: %w", err)

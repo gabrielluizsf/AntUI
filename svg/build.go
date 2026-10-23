@@ -8,6 +8,9 @@ package svg
 // picture.
 func (img *Image) build(e *element, inherited Style, forceKids bool) *Node {
 	warn := func(format string, args ...any) { img.warn(e, format, args...) }
+	if !img.spendNode(warn) {
+		return &Node{Name: e.Name, Style: Style{Hidden: true}}
+	}
 	st := inherited.with(e, warn)
 	if e.Name == "use" {
 		// A `<use>` follows its own clip itself, after its x and y have moved

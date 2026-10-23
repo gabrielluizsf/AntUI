@@ -24,5 +24,8 @@ func (p *xmlParser) definedEntity(name string, size int, over []string) (string,
 	if err != nil {
 		return "", 0, err
 	}
+	if err := p.spendExpansion(len(text)); err != nil {
+		return "", 0, err
+	}
 	return text, size, nil
 }

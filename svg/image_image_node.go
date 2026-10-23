@@ -51,7 +51,12 @@ func (img *Image) imageNode(e *element, st Style, warn func(string, ...any)) *No
 	// drawing it faint does not fade the rest. The request carries it because a
 	// picture still on its way has to be faded when it lands.
 	ask := pictureRequest{slot: slot, fit: fit, align: align, opacity: st.Opacity, href: href, warn: warn, deferred: deferred, chain: img.chain}
-	if !img.fillPicture(resolveHref(st.base, href), ask) {
+	target := resolveHref(st.base, href)
+	if readsThisMachine(target) && img.cameFromNetwork() {
+		warn("the picture %q is on this machine, and a drawing from a server may not read one", href)
+		return n
+	}
+	if !img.fillPicture(target, ask) {
 		return n
 	}
 	n.Pic = slot

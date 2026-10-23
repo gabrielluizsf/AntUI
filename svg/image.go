@@ -106,6 +106,11 @@ type Image struct {
 	// the first repeat.
 	uses []string
 
+	// built counts the nodes this drawing has built, against [maxBuiltNodes],
+	// and overBudget says the count has been passed and the warning said.
+	built      int
+	overBudget bool
+
 	// chain is the drawings being read through an `<image>` after another to
 	// get to this one — outermost first, this one last — for the same reason
 	// as uses: an address naming one of them closes a circle, and it is

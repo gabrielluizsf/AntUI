@@ -13,4 +13,7 @@ type xmlParser struct {
 	// and the doctype's parameter ones, which hold pieces of the doctype.
 	ents entityTable
 	pes  entityTable
+	// expanded is how many bytes the doctype's own names have been read into
+	// so far, against [maxEntityBytes].
+	expanded int
 }

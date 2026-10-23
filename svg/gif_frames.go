@@ -13,6 +13,13 @@ import (
 // before, and the disposal byte says what of it is left for the next — piling
 // the changes onto one sheet in order is what turns them into pictures.
 func gifFrames(data []byte) (*pictureFrames, error) {
+	frames, err := gifFrameCount(data)
+	if err != nil {
+		return nil, err
+	}
+	if err := checkPictureSize(data, frames); err != nil {
+		return nil, err
+	}
 	g, err := gif.DecodeAll(bytes.NewReader(data))
 	if err != nil {
 		return nil, fmt.Errorf("it is not a GIF: %w", err)

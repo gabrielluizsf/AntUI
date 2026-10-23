@@ -2,7 +2,6 @@ package svg
 
 import (
 	"fmt"
-	"os"
 )
 
 // fetchPicture is the bytes behind an address that has already been resolved
@@ -19,5 +18,5 @@ func fetchPicture(target string) ([]byte, error) {
 		}
 		return fetch(target)
 	}
-	return os.ReadFile(target)
+	return readLocalPicture(target)
 }
