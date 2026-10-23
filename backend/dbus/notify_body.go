@@ -8,11 +8,11 @@ const notifySignature = "susssasa{sv}i"
 // replace), no icon, no actions, no hints and the server's own timeout.
 func notifyBody(appName, summary, body string) []byte {
 	var e encoder
-	e.string(appName)
+	e.string(wireString(appName))
 	e.uint32(0)
 	e.string("")
-	e.string(summary)
-	e.string(body)
+	e.string(wireString(summary))
+	e.string(plainBody(body))
 	e.emptyArray(4) // as
 	e.emptyArray(8) // a{sv}: a dict entry aligns like a struct
 	e.int32(-1)
