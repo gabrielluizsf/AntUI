@@ -20,9 +20,17 @@ import (
 // A base that names no scheme (or that starts with a Windows drive letter) is a
 // path on this machine, not a URL, and is joined with the path package rather
 // than parsed as a URL: `C:\dir\` parsed as a URL would read `C` as a scheme.
+// A drive path in a drawing whose base is a URL is only a path on that server,
+// so it is completed against it and never names this machine's disk.
 func resolveHref(base, href string) string {
-	if href == "" || isWindowsAbsPath(href) {
+	if href == "" {
 		return href
+	}
+	if isWindowsAbsPath(href) {
+		if hrefScheme(base) == "" {
+			return href
+		}
+		href = "/" + strings.ReplaceAll(href, `\`, "/")
 	}
 	if strings.HasPrefix(href, "//") {
 		if scheme := hrefScheme(base); scheme != "" {
