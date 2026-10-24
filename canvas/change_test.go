@@ -52,6 +52,7 @@ func TestDamageCoversEveryDrawing(t *testing.T) {
 		},
 		"blit":        func() { cv.Blit(120, 30, layer(t)) },
 		"blit over":   func() { cv.BlitOver(140, 30, layer(t)) },
+		"copy":        func() { cv.Copy(100, 60, layer(t)) },
 		"blit scaled": func() { cv.BlitScaled(Area{X: 160, Y: 30, Width: 64, Height: 64}, layer(t)) },
 		"blit matrix": func() {
 			cv.BlitMatrix(layer(t), Matrix{A: 1, D: 1}, Area{Width: 32, Height: 32})
