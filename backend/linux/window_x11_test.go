@@ -304,3 +304,38 @@ func TestTheScaleIsReadAgainAfterADesktopWrite(t *testing.T) {
 			second, secondOK, first, firstOK)
 	}
 }
+
+// A window opened for another renderer has no background and hands out its
+// XID and display; the connection has to come through both alive.
+func TestExternalWindowHandsOutItsXID(t *testing.T) {
+	face := &testFace{}
+	cv, err := canvas.NewCanvas(320, 200)
+	if err != nil {
+		t.Fatal(err)
+	}
+	face.canvas = cv
+	d, err := Open(face, backend.Options{Title: "antui external test", Width: 320, Height: 200, External: true})
+	if err != nil {
+		t.Skipf("could not open a window: %v", err)
+	}
+	t.Cleanup(d.Close)
+
+	for range 5 {
+		d.Pump(face)
+	}
+	window, display := d.Native()
+	if window == 0 || window != d.window {
+		t.Errorf("Native window = %#x, want the window's XID %#x", window, d.window)
+	}
+	if display != os.Getenv("DISPLAY") {
+		t.Errorf("Native display = %q, want %q", display, os.Getenv("DISPLAY"))
+	}
+	if !d.SetExternal(false) || !d.SetExternal(true) {
+		t.Errorf("SetExternal was refused (%q)", d.dead)
+	}
+	time.Sleep(50 * time.Millisecond)
+	d.Pump(face)
+	if !d.alive {
+		t.Fatalf("the server dropped the connection: %q", d.dead)
+	}
+}

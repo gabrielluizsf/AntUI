@@ -24,6 +24,11 @@ type Driver struct {
 	// notification area, which [Driver.Close] has to take away again.
 	notifyIcon bool
 
+	// external says another renderer owns the window, so WM_PAINT validates
+	// the window without blitting the canvas over that renderer's frame.
+	// See [Driver.SetExternal].
+	external bool
+
 	limits        backend.Limits
 	info          bitmapInfoHeader
 	highSurrogate uint16 // the high half of a pending UTF-16 pair

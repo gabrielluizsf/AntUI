@@ -34,6 +34,7 @@ func OpenWith(opt Options) (*Window, error) {
 		queue:          make([]Event, 0, 32),
 		theme:          LightTheme(),
 	}
+	win.external = opt.External
 	win.native = newBackend()
 	if err := win.native.open(win, opt.Title, opt.Width, opt.Height); err != nil {
 		return nil, err

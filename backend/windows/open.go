@@ -25,6 +25,7 @@ func Open(win backend.Face, opts backend.Options) (*Driver, error) {
 		windowedWidth:  opts.Width,
 		windowedHeight: opts.Height,
 		themeStale:     true, // nothing has read the theme yet
+		external:       opts.External,
 	}
 	d.instance, _, _ = procGetModuleHandleW.Call(0)
 

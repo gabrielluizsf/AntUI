@@ -19,9 +19,17 @@ func (x *Driver) createWindow(title string, width, height int) {
 	binary.LittleEndian.PutUint16(body[16:], 0) // border width
 	binary.LittleEndian.PutUint16(body[18:], 1) // class = InputOutput
 	binary.LittleEndian.PutUint32(body[20:], 0) // visual = the parent's
-	binary.LittleEndian.PutUint32(body[24:], 0x2|0x800)
-	binary.LittleEndian.PutUint32(body[28:], 0xFF1F1F1F) // background pixel
-	binary.LittleEndian.PutUint32(body[32:], xEventMask)
+	if x.external {
+		// No background at all: the server leaves exposed pixels alone
+		// instead of filling them grey on top of another renderer's frame.
+		body = body[:32]
+		binary.LittleEndian.PutUint32(body[24:], cwEventMask)
+		binary.LittleEndian.PutUint32(body[28:], xEventMask)
+	} else {
+		binary.LittleEndian.PutUint32(body[24:], cwBackPixel|cwEventMask)
+		binary.LittleEndian.PutUint32(body[28:], backgroundPixel)
+		binary.LittleEndian.PutUint32(body[32:], xEventMask)
+	}
 	x.send(xCreateWindow, 0, body) // detail 0 = inherit the parent's depth
 
 	x.setTitleOn(title)

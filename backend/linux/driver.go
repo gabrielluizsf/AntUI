@@ -26,6 +26,13 @@ type Driver struct {
 	// notice the window no longer wants it.
 	cursor uint32
 
+	// display is DISPLAY as it was when the window opened, which another
+	// renderer opens its own connection to; see [Driver.Native]. external
+	// says that renderer owns the window, so the server paints no
+	// background over it; see [Driver.SetExternal].
+	display  string
+	external bool
+
 	rootDepth      byte
 	imageByteOrder byte // 0 = LSB first
 	bitsPerPixel   byte

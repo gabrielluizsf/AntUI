@@ -34,6 +34,11 @@ type stubBackend struct {
 	// tested against a dark one without a display to take it from.
 	themeDark  bool
 	themeKnown bool
+
+	// What the stub was last told about another renderer owning the
+	// surface, and the handle it gives that renderer.
+	external bool
+	handle   NativeHandle
 }
 
 func (s *stubBackend) open(*Window, string, int, int) error { return nil }
@@ -90,6 +95,12 @@ func (s *stubBackend) setSize(_ *Window, width, height int) bool {
 func (s *stubBackend) displayScale() (float64, bool) { return scaleOrNone(s.scale) }
 
 func (s *stubBackend) systemDark() (bool, bool) { return s.themeDark, s.themeKnown }
+
+func (s *stubBackend) setExternal(on bool) bool { s.external = on; return true }
+
+func (s *stubBackend) nativeHandle() (NativeHandle, bool) {
+	return s.handle, s.handle.System != NativeNone
+}
 
 // newTestWindow builds a window backed by the stub, at a known size.
 func newTestWindow(t testing.TB, w, h int) (*Window, *stubBackend) {

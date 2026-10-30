@@ -8,11 +8,15 @@ import (
 )
 
 // paint answers WM_PAINT: the freshly drawn frame is blitted, the paint is
-// closed, and the window is told to redraw.
+// closed, and the window is told to redraw. While another renderer owns the
+// window the blit is skipped — the paint still has to be begun and ended, or
+// Windows sends WM_PAINT again forever.
 func (d *Driver) paint(hwnd uintptr) {
 	var ps paintStruct
 	hdc, _, _ := procBeginPaint.Call(hwnd, uintptr(unsafe.Pointer(&ps)))
-	d.blit(hdc)
+	if !d.external {
+		d.blit(hdc)
+	}
 	procEndPaint.Call(hwnd, uintptr(unsafe.Pointer(&ps)))
 	d.win.Push(backend.Event{Type: backend.EventExpose})
 }

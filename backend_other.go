@@ -51,3 +51,6 @@ func (noWindows) setCursor(CursorIcon) bool { return false }
 func (noWindows) sendNotification(string, string) bool { return false }
 
 func (noWindows) setClipboard(string) bool { return false }
+
+func (noWindows) setExternal(bool) bool              { return false }
+func (noWindows) nativeHandle() (NativeHandle, bool) { return NativeHandle{}, false }

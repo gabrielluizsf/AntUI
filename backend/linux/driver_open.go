@@ -4,6 +4,7 @@ package linux
 
 import (
 	"errors"
+	"os"
 	"syscall"
 
 	"github.com/gabrielluizsf/antui/backend"
@@ -18,6 +19,7 @@ func (x *Driver) open(win backend.Face, title string, width, height int) error {
 		return err
 	}
 	x.conn = conn
+	x.display = os.Getenv("DISPLAY")
 	// Raw access to the socket, for reading without waiting. Without it the
 	// backend still works, a millisecond at a time.
 	if sc, ok := conn.(interface {

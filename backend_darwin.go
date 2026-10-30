@@ -58,6 +58,13 @@ func (n *darwinNative) setClipboard(text string) bool        { return n.d.SetCli
 func (n *darwinNative) setCursor(icon backend.CursorIcon) bool {
 	return n.d.SetCursor(icon)
 }
+
+// setExternal cannot hand the surface over yet: the view repaints the last
+// frame it was given on its own, and there is no NSView or CAMetalLayer
+// handed out for another renderer to draw into.
+func (n *darwinNative) setExternal(bool) bool              { return false }
+func (n *darwinNative) nativeHandle() (NativeHandle, bool) { return NativeHandle{}, false }
+
 func (n *darwinNative) sendNotification(title, body string) bool {
 	return n.d.SendNotification(title, body)
 }

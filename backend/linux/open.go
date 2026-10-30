@@ -13,7 +13,7 @@ func Open(win backend.Face, opts backend.Options) (*Driver, error) {
 	if win == nil {
 		return nil, errors.New("antui: x11 backend with no window to drive")
 	}
-	d := &Driver{alive: true}
+	d := &Driver{alive: true, external: opts.External}
 	if err := d.open(win, opts.Title, opts.Width, opts.Height); err != nil {
 		return nil, err
 	}

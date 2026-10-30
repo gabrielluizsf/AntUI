@@ -15,6 +15,7 @@ type windowState struct {
 	shouldClose bool
 	presented   bool // whether the last End reached the display
 	fullscreen  bool // what was last asked for
+	external    bool // another renderer owns the surface; see set_external.go
 
 	scale       float64 // pixels per point, 0 until the backend says
 	scaleForced bool    // a SetDisplayScale override; see window_system.go

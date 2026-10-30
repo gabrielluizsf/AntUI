@@ -19,6 +19,14 @@ func (win *Window) End() bool {
 	if win.native == nil {
 		return false
 	}
+	if win.external {
+		// Another renderer owns the surface. The canvas is not measured or
+		// sent: that is a scan and an upload for pixels nobody would see, and
+		// a copy that would land on top of what the other renderer drew.
+		win.presented = false
+		win.pace()
+		return false
+	}
 	dirty := win.dirtyRegion()
 	// A frame that drew the picture already on the screen is not presented at
 	// all: the platform is not asked, which is what keeps an idle window from

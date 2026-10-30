@@ -19,4 +19,11 @@ type Options struct {
 	// Fullscreen opens straight into a full screen, without the frame of a
 	// windowed frame appearing first.
 	Fullscreen bool
+
+	// External hands the window's surface to another renderer — OpenGL,
+	// Vulkan, WebGPU — drawing through [Window.NativeHandle]. The window
+	// still opens, sizes, pumps input and paces the loop, but the software
+	// canvas is never copied into it, and the platform does not paint a
+	// background over what the other renderer put there.
+	External bool
 }

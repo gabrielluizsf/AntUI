@@ -8,7 +8,7 @@ import (
 )
 
 func (n *x11Native) open(win *Window, title string, width, height int) error {
-	d, err := x11.Open(win, backend.Options{Title: title, Width: width, Height: height})
+	d, err := x11.Open(win, backend.Options{Title: title, Width: width, Height: height, External: win.external})
 	if err != nil {
 		return err
 	}

@@ -17,7 +17,7 @@ type windowsNative struct{ d *win32.Driver }
 func newBackend() platform { return &windowsNative{} }
 
 func (n *windowsNative) open(win *Window, title string, width, height int) error {
-	d, err := win32.Open(win, backend.Options{Title: title, Width: width, Height: height})
+	d, err := win32.Open(win, backend.Options{Title: title, Width: width, Height: height, External: win.external})
 	if err != nil {
 		return err
 	}
@@ -57,6 +57,14 @@ func (n *windowsNative) setIcon(images []*canvas.Canvas) bool { return n.d.SetIc
 func (n *windowsNative) setClipboard(text string) bool        { return n.d.SetClipboard(text) }
 func (n *windowsNative) setCursor(icon backend.CursorIcon) bool {
 	return n.d.SetCursor(icon)
+}
+func (n *windowsNative) setExternal(on bool) bool { return n.d.SetExternal(on) }
+func (n *windowsNative) nativeHandle() (NativeHandle, bool) {
+	hwnd, instance := n.d.Native()
+	if hwnd == 0 {
+		return NativeHandle{}, false
+	}
+	return NativeHandle{System: NativeWin32, Window: hwnd, Instance: instance}, true
 }
 func (n *windowsNative) sendNotification(title, body string) bool {
 	return n.d.SendNotification(title, body)

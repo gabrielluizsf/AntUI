@@ -66,4 +66,12 @@ type platform interface {
 	// setClipboard puts text on the system clipboard, reporting whether the
 	// system took it.
 	setClipboard(text string) bool
+	// setExternal tells the platform whether another renderer owns the
+	// surface, so its own repaints — an expose, a WM_PAINT, a background
+	// fill — stop drawing over that renderer. It reports whether the
+	// platform can hand the surface over at all.
+	setExternal(on bool) bool
+	// nativeHandle is what another renderer needs to draw into the window,
+	// and whether the platform has one to give.
+	nativeHandle() (NativeHandle, bool)
 }
